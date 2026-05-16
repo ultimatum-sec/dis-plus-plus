@@ -46,14 +46,25 @@ module;
 #include <array>
 #include <ctime>
 
-#define PRINT_EXIT_CODE(code) \
-	std::println \
-	( \
-		"Exit code: {}", \
-		code == 0 \
-			? "EXIT_SUCCESS" \
-			: "EXIT_FAILURE" \
-	)
+#define BEGIN_LOG(parser, path, pid) \
+	parser.LoadFile(DisLog::s_LogPath); \
+	\
+	auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())}; \
+	\
+	const auto &_{parser.Set<std::string_view>("crash.time", std::format("{}", *std::localtime(&now)))}; \
+	\
+	const auto &_ \
+	{ \
+		parser.Set<std::string_view> \
+		( \
+			"crash.path", \
+			path.is_absolute() \
+				? path.string() \
+				: std::filesystem::absolute(path).string() \
+		) \
+	}; \
+	\
+	const auto &_{parser.Set<std::string_view>("crash.pid", std::format("{}", pid))}
 
 module DisLog;
 
@@ -146,35 +157,45 @@ template <> struct std::formatter<std::tm> : public std::formatter<std::string>
 	}
 };
 
-DisLog::DisLog(const std::filesystem::path &prog) noexcept
-	: m_ProgName{prog}
+DisLog::DisLog(void) noexcept
+	: m_Parser{}
+	, m_ProgName{"unknown"}
 {
-	auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())};
-	std::print
-	(
-		std::cerr,
-		"{} Uncaught exception in program {}[{}]\n"
-		"Exception class: ",
-		*std::localtime(&now),
-		std::regex_replace
-		(
-			this->m_ProgName.is_absolute()
-				? this->m_ProgName.string()
-				: std::filesystem::absolute(this->m_ProgName).string(),
-			std::regex
-			{
-				std::filesystem::absolute(this->m_ProgName)
-					.parent_path()
-					.string()
-					+ std::filesystem::path::preferred_separator
-			},
-			std::string{}
-		),
+	const auto pid
+	{
 		#ifdef _WIN32
 			::GetCurrentProcessId()
 		#else
 			::getpid()
 		#endif
+	};
+	
+	BEGIN_LOG
+	(
+		this->m_Parser,
+		this->m_ProgName,
+		pid
+	);
+}
+
+DisLog::DisLog(const std::filesystem::path &prog) noexcept
+	: m_Parser{}
+	, m_ProgName{prog}
+{
+	const auto pid
+	{
+		#ifdef _WIN32
+			::GetCurrentProcessId()
+		#else
+			::getpid()
+		#endif
+	};
+
+	BEGIN_LOG
+	(
+		this->m_Parser,
+		this->m_ProgName,
+		pid
 	);
 }
 
@@ -363,8 +384,6 @@ int DisLog::LogErr(const std::exception &err) const noexcept
 		}
 	);
 
-	PRINT_EXIT_CODE(EXIT_FAILURE);
-	
 	return EXIT_FAILURE;
 }
 
@@ -406,8 +425,6 @@ int DisLog::LogErr(void) const noexcept
 			return std::unexpected{error};
 		}
 	);
-	
-	PRINT_EXIT_CODE(EXIT_FAILURE);
 	
 	return EXIT_FAILURE;
 }
