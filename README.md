@@ -10,7 +10,7 @@ style and use the latest C++ versions (now it's C++26).
 
 Dis++ requires Apple SDK installed. It also builds only on macOS
 under both x86-64 and AArch64. Some STL versions contain a bug,
-which may interrupt building (see the [the first issue](https://github.com/ultimatum-sec/dis-plus-plus/issues/1)).
+which may interrupt building (see the [the first issue](https://github.com/ultimatum-sec/dis-plus-plus/issues/1#issue-4459837456)).
 Just clone this repo, "cd" to directory, containing
 the source and type:
 ```bash
