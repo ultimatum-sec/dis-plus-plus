@@ -114,4 +114,4 @@ dis++.app: $(BUILDDIR)$(PATHSEP)dis++ $(DYLIBS)
 	$(MKAPP)
 	
 clean:
-	$(RM) $(PRECOMPILED) $(OBJECTS) $(MOBJECTS) $(BUILDDIR)$(PATHSEP)dis++
+	$(RMDIR) $(BUILDDIR)

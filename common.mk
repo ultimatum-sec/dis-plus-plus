@@ -37,6 +37,7 @@ ifeq ($(OS), Windows_NT)
 	# Base commands (I infer they always should be in the current OS)
 	MKDIR=mkdir -p
 	MOVE=move /Y
+	RMDIR=rmdir /s /q
 	RM=def /f
 else
 	# Script for assembling all the binaries together
@@ -80,5 +81,6 @@ else
 	# Base commands (I infer they always should be in the current OS)
 	MKDIR=mkdir -p
 	MOVE=mv
+	RMDIR=rm -rf
 	RM=rm -f
 endif

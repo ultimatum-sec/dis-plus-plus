@@ -70,4 +70,4 @@ $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB): $(MOBJECTS) $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:
-	$(RM) $(PRECOMPILED) $(MOBJECTS) $(OBJECTS)
+	$(RMDIR) $(BUILDDIR)
