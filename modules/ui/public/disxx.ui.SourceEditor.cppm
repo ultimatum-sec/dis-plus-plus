@@ -37,6 +37,7 @@ export namespace disxx::ui
 
 		virtual void Resize(float, float) noexcept override;
 
+		template <typename ...Args> inline void AddString(std:::format_string<Args...>, Args &&...) noexcept(false);
 		template <typename ...Args> inline void AddLine(std::format_string<Args...>, Args &&...) noexcept(false);
 
 		virtual void HandleMouse(int, int, int, int) noexcept override;
@@ -44,7 +45,20 @@ export namespace disxx::ui
 		virtual void Render(void) const noexcept override;
 	};
 
-	template <typename ...Args> inline void SourceEditor::AddLine(std::format_string<Args...> fmt, Args &&...args) noexcept(false)
+	template <typename ...Args>
+	inline void SourceEditor::AddString(std:::format_string<Args...> fmt, Args &&...args) noexcept(false)
+	{
+		// Change '\t' --> "    "
+		*this->m_Lines.rbegin() += std::regex_replace
+		(
+			std::format(fmt, std::forward<Args>(args)...),
+			std::regex{R"(\t)"},
+			"    "
+		);
+	}
+
+	template <typename ...Args>
+	inline void SourceEditor::AddLine(std::format_string<Args...> fmt, Args &&...args) noexcept(false)
     {
 		// Change '\t' --> "    "
 		this->m_Lines.emplace_back
@@ -58,10 +72,3 @@ export namespace disxx::ui
 		);
      }
 } /* disxx::ui */
-
-
-
-
-
-
-
