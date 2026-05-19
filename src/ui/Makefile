@@ -1,8 +1,8 @@
 OS=$(shell echo %OS%)
 ifeq ($(OS), Windows_NT)
-	include ..\\common.mk
+	include ..\\..\\common.mk
 else
-	include ../common.mk
+	include ../../common.mk
 endif
 
 MODULESPATH=..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)

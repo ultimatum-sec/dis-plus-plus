@@ -1,23 +1,8 @@
 ifeq ($(shell echo %OS%), Windows_NT)
-	include ..\\common.mk
+	include ..\\..\\common.mk
 else
-	include ../common.mk
+	include ../../common.mk
 endif
-
-ANALYZERFLAGS=\
-	--analyze \
-	-Xclang -analyzer-checker=alpha,core,cplusplus,deadcode,optin,osx,security,unix \
-	-Xclang -analyzer-checker=security.insecureAPI,alpha.security.ArrayBoundV2 \
-	-Xclang -analyzer-config -Xclang aggressive-binary-operation-simplification=true \
-	-Xclang -analyzer-config -Xclang c++-template-depth=1024 -Xclang -analyzer-config \
-	-Xclang unix.DynamicMemoryModeling:Optimistic=true -Xclang -analyzer-config \
-	-Xclang osx.cocoa.RunLoopAutoreleaseLeak:CheckAllAutoreleasePools=true \
-	-Xclang -analyzer-config -Xclang exploration_strategy=unexplored_first_queue \
-	-Xclang -analyzer-config -Xclang widen-loops=true \
-	-Xclang -analyzer-config -Xclang suppression-file=./clang_suppressions.txt \
-	-Xanalyzer -analyzer-output=html -Xanalyzer -o ./.analysis -DCLANG_ANALYZER \
-	-Wno-unused-command-line-argument
-	#-Xclang crosscheck-with-z3=true
 
 RUBYFLAGS=-I ./misc
 
@@ -39,10 +24,6 @@ CXXFLAGS=\
 LDFLAGS=\
 	-dylib -O2 $(LTOFLAGS) -demangle -S -arch $(ARCH) -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
 	-L$(DEPENDENCIESDIR) -ldisxx-util
-	#-platform_version macos 26.1.0 26.1 \
-    #-current_version 0.1.0 -compatibility_version 0.1.0 -lclang_rt.asan_osx_dynamic \
-   	#-rpath @executable_path -rpath $(shell $(CXX) -print-search-dirs | grep 'libraries: ' | sed 's/libraries: =//')/lib/darwin \
-	#-L$(shell $(CXX) -print-search-dirs | grep 'libraries: ' | sed 's/libraries: =//')/lib/darwin
 
 ifeq ($(OS), Darwin)
 	LDFLAGS+=-install_name @executable_path/../Frameworks/libdisxx-disasm.$(DYLIB)
@@ -370,9 +351,6 @@ vpath %.cppm $(sort $(dir $(MODULES)))
 vpath %.cpp $(sort $(dir $(SOURCES)))
 vpath %.pcm $(sort $(dir $(PRECOMPILED)))
 
-#ANALYSED=$(addsuffix .analyze, $(SOURCES))
-#ANALYSED+=$(addsuffix .analyze, $(MODULES))
-
 $(DEPENDENCIESDIR):
 	$(MKDIR) $@
 $(PRECOMPILEDDIR):
@@ -390,11 +368,6 @@ $(OBJECTS): $(OBJECTSDIR)$(PATHSEP)%.o: %.cpp | $(OBJECTSDIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
 $(BUILDDIR)$(PATHSEP)libdisxx-disasm.$(DYLIB): $(MOBJECTS) $(OBJECTS) | $(UTILITIES)
 	$(LD) $(LDFLAGS) $^ -o $@
-
-#=======================================#
-#analysis: $(SOURCES) $(MODULES)
-#	$(CXX) $(ANALYZERFLAGS) $(CXXFLAGS) $(SOURCES) $(MODULES)
-#=======================================#
 
 clean:
 	$(RM) $(OBJECTS) $(MOBJECTS) $(PRECOMPILED)

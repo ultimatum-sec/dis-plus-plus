@@ -1,14 +1,23 @@
 module;
 
+#include <OpenGL/gl.h>
+#include <GLUT/glut.h>
+
+#include <algorithm>
 #include <ranges>
+#include <format>
 #include <vector>
+#include <regex>
 #include <span>
 
 module FailHandler;
 
+import disxx.ui.Widget;
+import disxx.ui.SourceEditor;
+
 FailHandler *FailHandler::s_pInstance = nullptr;
 
-FailHabdler::FailHandler(std::span<const char *> args) noexcept
+FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	: MainWindow{800, 600}
 	, m_Args{args}
 	, m_Parser{}
@@ -24,7 +33,7 @@ FailHabdler::FailHandler(std::span<const char *> args) noexcept
 			0.f,
 			0.f,
 			this->m_Width,
-			this->m_Height * 0.75f
+			this->m_Height
 		)
 	);
 
@@ -33,42 +42,78 @@ FailHabdler::FailHandler(std::span<const char *> args) noexcept
 	glutInit(&argc, const_cast<char **>(args.data()));
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
+	glutInitWindowSize(this->m_Width, this->m_Height);
+	this->m_Win = glutCreateWindow("dis++ crash reporter");
+
+	glutKeyboardFunc
+    (
+        [](unsigned char key, int x, int y) -> void
+        { s_pInstance->__KeyboardFunc(key, x, y); }
+    );
+
+    glutMouseFunc
+    (
+	 [](int button, int state, int x, int y) -> void
+	 { s_pInstance->__MouseFunc(button, state, x, y); }
+    );
+
+    glutReshapeFunc
+    (
+        [](int width, int height) -> void
+        { s_pInstance->__ReshapeFunc(width, height); }
+    );
+
+    glutMotionFunc
+    (
+        [](int x, int y) -> void
+        { s_pInstance->__MotionFunc(x, y); }
+    );
+
+    glutDisplayFunc
+    (
+        [](void) -> void
+        { s_pInstance->__DisplayFunc(); }
+    );
+
 	const auto &ptr{reinterpret_cast<disxx::ui::SourceEditor *>(this->m_Widgets.at(0).get())};
 	ptr->SetColor(0.2f, 0.2f, 0.2f);
 
-	ptr->AddLine("{:-<32}");
+	ptr->AddLine("{:-<64}", "");
     ptr->AddLine("Application dis++ was closed due to unexpected error!");
     ptr->AddLine("Please attach description of the crash and its reasons at:");
 	ptr->AddLine("https://github.com/ultimatum-sec/dis-plus-plus/issues");
-	ptr->AddLine("{:-<32};");
+	ptr->AddLine("{:-<64}", "");
+
+	ptr->AddLine("");
 
 	// Start the report
-	ptr->AddLine("{:-<8}BEGIN-REPORT{:-<8}");
+	ptr->AddLine("{:-<32}BEGIN-REPORT{:-<32}", "", "");
 
 	// Load file with data of the crash
 	this->m_Parser.LoadFile("../crash.ini");
 
 	ptr->AddLine("-*- General information -*-");
-	ptr->AddLine("==={:-<64}===");
+	ptr->AddLine("==={:-<64}===", "");
 
 	// Get general information about the crash
 	const auto &time{this->m_Parser.Get<std::string>("crash.time").value_or("[unknown]")};
 	const auto &path{this->m_Parser.Get<std::string>("crash.path").value_or("[unknown]")};
-	const auto &pid{this->m_Parser.Get<std::string>("crash.pid")}.value_or("[unknown]");
+	const auto &pid{this->m_Parser.Get<std::string>("crash.pid").value_or("[unknown]")};
 	const auto &type{this->m_Parser.Get<std::string>("crash.type").value_or("[unknown]")};
 	ptr->AddLine("{} {}[{}]: Terminating due to uncaught exception", time, path, pid);
 	ptr->AddLine("of type {}", type);
 
-	ptr->AddLine("==={:-<64}===");
+	ptr->AddLine("==={:-<64}===", "");
 
 	ptr->AddLine("-*- Thread state -*-");
-	ptr->AddLine("==={:-<64}===");
+	ptr->AddLine("==={:-<64}===", "");
 
 	// Get thread state
 	const auto &registers{this->m_Parser.Get<std::string>("crash.registers").value_or("[unknown]")};
-	const auto index{}, end{std::ranges::count(registers, ',') + 1};
+	auto index{0ul}, end{static_cast<unsigned long int>(std::ranges::count(registers, ',') + 1ul)};
 	std::vector<std::string> formatted{};
-	for (std::sregex_iterator it{registers.begin(), registers.end(), std::regex{R"((\S+)(?=(\,|$)))"}}, var{}; it != var; ++it)
+	std::regex regex{R"((\S+)(?=(\,|$)))"};
+	for (std::sregex_iterator it{registers.begin(), registers.end(), regex}, var{}; it != var; ++it)
 	{
 		const auto &match{(*it)[0].str()};
 		
@@ -76,7 +121,7 @@ FailHabdler::FailHandler(std::span<const char *> args) noexcept
 		{
 			match
 				| std::views::all
-				| std::views::take_while([](auto ch) -> bool { return ch != ':'; });
+				| std::views::take_while([](auto ch) -> bool { return ch != ':'; })
 				| std::ranges::to<std::string>()
 		};
 		
@@ -85,7 +130,7 @@ FailHabdler::FailHandler(std::span<const char *> args) noexcept
 			match
 				| std::views::all
 				| std::views::reverse
-				| std::views::take_while([](auto ch) -> bool { return ch != ':'; });
+				| std::views::take_while([](auto ch) -> bool { return ch != ':'; })
 				| std::ranges::to<std::string>()
 		};
 
@@ -109,67 +154,31 @@ FailHabdler::FailHandler(std::span<const char *> args) noexcept
 		}
 	}
 
-	ptr->AddLine("==={:-<64}===");
+	ptr->AddLine("==={:-<64}===", "");
 
 	// Get call stack
 	ptr->AddLine("-*- Call stack -*-");
-	ptr->AddLine("==={:-<64}===");
+	ptr->AddLine("==={:-<64}===", "");
 
-	const auto &stack{this->m_Parser.Get<std::string>("crash.stack")}.value_or("[unknown]");
-	for (std::sregex_iterator it{stack.begin(), stack.end(), std::regex{R"((\S+)(?=(\,|$)))"}}, var{}; it != var; ++it)
+	const auto &stack{this->m_Parser.Get<std::string>("crash.stack").value_or("[unknown]")};
+	regex = std::regex{R"((\S+)(?=(\,|$)))"};
+	for (std::sregex_iterator it{stack.begin(), stack.end(), regex}, var{}; it != var; ++it)
 	{
 		const auto &match{(*it)[0].str()};
 		ptr->AddLine("{}", match);
 	}
 
-	ptr->AddLine("==={:-<64}===");
+	ptr->AddLine("==={:-<64}===", "");
 	
 	// End the report
-	ptr->AddLine("{:-<8}END-REPORT{:-<8}");
+	ptr->AddLine("{:-<8}END-REPORT{:-<8}", "", "");
 }
 
 FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
 {
     if (!s_pInstance) [[likely]]
         s_pInstance = new FailHandler{std::span<const char *>(argv, argc)};
-    
-	/* Set up GLUT functions */
-	
-	glutKeyboardFunc
-	(
-		[](unsigned char key, int x, int y) -> void
-		{ s_pInstance->__KeyboardFunc(key, x, y); }
-	);
-
-	glutMouseFunc
-	(
-		[](int button, int state, int x, int y) -> void
-		{ s_pInstance->__MouseFunc(button, state, x, y); }
-	);
-
-	glutReshapeFunc
-	(
-		[](int width, int height) -> void
-		{ s_pInstance->__ReshapeFunc(width, height); }
-	);
-
-	glutMotionFunc
-	(
-		[](int x, int y) -> void
-		{ s_pInstance->__MotionFunc(x, y); }
-	);
-
-	glutDisplayFunc
-	(
-		[](void) -> void
-		{ s_pInstance->__DisplayFunc(); }
-	);
-
-	s_pInstance->__ReshapeFunc(s_pInstance->m_Width, s_pInstance->m_Height);
-	
-	glutShowWindow();
-    glutPostWindowRedisplay(s_pInstance->m_Win);
-
+	glutPostRedisplay();
 	return s_pInstance;
 }
 
@@ -197,13 +206,8 @@ void FailHandler::__ReshapeFunc(int width, int height) noexcept(false)
     gluOrtho2D(0, this->m_Width, 0, this->m_Height);
     glMatrixMode(GL_MODELVIEW);
 
-    this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height * 0.25f);
-	this->m_Widgets.at(0)->Replace(0.f, this->m_Height * 0.75f);
-	this->m_Widgets.at(1)->Resize
-	(
-		this->m_Width,
-		this->m_Height * 0.75f
-	);
+    this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height);
+	this->m_Widgets.at(0)->Replace(0.f, 0.f);
     
     glutPostRedisplay();
 }

@@ -12,7 +12,7 @@ import disxx.ui.MainWindow;
 export class __DISXX_PRIVATE__ [[nodiscard]] FailHandler final : public disxx::ui::MainWindow
 {
   private:
-	static Application *s_pInstance;
+	static FailHandler *s_pInstance;
 
   private:
 	std::span<const char *> m_Args;
@@ -35,6 +35,6 @@ export class __DISXX_PRIVATE__ [[nodiscard]] FailHandler final : public disxx::u
 	// THIS FUNCTION CALLS ONCE!
 	static FailHandler *Init(int &, const char *[]) noexcept(false);
 	
-	virtual ~FailHandler(void) noexcept override;
+	virtual ~FailHandler(void) noexcept override = default;
 	int Exec(void) const noexcept(false);
-}
+};

@@ -1,7 +1,7 @@
 ifeq ($(shell echo %OS%), Windows_NT)
-	include ..\\common.mk
+	include ..\\..\\common.mk
 else
-	include ../common.mk
+	include ../../common.mk
 endif
 
 MODULESPATH=..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)
