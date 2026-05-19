@@ -17,6 +17,8 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application final : public disxx::u
 {
   private:
 	static Application *s_pInstance;
+	
+  private:
 	std::span<const char *> m_Args;
 	FileInput *m_pInput;
 

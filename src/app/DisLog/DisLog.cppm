@@ -29,9 +29,18 @@ module;
 
 export module DisLog;
 
+import disxx.utility.ini.Parser;
+
 export class DisLog
 {
   private:
+	static constexpr std::string s_LogPath
+	{
+		std::string{".."}
+			+ std::filesystem::path::preferred_separator
+			+ std::string{"crash.ini"}
+	};
+	
 	#ifdef __aarch64__
 		static constexpr std::array<const char *, 33> s_RegsTable
 		{
@@ -43,7 +52,8 @@ export class DisLog
 		};
 	#endif
 
-  private:	
+  private:
+	disxx::utility::ini::Parser m_Parser;	
 	std::filesystem::path m_ProgName;
 
   public:
@@ -60,7 +70,7 @@ export class DisLog
 	__GetThreadState(void) noexcept;
 
   public:
-	explicit DisLog(void) noexcept = default;
+	explicit DisLog(void) noexcept;
 	explicit DisLog(const std::filesystem::path &) noexcept;	
 	DisLog(const DisLog &) noexcept = default;
 	DisLog &operator=(const DisLog &) noexcept = default;

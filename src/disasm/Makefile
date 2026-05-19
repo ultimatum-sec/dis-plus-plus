@@ -1,7 +1,7 @@
 ifeq ($(shell echo %OS%), Windows_NT)
-	include ..\\common.mk
+	include ..\\..\\common.mk
 else
-	include ../common.mk
+	include ../../common.mk
 endif
 
 RUBYFLAGS=-I ./misc
@@ -24,10 +24,6 @@ CXXFLAGS=\
 LDFLAGS=\
 	-dylib -O2 $(LTOFLAGS) -demangle -S -arch $(ARCH) -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
 	-L$(DEPENDENCIESDIR) -ldisxx-util
-	#-platform_version macos 26.1.0 26.1 \
-    #-current_version 0.1.0 -compatibility_version 0.1.0 -lclang_rt.asan_osx_dynamic \
-   	#-rpath @executable_path -rpath $(shell $(CXX) -print-search-dirs | grep 'libraries: ' | sed 's/libraries: =//')/lib/darwin \
-	#-L$(shell $(CXX) -print-search-dirs | grep 'libraries: ' | sed 's/libraries: =//')/lib/darwin
 
 ifeq ($(OS), Darwin)
 	LDFLAGS+=-install_name @executable_path/../Frameworks/libdisxx-disasm.$(DYLIB)

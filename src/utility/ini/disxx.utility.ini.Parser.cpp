@@ -207,7 +207,7 @@ namespace disxx::utility::ini
 	std::expected<std::monostate, disxx::utility::error::ParserError>
 	Parser::LoadFile(const std::filesystem::path path) noexcept
 	{
-		this->m_Path = path; 
+		this->m_Path = path;
 		this->m_Handle.open
 		(
 			this->m_Path,
