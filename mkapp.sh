@@ -2,6 +2,8 @@
 
 if [ `uname -s` = "Darwin" ]
 then
+	make ./src/app/
+	
 	mkdir -p ./dis++.app/Contents/
 	cp ./misc/Info.plist ./dis++.app/Contents/Info.plist
 
@@ -20,6 +22,8 @@ then
 	mkdir -p ./dis++.app/Contents/MacOS/
 	cp ./src/app/build/dis++ ./dis++.app/Contents/MacOS/dis++
 else
+	make ./src/app/
+
 	mkdir -p ./dis++/
 	cp ./src/app/build/dependencies/libdisxx-util.dylib ./dis++/libdisxx-util.dylib
 	cp ./src/app/build/dependencies/libdisxx-ui.dylib ./dis++/libdisxx-ui.dylib
