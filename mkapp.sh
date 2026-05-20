@@ -2,7 +2,7 @@
 
 if [ `uname -s` = "Darwin" ]
 then
-	make ./src/app/
+	make -C ./src/app/
 	
 	mkdir -p ./dis++.app/Contents/
 	cp ./misc/Info.plist ./dis++.app/Contents/Info.plist
