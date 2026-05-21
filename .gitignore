@@ -4,9 +4,9 @@ loaders/utils/mapfile/windows/*
 
 .DS_Store
 
-disasm/decoder/DataProcessingScalarFPAndAdvancedSIMD/SubDecoder/main.rb
-disasm/file.rb
-disasm/main.rb
+src/disasm/decoder/DataProcessingScalarFPAndAdvancedSIMD/SubDecoder/main.rb
+src/disasm/file.rb
+src/disasm/main.rb
 
 main.cpp
 

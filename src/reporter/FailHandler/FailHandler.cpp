@@ -90,7 +90,15 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("{:-<32}BEGIN-REPORT{:-<32}", "", "");
 
 	// Load file with data of the crash
-	this->m_Parser.LoadFile("../crash.ini");
+	this->m_Parser.LoadFile
+	(
+		std::filesystem::path{args.at(0)}
+			.parent_path()
+			.string()
+			+ std::string{".."}
+			+ std::filesystem::path::preferred_separator
+			+ "crash.ini"
+	);
 
 	ptr->AddLine("-*- General information -*-");
 	ptr->AddLine("==={:-<64}===", "");
@@ -171,7 +179,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("==={:-<64}===", "");
 	
 	// End the report
-	ptr->AddLine("{:-<8}END-REPORT{:-<8}", "", "");
+	ptr->AddLine("{:-<32}END-REPORT{:-<32}", "", "");
 }
 
 FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
