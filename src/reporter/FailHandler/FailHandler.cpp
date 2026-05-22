@@ -10,6 +10,8 @@ module;
 #include <regex>
 #include <span>
 
+#include <print>
+
 module FailHandler;
 
 import disxx.ui.Widget;
@@ -53,8 +55,8 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 
     glutMouseFunc
     (
-	 [](int button, int state, int x, int y) -> void
-	 { s_pInstance->__MouseFunc(button, state, x, y); }
+		[](int button, int state, int x, int y) -> void
+		{ s_pInstance->__MouseFunc(button, state, x, y); }
     );
 
     glutReshapeFunc
@@ -95,9 +97,23 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		std::filesystem::path{args.at(0)}
 			.parent_path()
 			.string()
+			+ std::filesystem::path::preferred_separator
 			+ std::string{".."}
 			+ std::filesystem::path::preferred_separator
 			+ "crash.ini"
+	);
+
+	std::println
+	(
+		"{}",
+		std::filesystem::path{args.at(0)}
+			.parent_path()
+			.string()
+			+ std::filesystem::path::preferred_separator
+			+ std::string{".."}
+			+ std::filesystem::path::preferred_separator
+			+ "crash.ini"
+
 	);
 
 	ptr->AddLine("-*- General information -*-");
