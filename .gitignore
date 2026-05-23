@@ -10,11 +10,12 @@ src/disasm/main.rb
 
 main.cpp
 
-utility/build/*
-ui/build/*
-loader/build/*
-disasm/build/*
-build/*
+src/utility/build/*
+src/ui/build/*
+src/loader/build/*
+src/disasm/build/*
+src/reporter/build/*
+src/app/build/*
 
 *.o
 *.obj
