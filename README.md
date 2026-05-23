@@ -1,5 +1,8 @@
 # Dis++
 
+![File dialogue](misc/dialogue.png)
+![Disassembled program](misc/main.png)
+
 ## Idea of the project
 
 I created the project as a ~~stupid~~, simple, fast and lightweight disassembler

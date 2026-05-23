@@ -103,19 +103,6 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 			+ "crash.ini"
 	);
 
-	std::println
-	(
-		"{}",
-		std::filesystem::path{args.at(0)}
-			.parent_path()
-			.string()
-			+ std::filesystem::path::preferred_separator
-			+ std::string{".."}
-			+ std::filesystem::path::preferred_separator
-			+ "crash.ini"
-
-	);
-
 	ptr->AddLine("-*- General information -*-");
 	ptr->AddLine("==={:-<64}===", "");
 
@@ -133,7 +120,14 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("==={:-<64}===", "");
 
 	// Get thread state
-	const auto &registers{this->m_Parser.Get<std::string>("crash.registers").value_or("[unknown]")};
+	std::string registers{};
+	if (const auto &var{this->m_Parser.Get<std::string>("crash.registers")})
+		registers = var.value();
+	else
+		registers = var.error().what();
+
+	//const auto &registers{this->m_Parser.Get<std::string>("crash.registers").value_or("[unknown]")};
+	
 	auto index{0ul}, end{static_cast<unsigned long int>(std::ranges::count(registers, ',') + 1ul)};
 	std::vector<std::string> formatted{};
 	std::regex regex{R"((\S+)(?=(\,|$)))"};

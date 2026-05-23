@@ -5,15 +5,15 @@ module;
 #include <format>
 #include <regex>
 
+#include <print>
+
 #define CHECKF(f) \
-	if (!(f)) [[unlikely]] \
+	if (!(f).is_open()) [[unlikely]] \
 		return std::unexpected{disxx::utility::error::ParserError{"FileError"}}
 
 #define CHECKR(r) \
 	if (!(r)) [[unlikely]] \
 		return std::unexpected{(r).error()}
-
-#include <print>
 
 module disxx.utility.ini.Parser;
 
@@ -52,56 +52,44 @@ namespace disxx::utility::ini
 	{
 		CHECKF(this->m_Handle);
 
-		bool sectionFound{false};
-		const auto &[section, key]{Parser::__SplitSectionWithKey(str)};
-	
+		const auto &[section, key]{__SplitSectionWithKey(str)};
+
+		// Read the file contents
+		std::string contents{};
 		while (!this->m_Handle.eof())
 		{
-			std::string line{};
-			std::getline(this->m_Handle, line);
-			// Check if it's section
-			if (line.starts_with(";"))
-				continue;
-
-			// Eat all spaces
-			line = std::regex_replace
-			(
-				line,
-				std::regex{R"(\s+)"},
-				std::string{}
-			);
-		
-			// Eat all comments
-			line = std::regex_replace
-			(
-				line,
-				std::regex{R"(;\S+$)"},
-				std::string{}
-			);
-
-			if (std::smatch matches{}; std::regex_search(line, matches, std::regex{R"(\[(\S+)\])"}))
-				sectionFound = matches[1].str() == section;
-			else
-			{
-				std::smatch other{};
-				std::regex_search
-				(
-					line,
-					other,
-					std::regex{R"((\S+)=(\S+))"}
-				);
-
-				if (other[1].str() == key && sectionFound)
-				{
-					this->m_Handle.seekg(0);
-					return other[2].str();
-				}
-			}
+			char ch{};
+			this->m_Handle.read(&ch, sizeof(decltype(ch)));
+			contents += ch;
 		}
 
-		this->m_Handle.seekg(0);
+		// Check if the section exists
+		//if (contents.find(std::format("[{}]", section)) == std::string::npos) [[unlikely]]
+		//	return std::unexpected{disxx::utility::error::ParserError{"SectionNotFoundError"}};
 
-		return std::unexpected{disxx::utility::error::ParserError{"ElementError"}};
+		// Add stub section to the end
+		contents += "\n[__stub]";
+		
+		const static std::regex m{R"((\[.*\].*)(?=(\[.*\])))", std::regex_constants::extended};
+		for (std::sregex_iterator it{contents.begin(), contents.end(), m}, end{}; it != end; ++it)
+		{
+			const auto &match{(*it)[0].str()};
+			if (!match.starts_with(std::format("[{}]", section)))
+				continue;
+
+			std::smatch k{};
+			std::regex_match
+			(
+				match,
+				k,
+				std::regex{std::format(R"({}\s+\=\s+(.*)\n)", key)}
+			);
+
+			if (k[1].str().starts_with(key))
+				return k[1].str();
+		}
+
+		return std::unexpected{disxx::utility::error::ParserError{"ElementNotFoundError"}};
 	}
 
 	std::expected<std::monostate, disxx::utility::error::ParserError> Parser::__AddValue(std::string_view name, std::string_view val) noexcept
@@ -153,7 +141,6 @@ namespace disxx::utility::ini
 		// Check if the key has already been added (or assigned)
 		if (const auto &result{Parser::__FindValue(name)})
 		{
-			std::println("Already got the value!");
 			if (result.value() != val)
 			{
 				contents = std::regex_replace
@@ -166,7 +153,6 @@ namespace disxx::utility::ini
 		}
 		else if (const auto &formatted{std::format("[{}]", section)}; contents.find(formatted) != std::string::npos)
 		{
-			std::println("Already got the section!");
 			contents = std::regex_replace
 			(
 				contents,
@@ -176,7 +162,6 @@ namespace disxx::utility::ini
 		}
 		else
 		{
-			std::println("Adding the new section!");
 			contents += std::format
 			(
 				"[{}]\n{}={}\n",
