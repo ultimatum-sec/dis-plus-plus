@@ -1,10 +1,6 @@
 # dis++
-<a>
-	<img src="https://github.com/ultimatum-sec/dis-plus-plus/blob/main/misc/dialogue.png" alt="dis++ file dialogue" width="360px">
-</a>
-<a>
-	<img src="https://github.com/ultimatum-sec/dis-plus-plus/blob/main/misc/main.png" alt="dis++ main window" width="460px">
-</a>
+
+![File dialogue](misc/dialogue.png) ![Main window](misc/main.png)
 
 ## Idea of the project
 
