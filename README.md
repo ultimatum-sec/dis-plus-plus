@@ -1,6 +1,9 @@
 # dis++
 
-![File dialogue](misc/dialogue.png) ![Main window](misc/main.png)
+<div style="display: flex; gap: 10px;">
+  <img src="misc/dialogue.png" alt="dis++ file dialogue" style="width: 200px; height: 150px;">
+  <img src="misc/main.png" alt="dis++ main window" style="width: 200px; height: 150px;">
+</div>
 
 ## Idea of the project
 
