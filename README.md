@@ -1,8 +1,8 @@
 # dis++
 
 <div style="display: flex; gap: 10px;">
-  <img src="misc/dialogue.png" alt="dis++ file dialogue" style="width: 360px; height: 400px;">
-  <img src="misc/main.png" alt="dis++ main window" style="width: 460px; height: 400px;">
+  <img src="misc/dialogue.png" alt="dis++ file dialogue" style="width: 360px;">
+  <img src="misc/main.png" alt="dis++ main window" style="width: 460px;">
 </div>
 
 ## Idea of the project

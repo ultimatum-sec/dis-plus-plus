@@ -64,8 +64,8 @@ namespace disxx::utility::ini
 		}
 
 		// Check if the section exists
-		//if (contents.find(std::format("[{}]", section)) == std::string::npos) [[unlikely]]
-		//	return std::unexpected{disxx::utility::error::ParserError{"SectionNotFoundError"}};
+		if (contents.find(std::format("[{}]", section)) == std::string::npos) [[unlikely]]
+			return std::unexpected{disxx::utility::error::ParserError{"SectionNotFoundError"}};
 
 		// Add stub section to the end
 		contents += "\n[__stub]";
