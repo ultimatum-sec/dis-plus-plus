@@ -10,7 +10,7 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-   	-c -std=c++26 -Wall -Wextra -Wpedantic -Wdeprecated -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+   	-c -std=c++26 -Wall -Wpedantic -Wextra -Wdeprecated -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
 	-fno-omit-frame-pointer -Wshadow -Wdouble-promotion -Wfloat-equal -Wundef -Wswitch-default -Wimplicit-fallthrough \
 	-Wmissing-declarations -Wuninitialized -Wconditional-uninitialized -Wcast-qual -Wcast-align -Wformat -Wformat-security -Wnull-dereference \
 	-Wnon-virtual-dtor -Woverloaded-virtual -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wold-style-cast -Wthread-safety -fstrict-aliasing \
@@ -77,7 +77,7 @@ __DYLIBS=libdisxx-util.$(DYLIB) libdisxx-ui.$(DYLIB) libdisxx-macho.$(DYLIB) lib
 DYLIBS=$(addprefix $(DEPENDENCIESDIR)$(PATHSEP), $(__DYLIBS))
 
 .PHONY: all
-all: dis++.app
+all: $(BUILDDIR)$(PATHSEP)dis++
 
 vpath %.cppm $(sort $(dir $(MODULES)))
 vpath %.cpp $(sort $(dir $(SOURCES)))
@@ -110,8 +110,5 @@ $(DEPENDENCIESDIR)$(PATHSEP)libdisxx-disasm.$(DYLIB): | $(DEPENDENCIESDIR)
 $(BUILDDIR)$(PATHSEP)dis++: $(MOBJECTS) $(OBJECTS) | $(DYLIBS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-dis++.app: $(BUILDDIR)$(PATHSEP)dis++ $(DYLIBS)
-	$(MKAPP)
-	
 clean:
 	$(RMDIR) $(BUILDDIR)

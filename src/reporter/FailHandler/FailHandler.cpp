@@ -103,6 +103,8 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 			+ "crash.ini"
 	);
 
+	//this->m_Parser.Set<std::string_view>("crash.path", "~/DisPlusPlus/main");
+
 	ptr->AddLine("-*- General information -*-");
 	ptr->AddLine("==={:-<64}===", "");
 
@@ -130,7 +132,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	
 	auto index{0ul}, end{static_cast<unsigned long int>(std::ranges::count(registers, ',') + 1ul)};
 	std::vector<std::string> formatted{};
-	std::regex regex{R"((\S+)(?=(\,|$)))"};
+	std::regex regex{R"(([\s\S]+)(?=(\,|$)))"};
 	for (std::sregex_iterator it{registers.begin(), registers.end(), regex}, var{}; it != var; ++it)
 	{
 		const auto &match{(*it)[0].str()};

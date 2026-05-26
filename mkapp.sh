@@ -3,6 +3,7 @@
 if [ `uname -s` = "Darwin" ]
 then
 	make -C ./src/app/
+	make -C ./src/reporter/
 	
 	mkdir -p ./dis++.app/Contents/
 	cp ./misc/Info.plist ./dis++.app/Contents/Info.plist
@@ -21,8 +22,10 @@ then
 
 	mkdir -p ./dis++.app/Contents/MacOS/
 	cp ./src/app/build/dis++ ./dis++.app/Contents/MacOS/dis++
+	cp ./src/reporter/build/reporter ./dis++.app/Contents/MacOS/reporter
 else
-	make ./src/app/
+	make -C ./src/app/
+	make -C ./src/reporter/
 
 	mkdir -p ./dis++/
 	cp ./src/app/build/dependencies/libdisxx-util.dylib ./dis++/libdisxx-util.dylib
@@ -31,4 +34,5 @@ else
 	cp ./src/app/build/dependencies/libdisxx-disasm.dylib ./dis++/libdisxx-disasm.dylib
 
 	cp ./src/app/build/dis++ ./dis++/dis++
+	cp ./src/reporter/build/reporter ./dis++/reporter
 fi

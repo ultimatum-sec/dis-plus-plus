@@ -54,14 +54,45 @@ namespace disxx::utility::ini
 
 		const auto &[section, key]{__SplitSectionWithKey(str)};
 
-		// Read the file contents
-		std::string contents{};
-		while (!this->m_Handle.eof())
+		auto &&contents
 		{
-			char ch{};
-			this->m_Handle.read(&ch, sizeof(decltype(ch)));
-			contents += ch;
-		}
+			[this](void) -> std::string
+			{
+				// Using such kind of reading because
+				// std::istream_iterator<char>() eats '\n'
+
+				std::string buff{}, line{};
+				while (std::getline(this->m_Handle, line))
+				{
+					if (line.starts_with(";")) [[unlikely]]
+						continue;
+
+					// Eat all spaces
+					line = std::regex_replace
+					(
+						line,
+						std::regex{R"(\s+)"},
+						std::string{}
+					);
+
+					// Eat all comments
+					line = std::regex_replace
+					(
+						line,
+						std::regex{R"(;\S+$)"},
+						std::string{}
+					);
+
+					buff += line + '\n';
+				}
+			
+				this->m_Handle.seekg(0);
+
+				return buff;
+			}()
+		};
+
+		this->m_Handle.seekg(0);
 
 		// Check if the section exists
 		if (contents.find(std::format("[{}]", section)) == std::string::npos) [[unlikely]]
@@ -70,7 +101,7 @@ namespace disxx::utility::ini
 		// Add stub section to the end
 		contents += "\n[__stub]";
 		
-		const static std::regex m{R"((\[.*\].*)(?=(\[.*\])))", std::regex_constants::extended};
+		const static std::regex m{R"((\[.+\].*)(?=(\[.+\])))"};
 		for (std::sregex_iterator it{contents.begin(), contents.end(), m}, end{}; it != end; ++it)
 		{
 			const auto &match{(*it)[0].str()};
@@ -82,7 +113,7 @@ namespace disxx::utility::ini
 			(
 				match,
 				k,
-				std::regex{std::format(R"({}\s+\=\s+(.*)\n)", key)}
+				std::regex{std::format(R"({}\s+\=\s+[\s\S]*\n)", key)}
 			);
 
 			if (k[1].str().starts_with(key))
@@ -105,11 +136,9 @@ namespace disxx::utility::ini
 				// Using such kind of reading because
 				// std::istream_iterator<char>() eats '\n'
 
-				std::string buff{};
-				while (!this->m_Handle.eof())
+				std::string buff{}, line{};
+				while (std::getline(this->m_Handle, line))
 				{
-					std::string line{};
-					std::getline(this->m_Handle, line);
 					if (line.starts_with(";")) [[unlikely]]
 						continue;
 

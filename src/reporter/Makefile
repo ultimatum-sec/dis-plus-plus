@@ -70,7 +70,7 @@ $(DEPENDENCIESDIR)$(PATHSEP)libdisxx-util.$(DYLIB): | $(DEPENDENCIESDIR)
 	make -C ..$(PATHSEP)utility
 	$(MOVE) ..$(PATHSEP)utility$(PATHSEP)build$(PATHSEP)$(notdir $@) $@
 $(DEPENDENCIESDIR)$(PATHSEP)libdisxx-ui.$(DYLIB): | $(DEPENDENCIESDIR)
-	make -C ..$(PATHSEP)utility
+	make -C ..$(PATHSEP)ui
 	$(MOVE) ..$(PATHSEP)ui$(PATHSEP)build$(PATHSEP)$(notdir $@) $@
 $(BUILDDIR)$(PATHSEP)reporter: $(MOBJECTS) $(OBJECTS) | $(DYLIBS)
 	$(LD) $(LDFLAGS) $^ -o $@
