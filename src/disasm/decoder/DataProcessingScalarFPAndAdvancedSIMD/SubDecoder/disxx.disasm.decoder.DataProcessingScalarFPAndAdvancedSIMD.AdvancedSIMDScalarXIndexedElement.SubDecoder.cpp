@@ -53,10 +53,6 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         // |01|U|11111|size|L|M|Rm|opcode|H|0|Rn|Rd|
         // +--+-+-----+----+-+-+--+------+-+-+--+--+
  
-		// Unable to compile this code due to libstdc++/115939 STL bug
-		return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-
-        /*
         unsigned short int U, size, L, M, Rm, opcode, H, Rn, Rd;
         U = bits::extract<unsigned short int, std::uint32_t, 29, 29>(this->m_Insn);
         size = bits::extract<unsigned short int, std::uint32_t, 22, 23>(this->m_Insn);
@@ -167,6 +163,5 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             ->SetArrangementSpecifier(std::format("{:c}[{}]", Ts, index.value()));
         
         return std::make_pair(insn, std::move(this->m_Operands));
-		*/
 	}
 } /* disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::AdvancedSIMDScalarXIndexedElement */

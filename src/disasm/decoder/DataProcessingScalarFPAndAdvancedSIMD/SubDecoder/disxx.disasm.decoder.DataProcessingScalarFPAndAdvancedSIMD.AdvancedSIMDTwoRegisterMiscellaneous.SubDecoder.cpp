@@ -79,10 +79,6 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         // |0|Q|U|01110|size|10000|opcode|10|Rn|Rd|
         // +-+-+-+-----+----+-----+------+--+--+--+
 
-		// Unable to compile this code due to libstdc++/115939 STL bug
-		return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-
-		/*
         unsigned short int Q, U, size, opcode, Rn, Rd;
         Q = bits::extract<unsigned short int, std::uint32_t, 30, 30>(this->m_Insn);
         U = bits::extract<unsigned short int, std::uint32_t, 29, 29>(this->m_Insn);
@@ -762,6 +758,5 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         }
 
         return std::make_pair(insn, std::move(this->m_Operands));
-		*/
 	}
 } /* disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::AdvancedSIMDTwoRegisterMiscellaneous */
