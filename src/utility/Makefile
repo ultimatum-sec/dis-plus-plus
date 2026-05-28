@@ -35,6 +35,9 @@ MODULES=\
 	$(BASEPATH)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cppm \
 	$(BASEPATH)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.ParserError.cppm \
 	$(BASEPATH)private$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.AbstractWrapper.cppm \
+	$(BASEPATH)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.BaseParser.cppm \
+	$(BASEPATH)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Reader.cppm \
+	$(BASEPATH)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Writer.cppm \
 	$(BASEPATH)public$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.Container.cppm \
 	$(BASEPATH)public$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.Pointer.cppm \
 	$(BASEPATH)public$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cppm
@@ -43,6 +46,9 @@ SOURCES=\
 	.$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cpp \
 	.$(PATHSEP)error$(PATHSEP)disxx.utility.error.DisassemblyError.cpp \
 	.$(PATHSEP)error$(PATHSEP)disxx.utility.error.ParserError.cpp \
+	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.BaseParser.cpp \
+	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Reader.cpp \
+	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Writer.cpp \
 	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cpp
 
 PRECOMPILED=$(addprefix $(PRECOMPILEDDIR)$(PATHSEP), $(notdir $(MODULES:.cppm=.pcm)))

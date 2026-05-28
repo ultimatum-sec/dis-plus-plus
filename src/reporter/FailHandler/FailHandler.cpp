@@ -92,7 +92,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("{:-<32}BEGIN-REPORT{:-<32}", "", "");
 
 	// Load file with data of the crash
-	this->m_Parser.LoadFile
+	this->m_Parser.Load
 	(
 		std::filesystem::path{args.at(0)}
 			.parent_path()
@@ -109,10 +109,10 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("==={:-<64}===", "");
 
 	// Get general information about the crash
-	const auto &time{this->m_Parser.Get<std::string>("crash.time").value_or("[unknown]")};
-	const auto &path{this->m_Parser.Get<std::string>("crash.path").value_or("[unknown]")};
-	const auto &pid{this->m_Parser.Get<std::string>("crash.pid").value_or("[unknown]")};
-	const auto &type{this->m_Parser.Get<std::string>("crash.type").value_or("[unknown]")};
+	const auto &time{this->m_Parser.Read<std::string>("crash.time").value_or("[unknown]")};
+	const auto &path{this->m_Parser.Read<std::string>("crash.path").value_or("[unknown]")};
+	const auto &pid{this->m_Parser.Read<std::string>("crash.pid").value_or("[unknown]")};
+	const auto &type{this->m_Parser.Read<std::string>("crash.type").value_or("[unknown]")};
 	ptr->AddLine("{} {}[{}]: Terminating due to uncaught exception", time, path, pid);
 	ptr->AddLine("of type {}", type);
 
@@ -123,7 +123,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 
 	// Get thread state
 	std::string registers{};
-	if (const auto &var{this->m_Parser.Get<std::string>("crash.registers")})
+	if (const auto &var{this->m_Parser.Read<std::string>("crash.registers")})
 		registers = var.value();
 	else
 		registers = var.error().what();
@@ -180,7 +180,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("-*- Call stack -*-");
 	ptr->AddLine("==={:-<64}===", "");
 
-	const auto &stack{this->m_Parser.Get<std::string>("crash.stack").value_or("[unknown]")};
+	const auto &stack{this->m_Parser.Read<std::string>("crash.stack").value_or("[unknown]")};
 	regex = std::regex{R"((\S+)(?=(\,|$)))"};
 	for (std::sregex_iterator it{stack.begin(), stack.end(), regex}, var{}; it != var; ++it)
 	{

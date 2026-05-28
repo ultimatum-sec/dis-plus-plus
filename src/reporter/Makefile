@@ -25,6 +25,9 @@ LDFLAGS=\
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.ParserError.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.BaseParser.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Reader.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Writer.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.AbstractWrapper.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.Pointer.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cppm \
