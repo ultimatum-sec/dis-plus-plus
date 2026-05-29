@@ -46,16 +46,18 @@ module;
 #include <array>
 #include <ctime>
 
+import disxx.utility.ini.Parser;
+
 #define BEGIN_LOG(parser, path, pid) \
-	parser.LoadFile(DisLog::s_LogPath); \
+	parser.Load(DisLog::s_LogPath); \
 	\
 	auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())}; \
 	\
-	const auto &_{parser.Set<std::string_view>("crash.time", std::format("{}", *std::localtime(&now)))}; \
+	const auto &_{parser.Write<std::string_view>("crash.time", std::format("{}", *std::localtime(&now)))}; \
 	\
 	const auto &_ \
 	{ \
-		parser.Set<std::string_view> \
+		parser.Write<std::string_view> \
 		( \
 			"crash.path", \
 			path.is_absolute() \
@@ -64,7 +66,7 @@ module;
 		) \
 	}; \
 	\
-	const auto &_{parser.Set<std::string_view>("crash.pid", std::format("{}", pid))}
+	const auto &_{parser.Write<std::string_view>("crash.pid", std::format("{}", pid))}
 
 module DisLog;
 
