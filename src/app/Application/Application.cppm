@@ -12,6 +12,7 @@ export import <span>;
 import disxx.ui.MainWindow;
 import disxx.ui.Widget;
 import FileInput;
+import DisLog;
 
 export class __DISXX_PRIVATE__ [[nodiscard]] Application final : public disxx::ui::MainWindow
 {
@@ -19,6 +20,7 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application final : public disxx::u
 	static Application *s_pInstance;
 	
   private:
+	DisLog m_Logger;
 	std::span<const char *> m_Args;
 	FileInput *m_pInput;
 

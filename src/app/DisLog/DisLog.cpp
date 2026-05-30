@@ -48,25 +48,58 @@ module;
 
 import disxx.utility.ini.Parser;
 
-#define BEGIN_LOG(parser, path, pid) \
-	parser.Load(DisLog::s_LogPath); \
-	\
-	auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())}; \
-	\
-	const auto &_{parser.Write<std::string_view>("crash.time", std::format("{}", *std::localtime(&now)))}; \
-	\
-	const auto &_ \
-	{ \
-		parser.Write<std::string_view> \
-		( \
-			"crash.path", \
-			path.is_absolute() \
-				? path.string() \
-				: std::filesystem::absolute(path).string() \
-		) \
-	}; \
-	\
-	const auto &_{parser.Write<std::string_view>("crash.pid", std::format("{}", pid))}
+#if defined(_WIN32)
+#	define BEGIN_LOG(parser, name) \
+		std::filesystem::create_directory(std::filesystem::path{}.parent_path()); \
+		parser.Load(std::format("{}\\dis++\\crash.ini", std::getenv("LOCALAPPDATA"))); \
+		auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())}; \
+		const auto &_{parser.Write<std::string_view>("crash.time", std::format("{}", *std::localtime(&now)))}; \
+		const auto &_ \
+		{ \
+			parser.Write<std::string_view> \
+			( \
+				"crash.path", \
+				(name).is_absolute() \
+					? (name).string() \
+					: std::filesystem::absolute(name).string() \
+			) \
+		}; \
+		const auto &_{parser.Write<std::string_view>("crash.pid", std::format("{}", ::GetCurrentProcessId()))}
+#elif defined(__APPLE__)
+#	define BEGIN_LOG(parser, name) \
+		std::filesystem::create_directory(std::format("{}/Library/Logs/dis++/", std::getenv("HOME"))); \
+		parser.Load(std::format("{}/Library/Logs/dis++/crash.ini", std::getenv("HOME"))); \
+		auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())}; \
+		const auto &_{parser.Write<std::string_view>("crash.time", std::format("{}", *std::localtime(&now)))}; \
+		const auto &_ \
+		{ \
+			parser.Write<std::string_view> \
+			( \
+				"crash.path", \
+				(name).is_absolute() \
+					? (name).string() \
+					: std::filesystem::absolute(name).string() \
+			) \
+		}; \
+		const auto &_{parser.Write<std::string_view>("crash.pid", std::format("{}", ::getpid()))}
+#else
+#	define BEGIN_LOG(parser, name) \
+		std::filesystem::create_directory(std::format("{}/.local/state/dis++/crash/", std::getenv("HOME"))); \
+		parser.Load(std::format("{}/.local/state/dis++/crash/crash.ini", std::getenv("HOME"))); \
+		auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())}; \
+		const auto &_{parser.Write<std::string_view>("crash.time", std::format("{}", *std::localtime(&now)))}; \
+		const auto &_ \
+		{ \
+			parser.Write<std::string_view> \
+			( \
+				"crash.path", \
+				(name).is_absolute() \
+					? (name).string() \
+					: std::filesystem::absolute(name).string() \
+			) \
+		}; \
+		const auto &_{parser.Write<std::string_view>("crash.pid", std::format("{}", ::getpid()))}
+#endif
 
 module DisLog;
 
@@ -162,44 +195,12 @@ template <> struct std::formatter<std::tm> : public std::formatter<std::string>
 DisLog::DisLog(void) noexcept
 	: m_Parser{}
 	, m_ProgName{"unknown"}
-{
-	const auto pid
-	{
-		#ifdef _WIN32
-			::GetCurrentProcessId()
-		#else
-			::getpid()
-		#endif
-	};
-	
-	BEGIN_LOG
-	(
-		this->m_Parser,
-		this->m_ProgName,
-		pid
-	);
-}
+{}
 
 DisLog::DisLog(const std::filesystem::path &prog) noexcept
 	: m_Parser{}
 	, m_ProgName{prog}
-{
-	const auto pid
-	{
-		#ifdef _WIN32
-			::GetCurrentProcessId()
-		#else
-			::getpid()
-		#endif
-	};
-
-	BEGIN_LOG
-	(
-		this->m_Parser,
-		this->m_ProgName,
-		pid
-	);
-}
+{}
 
 __DEMANGLE_CONSTEVAL std::expected<std::unique_ptr<char, decltype(&std::free)>, DisLog::DemanglingError>
 DisLog::__Demangle([[maybe_unused]] const std::string &sym) noexcept
@@ -228,10 +229,10 @@ DisLog::__Demangle([[maybe_unused]] const std::string &sym) noexcept
 }
 
 __UNWIND_CONSTEVAL
-std::expected<std::vector<std::string>, DisLog::UnwindingError> DisLog::__UnwindStack(void) noexcept
+std::expected<std::string, DisLog::UnwindingError> DisLog::__LogStack(void) noexcept
 {
 	#if __has_include(<libunwind.h>)
-		std::vector<std::string> funcs{};
+		std::string calls{};
 		unw_context_t ctx{};
 		unw_cursor_t cursor{};
 
@@ -254,47 +255,45 @@ std::expected<std::vector<std::string>, DisLog::UnwindingError> DisLog::__Unwind
 
 			if (unw_get_proc_name(&cursor, pSym.get(), BUFSIZ, &offset) == UNW_ESUCCESS) [[likely]]
 			{
-				const auto demangled{__Demangle(pSym.get())};
-				funcs.emplace_back
+				const auto &demangled{__Demangle(pSym.get())};
+				calls += std::format
 				(
-					std::format
+					"{} + 0x{:x} [0x{:016x}], ",
 					(
-						"{} + 0x{:x} [0x{:016x}]",
-						(
-							demangled
-								? *demangled
-								: pSym
-						).get(),
-						offset,
-						pc
-					)
+						demangled
+							? *demangled
+							: pSym
+					).get(),
+					offset,
+					pc
 				);
 			}
 			else [[unlikely]]
 			{
-				funcs.emplace_back
+				calls += std::format
 				(
-					std::format
-					(
-						"??? + 0x{:x} [0x{:016x}]",
-						offset,
-						pc
-					)
+					"??? + 0x{:x} [0x{:016x}], ",
+					offset,
+					pc
 				);
 			}
 		}
 
-		return funcs;
+		// Delete the last comma with space and return
+		return calls
+			| std::views::all
+			| std::views::take(calls.size() + 2)
+			| std::ranges::to<std::string>();
 	#else
 		return std::unexpected{UnwindingError::ERR_NOLIB};
 	#endif
 }
 
 __GETTHREADSTATE_CONSTEVAL
-std::expected<std::vector<std::string>, DisLog::ThreadStateError> DisLog::__GetThreadState(void) noexcept
+std::expected<std::string, DisLog::ThreadStateError> DisLog::__LogThreadState(void) noexcept
 {
 	#if __has_include(<libunwind.h>) && defined(__aarch64__)
-		std::vector<std::string> registers{};
+		std::string registers{};
 		unw_context_t ctx{};
 		unw_cursor_t cursor{};
 
@@ -307,27 +306,20 @@ std::expected<std::vector<std::string>, DisLog::ThreadStateError> DisLog::__GetT
 			if (i == 0) continue;
 			else if (i > 1) break;
 
-			std::string accumulator{};
 			for (unsigned short j{UNW_AARCH64_X0}; j <= UNW_AARCH64_PC; ++j)
 			{
 				if (unw_word_t state{}; unw_get_reg(&cursor, j, &state) == UNW_ESUCCESS) [[likely]]
-				{
-					if (j > 0 && j % 4 == 0)
-					{
-						registers.push_back(accumulator);
-						accumulator.clear();
-					}
-
-					accumulator += std::format("{}: 0x{:016x} ", s_RegsTable.at(j), state);
-				}
+					registers += std::format("{}: 0x{:016x}, ", s_RegsTable.at(j), state);
 				else [[unlikely]]
 					return std::unexpected{ThreadStateError::ERR_REGISTERERROR};
 			}
-
-			registers.push_back(accumulator);
 		}
 
-		return registers;
+		// Delete the last comma with space and return
+		return registers
+			| std::views::all
+			| std::views::take(registers.size() - 2)
+			| std::ranges::to<std::string>();
 	#elif !defined(__aarch64__)
 		return std::unexpected{ThreadStateError::ERR_ARCHERROR};
 	#else
@@ -335,98 +327,44 @@ std::expected<std::vector<std::string>, DisLog::ThreadStateError> DisLog::__GetT
 	#endif
 }
 
-// TODO: add macro for unwinding the stack and printing thread state
-
-int DisLog::LogErr(const std::exception &err) const noexcept
+void DisLog::LogErr(void) noexcept
 {
-	auto demangled{__Demangle(typeid(err).name())};
-	
-	std::println
+	BEGIN_LOG(this->m_Parser, this->m_ProgName);
+
+	if (const auto ptr{std::current_exception()})
+	{
+		try { std::rethrow_exception(ptr); }
+		catch (const std::exception &err)
+		{
+			const auto &demangled{this->__Demangle(typeid(err).name())};
+			this->m_Parser.Write<std::string_view>
+			(
+				"crash.exception",
+				demangled
+					? demangled.value().get()
+					: typeid(err).name()
+			);
+
+			this->m_Parser.Write<std::string_view>("crash.reason", err.what());
+		}
+		catch (...) {}
+	}
+
+	this->__LogStack().and_then
 	(
-		std::cerr,
-		"{} -> {}",
-		demangled
-			? demangled->get()
-			: typeid(err).name(),
-		err.what()
+		[this](const std::string &calls) -> std::invoke_result<decltype(DisLog::__LogStack)>::type
+		{
+			const auto &_{this->m_Parser.Write<std::string_view>("crash.stack", calls)};
+			return calls;
+		}
 	);
 
-	__UnwindStack().and_then
+	this->__LogThreadState().and_then
 	(
-		[](const std::vector<std::string> &funcs) -> std::invoke_result<decltype(DisLog::__UnwindStack)>::type
+		[this](const std::string &registers) -> std::invoke_result<decltype(DisLog::__LogThreadState)>::type
 		{
-			for (const auto &func : funcs | std::views::drop(1))
-				std::println(std::cerr, "|  at {}", func);
-			return funcs;
-		}
-	).or_else
-	(
-		[](const DisLog::UnwindingError &error) -> std::invoke_result<decltype(DisLog::__UnwindStack)>::type
-		{
-			std::println(std::cerr, "|  Unable to unwind the stack: {}!", error);
-			return std::unexpected{error};
-		}
-	);
-
-	__GetThreadState().and_then
-	(
-		[](const std::vector<std::string> &registers) -> std::invoke_result<decltype(DisLog::__GetThreadState)>::type
-		{
-			std::println("ARM64 thread state:");
-			for (const auto &reg : registers)
-				std::println(std::cerr, "|  {}", reg);
+			const auto &_{this->m_Parser.Write<std::string_view>("crash.registers", registers)};
 			return registers;
 		}
-	).or_else
-	(
-		[](const DisLog::ThreadStateError &error) -> std::invoke_result<decltype(DisLog::__GetThreadState)>::type
-		{
-			std::println(std::cerr, "Unable to get ARM64 thread state: {}!", error);
-			return std::unexpected{error};
-		}
 	);
-
-	return EXIT_FAILURE;
-}
-
-int DisLog::LogErr(void) const noexcept
-{
-	std::println(std::cerr, "[unknown]");
-
-	__UnwindStack().and_then
-	(
-		[](const std::vector<std::string> &funcs) -> std::invoke_result<decltype(DisLog::__UnwindStack)>::type
-		{
-			for (const auto &func : funcs | std::views::drop(1))
-				std::println(std::cerr, "|  at {}", func);
-			return funcs;
-		}
-	).or_else
-	(
-		[](const DisLog::UnwindingError &error) -> std::invoke_result<decltype(DisLog::__UnwindStack)>::type
-		{
-			std::println(std::cerr, "|  Unable to unwind the stack: {}!", error);
-			return std::unexpected{error};
-		}
-	);
-
-	__GetThreadState().and_then
-	(
-		[](const std::vector<std::string> &registers) -> std::invoke_result<decltype(DisLog::__GetThreadState)>::type
-		{
-			std::println("ARM64 thread state:");
-			for (const auto &reg : registers)
-				std::println(std::cerr, "|  {}", reg);
-			return registers;
-		}
-	).or_else
-	(
-		[](const DisLog::ThreadStateError &error) -> std::invoke_result<decltype(DisLog::__GetThreadState)>::type
-		{
-			std::println(std::cerr, "Unable to get ARM64 thread state: {}!", error);
-			return std::unexpected{error};
-		}
-	);
-	
-	return EXIT_FAILURE;
 }

@@ -70,48 +70,52 @@ namespace disxx::utility::ini
 	{
 		this->m_Path = path;
 
-		this->m_Handle.open(this->m_Path, std::fstream::in | std::fstream::out | std::fstream::binary);
-		if (!this->m_Handle.is_open()) [[unlikely]]
-			return std::unexpected{disxx::utility::error::ParserError{"FileError"}};
-
-		std::string line{}, section{};
-		while (std::getline(this->m_Handle, line))
+		if (std::filesystem::exists(this->m_Path)) [[likely]]
 		{
-			if (line.starts_with(";")) [[unlikely]]
-				continue;
+			this->m_Handle.open(this->m_Path, std::fstream::out | std::fstream::in | std::fstream::binary);
+			if (!this->m_Handle.is_open()) [[unlikely]]
+				return std::unexpected{disxx::utility::error::ParserError{"FileError"}};
 
-			// Eat all spaces
-			line = std::regex_replace
-			(
-				line,
-				std::regex{R"(\s+)"},
-				std::string{}
-			);
-
-			// Eat all comments
-			line = std::regex_replace
-			(
-				line,
-				std::regex{R"(;[\s\S]+$)"},
-				std::string{}
-			);
-
-			if (std::smatch match{}; std::regex_match(line, match, std::regex{R"(\[(\S+)\])"}))
-				section = match[1];
-			else if (!section.empty())
+			std::string line{}, section{};
+			while (std::getline(this->m_Handle, line))
 			{
-				std::regex_match
+				if (line.starts_with(";")) [[unlikely]]
+					continue;
+
+				// Eat all spaces
+				line = std::regex_replace
 				(
 					line,
-					match,
-					std::regex{R"(\A(\S+)\=(\S+)$)"}
+					std::regex{R"(\s+)"},
+					std::string{}
 				);
 
-				this->m_Table[section][match[1].str()] = match[2].str();
+				// Eat all comments
+				line = std::regex_replace
+				(
+					line,
+					std::regex{R"(;[\s\S]+$)"},
+					std::string{}
+				);
+
+				if (std::smatch match{}; std::regex_match(line, match, std::regex{R"(\[(\S+)\])"}))
+					section = match[1].str();
+				else if (!section.empty())
+				{
+					std::regex_match
+					(
+						line,
+						match,
+						std::regex{R"((\S+)\=(\S+)$)"}
+					);
+
+					this->m_Table[section][match[1].str()] = match[2].str();
+				}
 			}
+
+			this->m_Handle.close();
 		}
 
-		this->m_Handle.close();
 		return std::monostate{};
 	}
 } /* disxx::utility::ini */

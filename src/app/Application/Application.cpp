@@ -14,6 +14,7 @@ module;
 #include <system_error>
 #include <functional>
 #include <filesystem>
+#include <exception>
 #include <charconv>
 #include <memory>
 #include <ranges>
@@ -24,8 +25,6 @@ module;
 #include <tuple>
 #include <array>
 #include <span>
-
-#include <print>
 
 #define MKHEX(x) (std::format("{:#x}", (x)))
 
@@ -59,6 +58,7 @@ Application *Application::s_pInstance{nullptr};
 
 Application::Application(std::span<const char *> args) noexcept(false)
 	: MainWindow{800, 600}
+	, m_Logger{args.data() ? args.at(0) : "[unknown]"}
 	, m_Args{args}
 	, m_pInput{nullptr}
 {
@@ -125,7 +125,40 @@ Application *Application::Init(int &argc, const char *argv[]) noexcept(false)
 {
     if (!s_pInstance) [[likely]]
         s_pInstance = new Application{std::span<const char *>(argv, argc)};
-    return s_pInstance;
+    
+	std::set_terminate
+	(
+		[](void) -> void
+		{
+			glutDestroyWindow(Application::s_pInstance->m_Win);
+
+			Application::s_pInstance->m_Logger.LogErr();
+		
+			std::string path
+			{
+				std::filesystem::path
+				{
+					Application::s_pInstance->m_Args.data()
+						? Application::s_pInstance->m_Args.at(0)
+						:
+						#ifdef _WIN32
+							".\\dis++"
+						#else
+							"./dis++"
+						#endif
+				}
+				.parent_path()
+				.string()
+				+ std::filesystem::path::preferred_separator
+				+ "reporter"
+			};
+
+			std::system(path.c_str());
+			std::exit(EXIT_FAILURE);
+		}
+	);
+
+	return s_pInstance;
 }
 
 void Application::__InitFunc([[maybe_unused]] const disxx::ui::MainWindow *const ptr) noexcept(false)
@@ -455,12 +488,6 @@ void Application::__DisplayFunc(void) noexcept
 
 [[nodiscard]] int Application::Exec(void) const noexcept(false)
 {
-	try
-	{ glutMainLoop(); }
-	catch (const std::exception &err)
-	{ return DisLog{this->m_Args.at(0)}.LogErr(err); }
-	catch (...)
-	{ return DisLog{this->m_Args.at(0)}.LogErr(); }
-
+	glutMainLoop();
 	return EXIT_SUCCESS;
 }

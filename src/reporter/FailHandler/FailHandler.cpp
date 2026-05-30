@@ -4,13 +4,12 @@ module;
 #include <GLUT/glut.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <ranges>
 #include <format>
 #include <vector>
 #include <regex>
 #include <span>
-
-#include <print>
 
 module FailHandler;
 
@@ -94,16 +93,14 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	// Load file with data of the crash
 	this->m_Parser.Load
 	(
-		std::filesystem::path{args.at(0)}
-			.parent_path()
-			.string()
-			+ std::filesystem::path::preferred_separator
-			+ std::string{".."}
-			+ std::filesystem::path::preferred_separator
-			+ "crash.ini"
+		#ifdef _WIN32
+			std::format("{}\\dis++\\crash.ini", std::getenv("LOCALAPPDATA"))
+		#elif __APPLE__
+			std::format("{}/Library/logs/dis++/crash.ini", std::getenv("HOME"))
+		#else
+			std::format("{}/.local/state/dis++/crash/crash.ini", std::getenv("HOME"))
+		#endif
 	);
-
-	//this->m_Parser.Set<std::string_view>("crash.path", "~/DisPlusPlus/main");
 
 	ptr->AddLine("-*- General information -*-");
 	ptr->AddLine("==={:-<64}===", "");
@@ -112,9 +109,10 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	const auto &time{this->m_Parser.Read<std::string>("crash.time").value_or("[unknown]")};
 	const auto &path{this->m_Parser.Read<std::string>("crash.path").value_or("[unknown]")};
 	const auto &pid{this->m_Parser.Read<std::string>("crash.pid").value_or("[unknown]")};
-	const auto &type{this->m_Parser.Read<std::string>("crash.type").value_or("[unknown]")};
-	ptr->AddLine("{} {}[{}]: Terminating due to uncaught exception", time, path, pid);
-	ptr->AddLine("of type {}", type);
+	const auto &exception{this->m_Parser.Read<std::string>("crash.exception").value_or("[unknown]")};
+	const auto &reason{this->m_Parser.Read<std::string>("crash.reason").value_or("[unknown]")};
+	ptr->AddLine("{} {}[{}]: Terminating", time, path, pid);
+	ptr->AddLine("due to uncaught exception of type {} -> {}", exception, reason);
 
 	ptr->AddLine("==={:-<64}===", "");
 
@@ -122,58 +120,19 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("==={:-<64}===", "");
 
 	// Get thread state
-	std::string registers{};
-	if (const auto &var{this->m_Parser.Read<std::string>("crash.registers")})
-		registers = var.value();
-	else
-		registers = var.error().what();
-
-	//const auto &registers{this->m_Parser.Get<std::string>("crash.registers").value_or("[unknown]")};
-	
-	auto index{0ul}, end{static_cast<unsigned long int>(std::ranges::count(registers, ',') + 1ul)};
-	std::vector<std::string> formatted{};
-	std::regex regex{R"(([\s\S]+)(?=(\,|$)))"};
-	for (std::sregex_iterator it{registers.begin(), registers.end(), regex}, var{}; it != var; ++it)
+	const auto &registers{this->m_Parser.Read<std::string>("crash.registers").value_or("[unknown]")};
+	std::string formatted{};
+	for (const auto ch : registers)
 	{
-		const auto &match{(*it)[0].str()};
-		
-		const auto &reg
+		if (ch == ',' && std::ranges::count(formatted, ':') == 4)
 		{
-			match
-				| std::views::all
-				| std::views::take_while([](auto ch) -> bool { return ch != ':'; })
-				| std::ranges::to<std::string>()
-		};
-		
-		const auto &value
-		{
-			match
-				| std::views::all
-				| std::views::reverse
-				| std::views::take_while([](auto ch) -> bool { return ch != ':'; })
-				| std::ranges::to<std::string>()
-		};
-
-		formatted.emplace_back(std::format("{}: {}", reg, value));
-
-		index++;
-
-		if (index % 4 == 0 || index == end)
-		{
-			const auto count
-			{
-				index % 4 == 0
-					? 4
-					: index % 4
-			};
-
-			ptr->AddLine("{} ", formatted.at(index - count));
-			if (count > 1)
-				for (const auto i : std::views::iota(index - count + 1, index))
-					ptr->AddString("{} ", formatted.at(i));
+			ptr->AddLine("{}", formatted);
+			formatted.clear();
 		}
+		else
+			formatted += ch;
 	}
-
+	
 	ptr->AddLine("==={:-<64}===", "");
 
 	// Get call stack
@@ -181,11 +140,16 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("==={:-<64}===", "");
 
 	const auto &stack{this->m_Parser.Read<std::string>("crash.stack").value_or("[unknown]")};
-	regex = std::regex{R"((\S+)(?=(\,|$)))"};
-	for (std::sregex_iterator it{stack.begin(), stack.end(), regex}, var{}; it != var; ++it)
+	formatted.clear();
+	for (const auto ch : stack)
 	{
-		const auto &match{(*it)[0].str()};
-		ptr->AddLine("{}", match);
+		if (ch == ',' && *formatted.rbegin() == ']')
+		{
+			ptr->AddLine("at {}", formatted);
+			formatted.clear();
+		}
+		else
+			formatted += ch;
 	}
 
 	ptr->AddLine("==={:-<64}===", "");

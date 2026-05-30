@@ -34,13 +34,6 @@ import disxx.utility.ini.Parser;
 export class DisLog
 {
   private:
-	static constexpr std::string s_LogPath
-	{
-		std::string{".."}
-			+ std::filesystem::path::preferred_separator
-			+ std::string{"crash.ini"}
-	};
-	
 	#ifdef __aarch64__
 		static constexpr std::array<const char *, 33> s_RegsTable
 		{
@@ -53,7 +46,7 @@ export class DisLog
 	#endif
 
   private:
-	disxx::utility::ini::Parser m_Parser;	
+	disxx::utility::ini::Parser m_Parser;
 	std::filesystem::path m_ProgName;
 
   public:
@@ -64,18 +57,18 @@ export class DisLog
   private:
 	static __DEMANGLE_CONSTEVAL std::expected<std::unique_ptr<char, decltype(&std::free)>, DemanglingError>
 	__Demangle(const std::string &) noexcept;
-	static __UNWIND_CONSTEVAL std::expected<std::vector<std::string>, UnwindingError>
-	__UnwindStack(void) noexcept;
-	static __GETTHREADSTATE_CONSTEVAL std::expected<std::vector<std::string>, ThreadStateError>
-	__GetThreadState(void) noexcept;
+	static __UNWIND_CONSTEVAL std::expected<std::string, UnwindingError>
+	__LogStack(void) noexcept;
+	static __GETTHREADSTATE_CONSTEVAL std::expected<std::string, ThreadStateError>
+	__LogThreadState(void) noexcept;
 
   public:
 	explicit DisLog(void) noexcept;
 	explicit DisLog(const std::filesystem::path &) noexcept;	
 	DisLog(const DisLog &) noexcept = default;
 	DisLog &operator=(const DisLog &) noexcept = default;
+	
 	~DisLog(void) noexcept = default;
 
-	int LogErr(const std::exception &) const noexcept;
-	int LogErr(void) const noexcept;
+	void LogErr(void) noexcept;
 };

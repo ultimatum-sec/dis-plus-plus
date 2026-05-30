@@ -6,16 +6,16 @@ module;
 	(file).open \
 	( \
 		path, \
-		std::fstream::in | std::fstream::out | std::fstream::trunc \
+		std::fstream::out | std::fstream::trunc \
 	); \
 	if (!(file).is_open()) [[unlikely]] \
 		return std::unexpected{disxx::utility::error::ParserError{"FileError"}}; \
 	for (const auto &[section, map] : (table)) \
 	{ \
-		for (const auto ch : std::format("[{}]", sect)) \
+		for (const auto ch : std::format("[{}]\n", sect)) \
 			file.write(&ch, sizeof(char)); \
 		for (const auto &[k, value] : map) \
-			for (const auto ch : std::format("{}={}", key, value)) \
+			for (const auto ch : std::format("{}={}\n", k, value)) \
 				(file).write(&ch, sizeof(char)); \
 	} \
 	(file).close(); \

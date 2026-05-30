@@ -4,9 +4,9 @@
 #define __DISXX_BEGIN_NAMESPACE__ namespace disxx {
 
 #define __DISXX_MAJOR__			0
-#define __DISXX_MINOR__ 		1
+#define __DISXX_MINOR__ 		2
 #define __DISXX_PATCHLEVEL__	0
-#define __DISXX_VERSION__ 		"0.1.0-beta"
+#define __DISXX_VERSION__ 		"0.2.0-beta"
 
 #if defined(__clang__) || defined(__GNUC__)
 #	define __DISXX_PRIVATE__	__attribute__((__visibility__("hidden")))
