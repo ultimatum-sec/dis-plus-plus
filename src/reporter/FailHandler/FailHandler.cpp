@@ -103,41 +103,90 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	);
 
 	ptr->AddLine("-*- General information -*-");
-	ptr->AddLine("==={:-<64}===", "");
-
+	
 	// Get general information about the crash
 	const auto &time{this->m_Parser.Read<std::string>("crash.time").value_or("[unknown]")};
 	const auto &path{this->m_Parser.Read<std::string>("crash.path").value_or("[unknown]")};
 	const auto &pid{this->m_Parser.Read<std::string>("crash.pid").value_or("[unknown]")};
 	const auto &exception{this->m_Parser.Read<std::string>("crash.exception").value_or("[unknown]")};
 	const auto &reason{this->m_Parser.Read<std::string>("crash.reason").value_or("[unknown]")};
-	ptr->AddLine("{} {}[{}]: Terminating", time, path, pid);
-	ptr->AddLine("due to uncaught exception of type {} -> {}", exception, reason);
 
-	ptr->AddLine("==={:-<64}===", "");
+	std::vector<unsigned long int> sizes{};
+	std::vector<std::string> strings{};
 
+	strings.emplace_back(std::format("| {} {}[{}]: Terminating", time, path, pid));
+	sizes.emplace_back(strings.rbegin()->size());
+
+	strings.emplace_back(std::format("| due to uncaught exception of type {} -> {}", exception, reason));
+	sizes.emplace_back(strings.rbegin()->size());
+
+	std::string frame{"+"};
+	for (const auto _ : std::views::iota(0ul, std::ranges::max(sizes) - 1))
+		frame += "-";
+	frame += "+";
+
+	for (auto &str : strings)
+	{
+		if (const auto max{std::ranges::max(sizes)}; max > str.size())
+			for (const auto _ : std::views::iota(0ul, max - str.size()))
+				str += " ";
+		str += "|";
+	}
+
+	ptr->AddLine("{}", frame);
+	for (const auto &str : strings)
+		ptr->AddLine("{}", str);
+	ptr->AddLine("{}", frame);
+
+	sizes.clear();
+	strings.clear();
+	frame.clear();
+
+	frame = "+";
+	
 	ptr->AddLine("-*- Thread state -*-");
-	ptr->AddLine("==={:-<64}===", "");
 
 	// Get thread state
 	const auto &registers{this->m_Parser.Read<std::string>("crash.registers").value_or("[unknown]")};
-	std::string formatted{};
+	std::string formatted{"| "};
 	for (const auto ch : registers)
 	{
-		if (ch == ',' && std::ranges::count(formatted, ':') == 4)
+			if (ch == ',' && std::ranges::count(formatted, ':') == 4)
 		{
-			ptr->AddLine("{}", formatted);
-			formatted.clear();
+			formatted += " ";
+			strings.push_back(formatted);
+			sizes.emplace_back(strings.rbegin()->size());
+			formatted = "| ";
 		}
 		else
 			formatted += ch;
 	}
 	
-	ptr->AddLine("==={:-<64}===", "");
+	for (const auto _ : std::views::iota(0ul, std::ranges::max(sizes) - 1))
+		frame += "-";
+	frame += "+";
+
+	for (auto &str : strings)
+	{
+		if (const auto max{std::ranges::max(sizes)}; max > str.size())
+			for (const auto _ : std::views::iota(0ul, max - str.size()))
+				str += " ";
+		str += "|";
+	}
+	
+	ptr->AddLine("{}", frame);
+	for (const auto &str : strings)
+		ptr->AddLine("{}", str);
+	ptr->AddLine("{}", frame);
+
+	sizes.clear();
+	strings.clear();
+	frame.clear();
+
+	frame = "+";
 
 	// Get call stack
 	ptr->AddLine("-*- Call stack -*-");
-	ptr->AddLine("==={:-<64}===", "");
 
 	const auto &stack{this->m_Parser.Read<std::string>("crash.stack").value_or("[unknown]")};
 	formatted.clear();
@@ -145,17 +194,30 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	{
 		if (ch == ',' && *formatted.rbegin() == ']')
 		{
-			ptr->AddLine("at {}", formatted);
+			strings.emplace_back(std::format("| at {}", formatted));
+			sizes.emplace_back(strings.rbegin()->size());
 			formatted.clear();
 		}
 		else
 			formatted += ch;
 	}
 
-	ptr->AddLine("==={:-<64}===", "");
+	for (const auto _ : std::views::iota(0ul, std::ranges::max(sizes) - 1))
+		frame += "-";
+	frame += "+";
+
+	for (auto &str : strings)
+	{
+		if (const auto max{std::ranges::max(sizes)}; max > str.size())
+			for (const auto _ : std::views::iota(0ul, max - str.size()))
+				str += " ";
+		str += "|";
+	}
 	
-	// End the report
-	ptr->AddLine("{:-<32}END-REPORT{:-<32}", "", "");
+	ptr->AddLine("{}", frame);
+	for (const auto &str : strings)
+		ptr->AddLine("{}", str);
+	ptr->AddLine("{}", frame);
 }
 
 FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
