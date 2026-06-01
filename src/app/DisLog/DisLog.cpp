@@ -185,7 +185,7 @@ template <> struct std::formatter<std::tm> : public std::formatter<std::string>
 		return std::format_to
 		(
 			ctx.out(),
-			"{:02d}.{:02d}.{:d} {:02d}:{:02d}:{:02d}",
+			"{:02d}.{:02d}.{:d},{:02d}:{:02d}:{:02d}",
 			time.tm_mday, time.tm_mon + 1, time.tm_year + 1900,
 			time.tm_hour, time.tm_min, time.tm_sec
 		);
