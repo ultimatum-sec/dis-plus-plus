@@ -28,6 +28,7 @@ module;
 module FailHandler;
 
 import disxx.ui.Widget;
+import disxx.ui.Button;
 import disxx.ui.SourceEditor;
 
 FailHandler *FailHandler::s_pInstance = nullptr;
@@ -46,9 +47,19 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		std::make_unique<disxx::ui::SourceEditor>
 		(
 			0.f,
-			0.f,
+			100.f,
 			this->m_Width,
-			this->m_Height
+			this->m_Height - 100
+		)
+	);
+	this->m_Widgets.emplace_back
+	(
+		std::make_unique<disxx::ui::Button>
+		(
+			50.f,
+			10.f,
+			this->m_Width / 6.f,
+			this->m_Height / 7.f
 		)
 	);
 
@@ -89,6 +100,9 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
         [](void) -> void
         { s_pInstance->__DisplayFunc(); }
     );
+
+	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("Close");
+	(*this->m_Widgets.rbegin())->SetColor(0.2f, 0.2f, 0.2f);
 
 	const auto &ptr{reinterpret_cast<disxx::ui::SourceEditor *>(this->m_Widgets.at(0).get())};
 	ptr->SetColor(0.2f, 0.2f, 0.2f);
@@ -166,12 +180,12 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	// Get thread state
 	const auto &registers{this->m_Parser.Read<std::string>("crash.registers").value_or("[unknown]")};
 	std::string formatted{"| "};
-	for (const auto ch : registers)
+	for (auto &ch : registers)
 	{
-			if (ch == ',' && std::ranges::count(formatted, ':') == 4)
+		if (ch == ',' && std::ranges::count(formatted, ':') == 4)
 		{
 			formatted += " ";
-			strings.push_back(formatted);
+			strings.push_back(std::regex_replace(formatted, std::regex{R"(\:)"}, "="));
 			sizes.emplace_back(strings.rbegin()->size());
 			formatted = "| ";
 		}
@@ -269,9 +283,12 @@ void FailHandler::__ReshapeFunc(int width, int height) noexcept(false)
     gluOrtho2D(0, this->m_Width, 0, this->m_Height);
     glMatrixMode(GL_MODELVIEW);
 
-    this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height);
-	this->m_Widgets.at(0)->Replace(0.f, 0.f);
-    
+    this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height - 100);
+	this->m_Widgets.at(0)->Replace(0.f, 100.f);
+
+	this->m_Widgets.at(1)->Resize(this->m_Width / 6, this->m_Height / 7);
+   	this->m_Widgets.at(1)->Replace(50.f, 10.f);
+
     glutPostRedisplay();
 }
 
