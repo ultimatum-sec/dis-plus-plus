@@ -11,6 +11,20 @@ module;
 #include <regex>
 #include <span>
 
+#define CLEARFRAME(frame) \
+	(frame) \
+		| std::views::all \
+		| std::views::transform \
+			( \
+				[](char &ch) -> char \
+				{ \
+					if (ch != '-' && ch != '+') \
+						return '-'; \
+					return ch; \
+				} \
+			) \
+		| std::ranges::to<std::string>()
+
 module FailHandler;
 
 import disxx.ui.Widget;
@@ -87,9 +101,6 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 
 	ptr->AddLine("");
 
-	// Start the report
-	ptr->AddLine("{:-<32}BEGIN-REPORT{:-<32}", "", "");
-
 	// Load file with data of the crash
 	this->m_Parser.Load
 	(
@@ -102,8 +113,6 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		#endif
 	);
 
-	ptr->AddLine("-*- General information -*-");
-	
 	// Get general information about the crash
 	const auto &time{this->m_Parser.Read<std::string>("crash.time").value_or("[unknown]")};
 	const auto &path{this->m_Parser.Read<std::string>("crash.path").value_or("[unknown]")};
@@ -114,15 +123,25 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	std::vector<unsigned long int> sizes{};
 	std::vector<std::string> strings{};
 
-	strings.emplace_back(std::format("| {} {}[{}]: Terminating", time, path, pid));
+	strings.emplace_back
+	(
+		std::format
+		(
+			"| {} {}[{}]: Terminating",
+			std::regex_replace(time, std::regex{R"(\,)"}, " "),
+			path,
+			pid
+		)
+	);
 	sizes.emplace_back(strings.rbegin()->size());
 
 	strings.emplace_back(std::format("| due to uncaught exception of type {} -> {}", exception, reason));
 	sizes.emplace_back(strings.rbegin()->size());
 
-	std::string frame{"+"};
-	for (const auto _ : std::views::iota(0ul, std::ranges::max(sizes) - 1))
-		frame += "-";
+	std::string frame{"+-Exception-reason-"};
+	if (const auto max{std::ranges::max(sizes)}; max > frame.size())
+		for (const auto _ : std::views::iota(0ul, max - frame.size() + 1))
+			frame += "-";
 	frame += "+";
 
 	for (auto &str : strings)
@@ -130,22 +149,20 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		if (const auto max{std::ranges::max(sizes)}; max > str.size())
 			for (const auto _ : std::views::iota(0ul, max - str.size()))
 				str += " ";
-		str += "|";
+		str += " |";
 	}
 
 	ptr->AddLine("{}", frame);
 	for (const auto &str : strings)
 		ptr->AddLine("{}", str);
-	ptr->AddLine("{}", frame);
+	ptr->AddLine("{}", CLEARFRAME(frame));
 
 	sizes.clear();
 	strings.clear();
 	frame.clear();
 
-	frame = "+";
+	frame = "+-Registers-";
 	
-	ptr->AddLine("-*- Thread state -*-");
-
 	// Get thread state
 	const auto &registers{this->m_Parser.Read<std::string>("crash.registers").value_or("[unknown]")};
 	std::string formatted{"| "};
@@ -161,9 +178,10 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		else
 			formatted += ch;
 	}
-	
-	for (const auto _ : std::views::iota(0ul, std::ranges::max(sizes) - 1))
-		frame += "-";
+
+	if (const auto max{std::ranges::max(sizes)}; max > frame.size())
+		for (const auto _ : std::views::iota(0ul, max - frame.size() + 1))
+			frame += "-";
 	frame += "+";
 
 	for (auto &str : strings)
@@ -171,23 +189,21 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		if (const auto max{std::ranges::max(sizes)}; max > str.size())
 			for (const auto _ : std::views::iota(0ul, max - str.size()))
 				str += " ";
-		str += "|";
+		str += " |";
 	}
 	
 	ptr->AddLine("{}", frame);
 	for (const auto &str : strings)
 		ptr->AddLine("{}", str);
-	ptr->AddLine("{}", frame);
+	ptr->AddLine("{}", CLEARFRAME(frame));
 
 	sizes.clear();
 	strings.clear();
 	frame.clear();
 
-	frame = "+";
+	frame = "+-Stack-trace-";
 
 	// Get call stack
-	ptr->AddLine("-*- Call stack -*-");
-
 	const auto &stack{this->m_Parser.Read<std::string>("crash.stack").value_or("[unknown]")};
 	formatted.clear();
 	for (const auto ch : stack)
@@ -202,8 +218,9 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 			formatted += ch;
 	}
 
-	for (const auto _ : std::views::iota(0ul, std::ranges::max(sizes) - 1))
-		frame += "-";
+	if (const auto max{std::ranges::max(sizes)}; max > frame.size())
+		for (const auto _ : std::views::iota(0ul, max - frame.size()))
+			frame += "-";
 	frame += "+";
 
 	for (auto &str : strings)
@@ -217,7 +234,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	ptr->AddLine("{}", frame);
 	for (const auto &str : strings)
 		ptr->AddLine("{}", str);
-	ptr->AddLine("{}", frame);
+	ptr->AddLine("{}", CLEARFRAME(frame));
 }
 
 FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
