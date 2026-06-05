@@ -33,14 +33,14 @@ FileInput::FileInput(void) noexcept
 	, m_Args{std::span<const char *>{(const char*[]){"unknown"}, 1}}
 	, m_Path{""}
 {
+	glutInitWindowSize(this->m_Width, this->m_Height);
+	this->m_Win = glutCreateWindow("Select an executable to disassemble");
+
 	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::TextInput>(50, 50, 300, 40));
 	this->m_Widgets.at(0)->SetColor(0.3f, 0.3f, 0.3f);
 	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::Button>(150, 100, 100, 40));
 	this->m_Widgets.at(1)->SetColor(0.3f, 0.3f, 0.3f);
 	static_cast<disxx::ui::Button *>(this->m_Widgets.at(1).get())->SetText("OK");
-
-	glutInitWindowSize(this->m_Width, this->m_Height);
-	this->m_Win = glutCreateWindow("Select an executable to disassemble");
 
 	glutKeyboardFunc
     (

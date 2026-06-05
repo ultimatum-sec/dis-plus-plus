@@ -14,6 +14,9 @@ module;
 
 module disxx.ui.Button;
 
+import disxx.ui.backend.GLRenderer;
+import disxx.ui.utility.Shape;
+
 namespace disxx::ui
 {
 	Button::Button(void) noexcept
@@ -77,6 +80,7 @@ namespace disxx::ui
 	void Button::Render(void) const noexcept
 	{
 		// Render the frame
+		/*
 		glColor3f(0.f, 0.f, 0.f);
 		glBegin(GL_QUADS);
 			glVertex2f(this->m_X + 1.f, this->m_Y + 1.f);
@@ -103,8 +107,16 @@ namespace disxx::ui
    	       	glVertex2f(this->m_X + this->m_Width, this->m_Y + this->m_Height);
            	glVertex2f(this->m_X, this->m_Y + this->m_Height);
        	glEnd();
+		*/
 
-		// Render the text
+		utility::Shape s{utility::Shape::Type::RECTANGLE};
+		s.Replace(this->m_X, this->m_Y);
+		s.Resize(this->m_Width, this->m_Height);
+		s.SetColor(1.f, 1.f, 1.f);
+
+		this->m_Renderer.AddShape(std::move(s));
+		
+		/*// Render the text
         if (!this->m_Text.empty())
         {
             float textWidth{0.0f};
@@ -125,7 +137,9 @@ namespace disxx::ui
                 for (const auto &ch : this->m_Text)
 					glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, ch);
 			glPopMatrix();
-        }
+        }*/
+
+		this->m_Renderer.Render();
 	}
 
 	void Button::HandleMouse(int button, int state, int x, int y) noexcept

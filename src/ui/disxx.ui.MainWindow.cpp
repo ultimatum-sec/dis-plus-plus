@@ -21,5 +21,3 @@ namespace disxx::ui
 		, m_Win{0}
 	{}
 } /* disxx::ui */
-
-

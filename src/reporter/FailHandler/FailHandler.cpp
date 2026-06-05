@@ -38,10 +38,14 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	, m_Args{args}
 	, m_Parser{}
 {
-	// Check if args not null
-	if (!this->m_Args.data()) [[unlikely]]
-		throw std::invalid_argument{"ArgumentsValueError"};
-	
+	// Init some glut stuff
+	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
+	glutInit(&argc, const_cast<char **>(args.data()));
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+
+	glutInitWindowSize(this->m_Width, this->m_Height);
+	this->m_Win = glutCreateWindow("dis++ crash reporter");
+
 	this->m_Widgets.emplace_back
 	(
 		std::make_unique<disxx::ui::SourceEditor>
@@ -52,6 +56,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 			this->m_Height - 100
 		)
 	);
+	
 	this->m_Widgets.emplace_back
 	(
 		std::make_unique<disxx::ui::Button>
@@ -62,14 +67,6 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 			this->m_Height / 7.f
 		)
 	);
-
-	// Init some glut stuff
-	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
-	glutInit(&argc, const_cast<char **>(args.data()));
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-
-	glutInitWindowSize(this->m_Width, this->m_Height);
-	this->m_Win = glutCreateWindow("dis++ crash reporter");
 
 	glutKeyboardFunc
     (
@@ -103,7 +100,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 
 	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("Close");
 	(*this->m_Widgets.rbegin())->SetColor(0.2f, 0.2f, 0.2f);
-
+	
 	const auto &ptr{reinterpret_cast<disxx::ui::SourceEditor *>(this->m_Widgets.at(0).get())};
 	ptr->SetColor(0.2f, 0.2f, 0.2f);
 
@@ -255,7 +252,6 @@ FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
 {
     if (!s_pInstance) [[likely]]
         s_pInstance = new FailHandler{std::span<const char *>(argv, argc)};
-	glutPostRedisplay();
 	return s_pInstance;
 }
 
@@ -277,11 +273,8 @@ void FailHandler::__ReshapeFunc(int width, int height) noexcept(false)
 	this->m_Width = width;
 	this->m_Height = height;
 
-	glViewport(0, 0, this->m_Width, this->m_Height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, this->m_Width, 0, this->m_Height);
-    glMatrixMode(GL_MODELVIEW);
+	for (auto &pWidget : this->m_Widgets)
+		pWidget->GetRenderer().ResizeWindow(this->m_Width, this->m_Height);
 
     this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height - 100);
 	this->m_Widgets.at(0)->Replace(0.f, 100.f);
@@ -303,9 +296,10 @@ void FailHandler::__DisplayFunc(void) noexcept
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glMatrixMode(GL_PROJECTION);
+    /*glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, this->m_Width, 0, this->m_Height);
+	*/
 
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();

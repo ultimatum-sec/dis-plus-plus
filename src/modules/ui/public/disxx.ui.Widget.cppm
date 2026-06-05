@@ -6,11 +6,15 @@ module;
 
 export module disxx.ui.Widget;
 
+import disxx.ui.backend.IRenderer;
+import disxx.ui.backend.GLRenderer;
+
 export namespace disxx::ui
 {
 	class Widget
 	{
 	  protected:
+		mutable backend::GLRenderer m_Renderer;
 		[[maybe_unused]] std::function<void(const Widget *const)> m_Callback;
 		float m_X, m_Y;
 		float m_Width, m_Height;
@@ -24,6 +28,8 @@ export namespace disxx::ui
 		Widget &operator=(const Widget &) noexcept;
 
 		virtual ~Widget(void) noexcept = default;
+
+		backend::IRenderer &GetRenderer(void) noexcept;
 
 		std::tuple<float, float> GetCords(void) const noexcept;
 		std::tuple<float, float> GetSizes(void) const noexcept;

@@ -205,51 +205,45 @@ namespace disxx::ui
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glEnable(GL_SCISSOR_TEST);
-			glScissor(this->m_X, this->m_Y + CORNER_HEIGHT, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
-			glColor3f(this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]);
-			glRectf(0.f, 0.f, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
-			
-            utility::ColorTag tag{};
-            for (const auto &i : std::views::iota(0UL, this->m_Lines.size()))
-            {
-                if ((i * CHAR_WIDTH + CHAR_WIDTH - this->m_ScrollY < 0.f) || (i * CHAR_WIDTH - this->m_ScrollY > this->m_Height - CORNER_HEIGHT))
-                    continue;
+        utility::ColorTag tag{};
+        for (const auto &i : std::views::iota(0UL, this->m_Lines.size()))
+        {
+            if ((i * CHAR_WIDTH + CHAR_WIDTH - this->m_ScrollY < 0.f) || (i * CHAR_WIDTH - this->m_ScrollY > this->m_Height - CORNER_HEIGHT))
+                continue;
 
-				// The line without color tags
-                const auto &realText{tag.RemoveTags(this->m_Lines[i])};
-                for (auto pos{0ul}; const auto &[text, color] : tag.Parse(this->m_Lines[i]).value())
-                {
-					// Indexes to walk through the line
-                    const auto renderStart{std::max(pos, static_cast<unsigned long>(std::max(0.f, this->m_ScrollX / CHAR_HEIGHT)))};
-                    const auto renderEnd
-					{
+			// The line without color tags
+            const auto &realText{tag.RemoveTags(this->m_Lines[i])};
+            for (auto pos{0ul}; const auto &[text, color] : tag.Parse(this->m_Lines[i]).value())
+            {
+				// Indexes to walk through the line
+                const auto renderStart{std::max(pos, static_cast<unsigned long>(std::max(0.f, this->m_ScrollX / CHAR_HEIGHT)))};
+                const auto renderEnd
+				{
+					std::min
+					(
+						pos + text.size(),
 						std::min
 						(
-							pos + text.size(),
-							std::min
-							(
-								realText.size(),
-								renderStart + static_cast<unsigned long>((this->m_Width - CORNER_WIDTH) / CHAR_HEIGHT) + 2ul
-							)
+							realText.size(),
+							renderStart + static_cast<unsigned long>((this->m_Width - CORNER_WIDTH) / CHAR_HEIGHT) + 2ul
 						)
-					};
+					)
+				};
 
-					glColor3f(color.at(0), color.at(1), color.at(2));
-        			glRasterPos2f
-					(
-						std::max(1.f, 5.f - this->m_ScrollX + static_cast<float>(renderStart) * CHAR_HEIGHT),
-						std::clamp(5.f + i * CHAR_WIDTH - this->m_ScrollY, 1.f, this->m_Height - CORNER_HEIGHT - 1.f)
-					);
-        			
-					if (renderStart < renderEnd) // There will be out of bounds without this check
-						for (const auto &j : std::views::iota(renderStart, renderEnd))
-            				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, realText.at(j));
-                    
-					pos += text.size();
-                }
-            }
-		glDisable(GL_SCISSOR_TEST);
+				glColor3f(color.at(0), color.at(1), color.at(2));
+       			glRasterPos2f
+				(
+					std::max(1.f, 5.f - this->m_ScrollX + static_cast<float>(renderStart) * CHAR_HEIGHT),
+					std::clamp(5.f + i * CHAR_WIDTH - this->m_ScrollY, 1.f, this->m_Height - CORNER_HEIGHT - 1.f)
+				);
+       			
+				if (renderStart < renderEnd)
+					for (const auto &j : std::views::iota(renderStart, renderEnd))
+           				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, realText.at(j));
+                   
+				pos += text.size();
+             }
+        }
 		
 		// Render the vertical scrollbar
 		glViewport(this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y + CORNER_HEIGHT, CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);

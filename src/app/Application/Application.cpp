@@ -66,6 +66,17 @@ Application::Application(std::span<const char *> args) noexcept(false)
 	if (!args.data()) [[unlikely]]
 		throw std::invalid_argument{"ArgumentsValueError"};
 	
+	// Init some glut stuff
+	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
+	glutInit(&argc, const_cast<char **>(args.data()));
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+
+	// Init file input window
+    this->m_pInput = FileInput::Init(this->m_Args);
+    this->m_pInput->SetCallback(__InitFunc);
+	if (args.size() > 1)
+		this->m_pInput->SetPath(args.at(1));
+
 	// Add some widgets
 	this->m_Widgets.emplace_back
 	(
@@ -89,17 +100,6 @@ Application::Application(std::span<const char *> args) noexcept(false)
 		)
 	);
 
-	// Init some glut stuff
-	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
-	glutInit(&argc, const_cast<char **>(args.data()));
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-
-	// Init file input window
-    this->m_pInput = FileInput::Init(this->m_Args);
-    this->m_pInput->SetCallback(__InitFunc);
-	if (args.size() > 1)
-		this->m_pInput->SetPath(args.at(1));
-	
 	// Init some widgets
 	this->m_Widgets.at(0)->SetColor(0.2f, 0.2f, 0.2f);
 	const auto &ptr{reinterpret_cast<disxx::ui::SourceEditor *>(this->m_Widgets.at(1).get())};

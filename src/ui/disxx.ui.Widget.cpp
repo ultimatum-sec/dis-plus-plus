@@ -7,10 +7,13 @@ module;
 
 module disxx.ui.Widget;
 
+import disxx.ui.backend.IRenderer;
+
 namespace disxx::ui
 {
 	Widget::Widget(void) noexcept
-		: m_Callback
+		: m_Renderer{}
+		, m_Callback
 		{
 			[]([[maybe_unused]] const Widget *const pWidget) -> void
 			{ return; }
@@ -25,7 +28,8 @@ namespace disxx::ui
 	{}
 
 	Widget::Widget(float x, float y, float width, float height) noexcept
-		: m_Callback
+		: m_Renderer{}
+		, m_Callback
 		{
 			[]([[maybe_unused]] const Widget *const pWidget) -> void
 			{ return; }
@@ -40,7 +44,8 @@ namespace disxx::ui
 	{}
 
 	Widget::Widget(const Widget &other) noexcept
-		: m_Callback{other.m_Callback}
+		: m_Renderer{}
+		, m_Callback{other.m_Callback}
 		, m_X{other.m_X}
 		, m_Y{other.m_Y}
 		, m_Width{other.m_Width}
@@ -68,11 +73,14 @@ namespace disxx::ui
 		return *this;
 	}
 
-	void Widget::SetColor(float a, float b, float c) noexcept
+	backend::IRenderer &Widget::GetRenderer(void) noexcept
+	{ return this->m_Renderer; }
+
+	void Widget::SetColor(float r, float g, float b) noexcept
 	{
-		this->m_pColor[0] = a;
-		this->m_pColor[1] = b;
-		this->m_pColor[2] = c;
+		this->m_pColor[0] = r;
+		this->m_pColor[1] = g;
+		this->m_pColor[2] = b;
 	}
 
 	//bool Widget::Clicked(void) const noexcept

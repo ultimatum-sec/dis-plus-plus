@@ -12,9 +12,9 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=-c -std=c++26 -arch $(ARCH) -O3 -Wall -Werror -Wextra -Wpedantic -DGL_SILENCE_DEPRECATION \
-	-DNDEBUG -isysroot $(shell xcrun --show-sdk-path) -fmodules -fcxx-modules \
+	-DNDEBUG -I ..$(PATHSEP)include -isysroot $(shell xcrun --show-sdk-path) -fmodules -fcxx-modules \
 	-Xclang -fmodules-local-submodule-visibility -fstack-protector-all \
-	-fprebuilt-module-path=$(PRECOMPILEDDIR)
+	-Wno-writable-strings -Wno-unused-command-line-argument -fprebuilt-module-path=$(PRECOMPILEDDIR)
 
 LDFLAGS=-O2 $(LTOFLAGS) -dylib -S -arch $(ARCH) -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
 	-framework OpenGL -framework GLUT $(INSTALLFLAGS) $(RPATHFLAG)
@@ -29,6 +29,11 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Image.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ImageLoader.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ColorTag.cppm \
+	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Vec.cppm \
+	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Vertex.cppm \
+	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Shape.cppm \
+	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.IRenderer.cppm \
+	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLRenderer.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Widget.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Button.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.TextInput.cppm \
@@ -39,6 +44,8 @@ SOURCES=\
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Image.cpp \
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ImageLoader.cpp \
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ColorTag.cpp \
+	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Shape.cpp \
+	.$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLRenderer.cpp \
 	.$(PATHSEP)disxx.ui.Widget.cpp \
 	.$(PATHSEP)disxx.ui.Button.cpp \
 	.$(PATHSEP)disxx.ui.TextInput.cpp \
@@ -46,7 +53,7 @@ SOURCES=\
 	.$(PATHSEP)disxx.ui.MainWindow.cpp
 
 .PHONY: all
-all: $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB)
+all: $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB) main
 
 vpath %.cppm $(sort $(dir $(MODULES)))
 vpath %.cpp $(sort $(dir $(SOURCES)))
@@ -68,6 +75,11 @@ $(OBJECTS): $(OBJECTSDIR)$(PATHSEP)%.o: %.cpp | $(OBJECTSDIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
 $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB): $(MOBJECTS) $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ -o $@
+
+main.o: main.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@
+main: main.o $(OBJECTS) $(MOBJECTS)
+	$(LD) $(OBJECTS) $(MOBJECTS) main.o -O2 -arch $(ARCH) -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ -framework OpenGL -framework GLUT -o main 
 
 clean:
 	$(RMDIR) $(BUILDDIR)
