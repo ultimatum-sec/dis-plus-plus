@@ -53,7 +53,7 @@ SOURCES=\
 	.$(PATHSEP)disxx.ui.MainWindow.cpp
 
 .PHONY: all
-all: $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB) main
+all: $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB)
 
 vpath %.cppm $(sort $(dir $(MODULES)))
 vpath %.cpp $(sort $(dir $(SOURCES)))
@@ -75,11 +75,6 @@ $(OBJECTS): $(OBJECTSDIR)$(PATHSEP)%.o: %.cpp | $(OBJECTSDIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
 $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB): $(MOBJECTS) $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ -o $@
-
-main.o: main.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@
-main: main.o $(OBJECTS) $(MOBJECTS)
-	$(LD) $(OBJECTS) $(MOBJECTS) main.o -O2 -arch $(ARCH) -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ -framework OpenGL -framework GLUT -o main 
 
 clean:
 	$(RMDIR) $(BUILDDIR)
