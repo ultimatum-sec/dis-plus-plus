@@ -99,7 +99,7 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
     );
 
 	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("Close");
-	(*this->m_Widgets.rbegin())->SetColor(0.2f, 0.2f, 0.2f);
+	(*this->m_Widgets.rbegin())->SetColor(0.5f, 0.5f, 0.5f);
 	
 	const auto &ptr{reinterpret_cast<disxx::ui::SourceEditor *>(this->m_Widgets.at(0).get())};
 	ptr->SetColor(0.2f, 0.2f, 0.2f);
@@ -295,11 +295,6 @@ void FailHandler::__DisplayFunc(void) noexcept
 {
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-
-    /*glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, this->m_Width, 0, this->m_Height);
-	*/
 
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();

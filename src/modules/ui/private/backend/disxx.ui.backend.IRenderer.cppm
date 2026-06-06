@@ -16,6 +16,7 @@ export namespace disxx::ui::backend
 		virtual void ResizeWindow(float, float) noexcept = 0;
 
 		virtual void AddShape(utility::Shape &&) noexcept = 0;
+		virtual void ClearShapes(void) noexcept = 0;
 		virtual void Render(void) noexcept = 0;
 	};
 } /* disxx::ui::backend */

@@ -84,9 +84,9 @@ namespace disxx::ui::backend
 	{
 		GLfloat projection[] = {
 			2.f / width, 0.f, 0.f, 0.f,
-			0.f, -2.f / height, 0.f, 0.f,
+			0.f, 2.f / height, 0.f, 0.f,
 			0.f, 0.f, -1.f, 0.f,
-			-1.f, 1.f, 0.f, 1.f
+			-1.f, -1.f, 0.f, 1.f
 		};
 		
 		glUseProgram(this->m_Program);
@@ -98,6 +98,9 @@ namespace disxx::ui::backend
 
 	void GLRenderer::AddShape(utility::Shape &&shape) noexcept
 	{ this->m_Shapes.emplace_back(std::move(shape)); }
+
+	void GLRenderer::ClearShapes(void) noexcept
+	{ this->m_Shapes.clear(); }
 
 	void GLRenderer::Render(void) noexcept
 	{
@@ -138,8 +141,6 @@ namespace disxx::ui::backend
 		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(utility::Vertex<GLfloat>), vertices.data());
 
 		glUseProgram(this->m_Program);
-		glBindVertexArray(this->m_Vao);
-		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 	}
 } /* disxx::ui::backend */

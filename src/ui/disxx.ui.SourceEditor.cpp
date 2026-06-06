@@ -18,6 +18,7 @@ module;
 module disxx.ui.SourceEditor;
 
 import disxx.ui.utility.ColorTag;
+import disxx.ui.utility.Shape;
 
 namespace
 {
@@ -197,6 +198,8 @@ namespace disxx::ui
 	
 	void SourceEditor::Render(void) const noexcept
 	{
+		this->m_Renderer.ClearShapes();
+
 		// Render the text area
 		glViewport(this->m_X, this->m_Y + CORNER_HEIGHT, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
 		glMatrixMode(GL_PROJECTION);
@@ -244,70 +247,55 @@ namespace disxx::ui
 				pos += text.size();
              }
         }
-		
+	
+		glViewport(
+	        0,
+	        0,
+	        glutGet(GLUT_WINDOW_WIDTH),
+	        glutGet(GLUT_WINDOW_HEIGHT)
+	    );
+
+    	glMatrixMode(GL_PROJECTION);
+    	glLoadIdentity();
+
+    	gluOrtho2D(
+    	    0,
+    	    glutGet(GLUT_WINDOW_WIDTH),
+    	    0,
+    	    glutGet(GLUT_WINDOW_HEIGHT)
+    	);
+
+    	glMatrixMode(GL_MODELVIEW);
+    	glLoadIdentity();
+	
 		// Render the vertical scrollbar
-		glViewport(this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y + CORNER_HEIGHT, CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluOrtho2D(0, CORNER_WIDTH, this->m_Height - CORNER_HEIGHT, 0);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glColor3f(0.2f, 0.2f, 0.2f);
-		glRectf(0.f, 0.f, CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
 		if (this->m_MaxScrollY > 0)
 		{
 			float pos{(this->m_ScrollY / this->m_MaxScrollY) * (this->m_Height - CORNER_HEIGHT - this->m_VerticalSliderHeight)};
 			pos = std::max(0.f, std::min(pos, this->m_Height - CORNER_HEIGHT - this->m_VerticalSliderHeight));
 
-			glColor3f(0.3f, 0.3f, 0.3f);
-			glRectf(1, pos, CORNER_WIDTH - 1, pos + this->m_VerticalSliderHeight);
-
-			glColor3f(0.5f, 0.5f, 0.5f);
-			glLineWidth(1.f);
-			glBegin(GL_LINE_LOOP);
-				glVertex2f(1.f, pos);
-				glVertex2f(CORNER_WIDTH - 1, pos);
-				glVertex2f(CORNER_WIDTH - 1, pos + this->m_VerticalSliderHeight);
-				glVertex2f(1.f, pos + this->m_VerticalSliderHeight);
-			glEnd();
+			utility::Shape vScrollbar{utility::Shape::Type::RECTANGLE};
+			vScrollbar.Replace(this->m_Width - CORNER_WIDTH, pos);
+			vScrollbar.Resize(CORNER_WIDTH, this->m_VerticalSliderHeight);
+			vScrollbar.SetColor(0.5f, 0.5f, 0.5f);
+		
+			this->m_Renderer.AddShape(std::move(vScrollbar));
 		}
 
 		// Render the horizontal scrollbar
-		glViewport(this->m_X, this->m_Y, this->m_Width - CORNER_WIDTH, CORNER_HEIGHT);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluOrtho2D(0, this->m_Width - CORNER_WIDTH, CORNER_HEIGHT, 0);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		
-		glColor3f(0.2f, 0.2f, 0.2f);
-		glRectf(0.f, 0.f, this->m_Width - CORNER_WIDTH, CORNER_HEIGHT);
 		if (this->m_MaxScrollX > 0)
 		{
 			float pos{(this->m_ScrollX / this->m_MaxScrollX) * (this->m_Width - CORNER_WIDTH - this->m_HorizontalSliderWidth)};
 			pos = std::max(0.f, std::min(pos, this->m_Width - CORNER_WIDTH - this->m_HorizontalSliderWidth));
 
-			glColor3f(0.3f, 0.3f, 0.3f);
-			glRectf(pos, 1.f, pos + this->m_HorizontalSliderWidth, CORNER_HEIGHT - 1);
+			utility::Shape hScrollbar{utility::Shape::Type::RECTANGLE};
+			hScrollbar.Replace(pos, 0.f);
+			hScrollbar.Resize(this->m_HorizontalSliderWidth, CORNER_HEIGHT);
+			hScrollbar.SetColor(0.5f, 0.5f, 0.5f);
 
-			glColor3f(0.5f, 0.5f, 0.5f);
-			glLineWidth(1.f);
-			glBegin(GL_LINE_LOOP);
-				glVertex2f(pos, 1.f);
-				glVertex2f(pos + this->m_HorizontalSliderWidth, 1.f);
-				glVertex2f(pos + this->m_HorizontalSliderWidth, CORNER_HEIGHT - 1.f);
-				glVertex2f(pos, CORNER_HEIGHT - 1.f);
-			glEnd();
+			this->m_Renderer.AddShape(std::move(hScrollbar));
 		}
 
-		// Render the corner
-		glViewport(this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y, CORNER_WIDTH, CORNER_HEIGHT);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluOrtho2D(0, CORNER_WIDTH, CORNER_HEIGHT, 0);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glColor3f(0.2f, 0.2f, 0.2f);
-		glRectf(0.f, 0.f, CORNER_WIDTH, CORNER_HEIGHT);
+		this->m_Renderer.Render();
 	} 
 } /* disxx::ui */
