@@ -52,9 +52,10 @@ export namespace disxx::ui::backend
 		explicit GLRenderer(GLRenderer &&) noexcept = delete;
 		GLRenderer &operator=(GLRenderer &&) noexcept = delete;
 
-		virtual void ResizeWindow(float, float) noexcept override;
-		virtual void AddShape(utility::Shape &&) noexcept override;
-		virtual void ClearShapes(void) noexcept override;
+		virtual void PushShape(utility::Shape &&) noexcept override;
+		virtual void PopShape(void) noexcept override;
+		virtual void ClearBuffer(void) noexcept override;
+
 		virtual void Render(void) noexcept override;
 	};
 } /* disxx::ui::backend */

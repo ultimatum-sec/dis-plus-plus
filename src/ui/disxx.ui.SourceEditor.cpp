@@ -1,11 +1,7 @@
 module;
 
-#ifdef __APPLE__
-#   include <OpenGL/gl.h>
-#   include <GLUT/glut.h>
-#else
-#   include <GL/freeglut.h>
-#endif
+#include <OpenGL/gl.h>
+#include <GLUT/glut.h>
 
 #include <string_view>
 #include <functional>
@@ -14,6 +10,8 @@ module;
 #include <format>
 #include <string>
 #include <vector>
+
+#include <print>
 
 module disxx.ui.SourceEditor;
 
@@ -50,8 +48,8 @@ namespace disxx::ui
 		, m_IsActiveVertical{false}
 		, m_IsActiveHorizontal{false}
 	{
-		this->_CalcMaxScroll();
 		this->m_Lines.emplace_back("");
+		this->_CalcMaxScroll();
 	}
 
 	SourceEditor::SourceEditor(float x, float y, float width, float height) noexcept
@@ -68,8 +66,8 @@ namespace disxx::ui
 		, m_IsActiveVertical{false}
 		, m_IsActiveHorizontal{false}
 	{
-		this->_CalcMaxScroll();
 		this->m_Lines.emplace_back("");
+		this->_CalcMaxScroll();
 	}
 
 	SourceEditor::SourceEditor(const SourceEditor &other) noexcept
@@ -116,7 +114,7 @@ namespace disxx::ui
 		this->m_MaxScrollX = 0.f;
 		for (const auto &line : this->m_Lines)
 			if (auto realText{utility::ColorTag{}.RemoveTags(line)}; realText.size() * CHAR_HEIGHT + 5 > this->m_MaxScrollX)
-					this->m_MaxScrollX = realText.size() * CHAR_HEIGHT + 5;
+					this->m_MaxScrollX = std::max(0.f, realText.size() * CHAR_HEIGHT + 5 - (this->m_Width - CORNER_WIDTH));
 
 		this->m_VerticalSliderHeight = (this->m_Height - CORNER_HEIGHT) * ((this->m_Height - CORNER_HEIGHT)
 			/ static_cast<float>(this->m_Lines.size() * CHAR_WIDTH));
@@ -134,11 +132,8 @@ namespace disxx::ui
 
 	void SourceEditor::HandleMouse(int button, int state, int x, int y) noexcept
 	{
-		x -= this->m_X;
-        y = (glutGet(GLUT_WINDOW_HEIGHT) - y) - this->m_Y;
-	
 		// Mouse clicked	
-		if (button == GLUT_LEFT && state == GLUT_DOWN)
+		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 		{
 			// The verticall scrollbar has been dragged
 			if (x >= this->m_Width - CORNER_WIDTH && x < this->m_Width && y > CORNER_HEIGHT && y < this->m_Height)
@@ -147,7 +142,7 @@ namespace disxx::ui
 				this->m_LastMouseY = y;
 			}
 			// The horizontal scrollbar has been dragged
-			else if (x >= 0 && x < this->m_Width - CORNER_WIDTH && y >= 0 && y < CORNER_HEIGHT)
+			else if (x >= 0 && x < this->m_Width - CORNER_WIDTH && y >= 0)
 			{
 				this->m_IsActiveHorizontal = true;
 				this->m_LastMouseX = x;
@@ -164,16 +159,11 @@ namespace disxx::ui
 		{
 			this->m_ScrollY += CHAR_HEIGHT * SKIP_PER_SCROLL * (button == 3 ? 1 : -1);
 			this->m_ScrollY = std::max(0.f, std::min(this->m_ScrollY,this->m_MaxScrollY));
-			
-			glutPostRedisplay();
 		}
 	}
 
 	void SourceEditor::HandleMotion(int x, int y) noexcept
 	{
-		x -= this->m_X;
-		y = (glutGet(GLUT_WINDOW_HEIGHT) - y) - this->m_Y;
-
 		if (this->m_IsActiveVertical)
 		{
 			float delta{y - this->m_LastMouseY};
@@ -191,24 +181,22 @@ namespace disxx::ui
 
   	        this->m_ScrollX += delta * (this->m_MaxScrollX / (this->m_Width - CORNER_WIDTH));
 			this->m_ScrollX = std::max(0.f, std::min(this->m_ScrollX, this->m_MaxScrollX));
-		
+	
 			glutPostRedisplay();
 		}
 	}
 	
 	void SourceEditor::Render(void) const noexcept
 	{
-		this->m_Renderer.ClearShapes();
-
 		// Render the text area
-		glViewport(this->m_X, this->m_Y + CORNER_HEIGHT, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
+		/*glViewport(this->m_X, this->m_Y + CORNER_HEIGHT, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		gluOrtho2D(0, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT, 0);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-
-        utility::ColorTag tag{};
+        
+		utility::ColorTag tag{};
         for (const auto &i : std::views::iota(0UL, this->m_Lines.size()))
         {
             if ((i * CHAR_WIDTH + CHAR_WIDTH - this->m_ScrollY < 0.f) || (i * CHAR_WIDTH - this->m_ScrollY > this->m_Height - CORNER_HEIGHT))
@@ -247,26 +235,7 @@ namespace disxx::ui
 				pos += text.size();
              }
         }
-	
-		glViewport(
-	        0,
-	        0,
-	        glutGet(GLUT_WINDOW_WIDTH),
-	        glutGet(GLUT_WINDOW_HEIGHT)
-	    );
-
-    	glMatrixMode(GL_PROJECTION);
-    	glLoadIdentity();
-
-    	gluOrtho2D(
-    	    0,
-    	    glutGet(GLUT_WINDOW_WIDTH),
-    	    0,
-    	    glutGet(GLUT_WINDOW_HEIGHT)
-    	);
-
-    	glMatrixMode(GL_MODELVIEW);
-    	glLoadIdentity();
+		*/
 	
 		// Render the vertical scrollbar
 		if (this->m_MaxScrollY > 0)
@@ -275,11 +244,11 @@ namespace disxx::ui
 			pos = std::max(0.f, std::min(pos, this->m_Height - CORNER_HEIGHT - this->m_VerticalSliderHeight));
 
 			utility::Shape vScrollbar{utility::Shape::Type::RECTANGLE};
-			vScrollbar.Replace(this->m_Width - CORNER_WIDTH, pos);
+			vScrollbar.Replace(this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y + pos + CORNER_HEIGHT);
 			vScrollbar.Resize(CORNER_WIDTH, this->m_VerticalSliderHeight);
 			vScrollbar.SetColor(0.5f, 0.5f, 0.5f);
 		
-			this->m_Renderer.AddShape(std::move(vScrollbar));
+			s_pRenderer->PushShape(std::move(vScrollbar));
 		}
 
 		// Render the horizontal scrollbar
@@ -289,13 +258,13 @@ namespace disxx::ui
 			pos = std::max(0.f, std::min(pos, this->m_Width - CORNER_WIDTH - this->m_HorizontalSliderWidth));
 
 			utility::Shape hScrollbar{utility::Shape::Type::RECTANGLE};
-			hScrollbar.Replace(pos, 0.f);
+			hScrollbar.Replace(this->m_X + pos, this->m_Y);
 			hScrollbar.Resize(this->m_HorizontalSliderWidth, CORNER_HEIGHT);
 			hScrollbar.SetColor(0.5f, 0.5f, 0.5f);
 
-			this->m_Renderer.AddShape(std::move(hScrollbar));
+			s_pRenderer->PushShape(std::move(hScrollbar));
 		}
 
-		this->m_Renderer.Render();
+		this->s_pRenderer->Render();
 	} 
 } /* disxx::ui */

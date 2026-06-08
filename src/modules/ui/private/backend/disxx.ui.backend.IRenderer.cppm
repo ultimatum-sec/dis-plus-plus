@@ -13,10 +13,10 @@ export namespace disxx::ui::backend
 	  public:
 		virtual ~IRenderer(void) noexcept = default;
 
-		virtual void ResizeWindow(float, float) noexcept = 0;
+		virtual void PushShape(utility::Shape &&) noexcept = 0;
+		virtual void PopShape(void) noexcept = 0;		
+		virtual void ClearBuffer(void) noexcept = 0;
 
-		virtual void AddShape(utility::Shape &&) noexcept = 0;
-		virtual void ClearShapes(void) noexcept = 0;
 		virtual void Render(void) noexcept = 0;
 	};
 } /* disxx::ui::backend */

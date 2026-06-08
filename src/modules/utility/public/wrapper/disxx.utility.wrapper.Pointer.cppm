@@ -26,7 +26,7 @@ concept SmartPointer = requires (T &ptr)
 export namespace disxx::utility::wrapper
 {
 	/*
-	 * The stupid wrapper for smart pointers
+	 * Some stupid wrapper for smart pointers
 	 * that should throw an error
 	 * if the address in the pointer equals
 	 * to nullptr
@@ -43,10 +43,12 @@ export namespace disxx::utility::wrapper
 		explicit Pointer(const Pointer &) noexcept(std::is_nothrow_copy_constructible<T>::value)
 			requires (!std::is_copy_constructible<T>::value) = delete;
 
-		Pointer &operator=(const Pointer &) noexcept(std::is_nothrow_copy_assignable<T>::value)
-			requires std::is_copy_assignable<T>::value = default;
-		Pointer &operator=(const Pointer &) noexcept(std::is_nothrow_copy_assignable<T>::value)
-			requires (!std::is_copy_assignable<T>::value) = delete;
+		template <SmartPointer U>
+		Pointer &operator=(const U &) noexcept(std::is_assignable<T, U>::value)
+			requires std::is_assignable<T, U>::value;
+		 template <SmartPointer U>
+		Pointer &operator=(const U &) noexcept(std::is_nothrow_assignable<T, U>::value)
+			requires (!std::is_assignable<T, U>::value) = delete;
 		
 		explicit Pointer(Pointer &&) noexcept(std::is_nothrow_move_constructible<T>::value)
 			requires std::is_move_constructible<T>::value = default;
@@ -83,6 +85,15 @@ export namespace disxx::utility::wrapper
 	Pointer<T>::Pointer(Args &&...args) noexcept(std::is_nothrow_constructible<T, Args...>::value)
 		: AbstractWrapper<T>{std::forward<Args...>(args...)}
 	{}
+
+	template <SmartPointer T>
+	template <SmartPointer U>
+	Pointer<T> &Pointer<T>::operator=(const U &other) noexcept(std::is_assignable<T, U>::value)
+		requires std::is_assignable<T, U>::value
+	{
+		this->m_Object = other;
+		return *this;
+	}
 
 	template <SmartPointer T>
 	T::element_type *Pointer<T>::operator->(void) noexcept(false)

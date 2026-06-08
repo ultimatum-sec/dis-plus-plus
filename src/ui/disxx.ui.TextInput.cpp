@@ -8,6 +8,7 @@ module;
 #	include <GL/gl.h>
 #endif
 
+#include <functional>
 #include <string>
 
 module disxx.ui.TextInput;
@@ -16,16 +17,19 @@ namespace disxx::ui
 {
 	TextInput::TextInput(void) noexcept
 		: Widget{}
+		, m_Callback{[](const Widget *const) -> void {}}
 		, m_Text{""}
 	{}
 
 	TextInput::TextInput(float x, float y, float width, float height) noexcept
 		: Widget{x, y, width, height}
+		, m_Callback{[](const Widget *const) -> void {}}
 		, m_Text{""}
 	{}
 
 	TextInput::TextInput(const TextInput &other) noexcept
 		: Widget{other}
+		, m_Callback{other.m_Callback}
 		, m_Text{other.m_Text}
 	{}
 
@@ -34,6 +38,7 @@ namespace disxx::ui
 		if (this != &other) [[likely]]
 		{
 			Widget::operator=(other);
+			this->m_Callback = other.m_Callback;
 			this->m_Text = other.m_Text;
 		}
 
@@ -53,10 +58,9 @@ namespace disxx::ui
 			if (key == 0x7F && !this->m_Text.empty())
 				this->m_Text.pop_back();
 			else if (key == '\n')
-				(*this)();
+				this->m_Callback(this);
 			else if (key >= 32 && key <= 126)
 				this->m_Text += key;
-			glutPostRedisplay();	
 		}
 	}
 
@@ -123,5 +127,3 @@ namespace disxx::ui
 			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, this->m_Text[i]);
 	}
 }
-
-

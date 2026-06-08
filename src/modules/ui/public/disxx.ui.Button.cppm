@@ -22,6 +22,7 @@ export namespace disxx::ui
 		};
 
 	  private:
+		std::function<void(const Widget *const)> m_Callback;
 		ButtonTrigger m_Trigger;
 		utility::Image m_Image;
 		std::string m_Text;

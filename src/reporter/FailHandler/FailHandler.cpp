@@ -273,9 +273,6 @@ void FailHandler::__ReshapeFunc(int width, int height) noexcept(false)
 	this->m_Width = width;
 	this->m_Height = height;
 
-	for (auto &pWidget : this->m_Widgets)
-		pWidget->GetRenderer().ResizeWindow(this->m_Width, this->m_Height);
-
     this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height - 100);
 	this->m_Widgets.at(0)->Replace(0.f, 100.f);
 
@@ -289,6 +286,7 @@ void FailHandler::__MotionFunc(int x, int y) noexcept(false)
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleMotion(x, y);
+	glutPostRedisplay();
 }
 
 void FailHandler::__DisplayFunc(void) noexcept
@@ -299,6 +297,7 @@ void FailHandler::__DisplayFunc(void) noexcept
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();
 	glutSwapBuffers();
+	disxx::ui::Widget::ClearBuffer();
 }
 
 [[nodiscard]] int FailHandler::Exec(void) const noexcept(false)

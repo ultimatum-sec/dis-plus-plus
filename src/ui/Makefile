@@ -8,6 +8,7 @@ endif
 MODULESPATH=..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)
 
 BUILDDIR=.$(PATHSEP)build
+DEPENDENCIESDIR=$(BUILDDIR)$(PATHSEP)dependencies
 PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
@@ -17,7 +18,7 @@ CXXFLAGS=-c -std=c++26 -arch $(ARCH) -O3 -Wall -Werror -Wextra -Wpedantic -DGL_S
 	-Wno-writable-strings -Wno-unused-command-line-argument -fprebuilt-module-path=$(PRECOMPILEDDIR)
 
 LDFLAGS=-O2 $(LTOFLAGS) -dylib -S -arch $(ARCH) -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
-	-framework OpenGL -framework GLUT $(INSTALLFLAGS) $(RPATHFLAG)
+	-L $(DEPENDENCIESDIR) -ldisxx-util -framework OpenGL -framework GLUT $(INSTALLFLAGS) $(RPATHFLAG)
 ifeq ($(OS),Darwin)
 	LDFLAGS+=-install_name @executable_path/../Frameworks/libdisxx-ui.$(DYLIB)
 else
@@ -26,6 +27,9 @@ else
 endif
 
 MODULES=\
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.AbstractWrapper.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.Pointer.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Image.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ImageLoader.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ColorTag.cppm \
@@ -55,6 +59,8 @@ SOURCES=\
 .PHONY: all
 all: $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB)
 
+DEPENDENCIES=build$(PATHSEP)libdisxx-util.dylib
+
 vpath %.cppm $(sort $(dir $(MODULES)))
 vpath %.cpp $(sort $(dir $(SOURCES)))
 vpath %.pcm $(sort $(dir $(PRECOMPILED)))
@@ -63,6 +69,10 @@ PRECOMPILED=$(addprefix $(PRECOMPILEDDIR)$(PATHSEP),  $(notdir $(MODULES:.cppm=.
 MOBJECTS=$(PRECOMPILED:.pcm=.o)
 OBJECTS=$(addprefix $(OBJECTSDIR)$(PATHSEP), $(notdir $(SOURCES:.cpp=.o)))
 
+DEPENDENCIES=$(DEPENDENCIESDIR)$(PATHSEP)libdisxx-util.$(DYLIB)
+
+$(DEPENDENCIESDIR):
+	$(MKDIR) $@
 $(PRECOMPILEDDIR):
 	$(MKDIR) $@
 $(OBJECTSDIR):
@@ -73,7 +83,10 @@ $(MOBJECTS): $(PRECOMPILEDDIR)$(PATHSEP)%.o: $(PRECOMPILEDDIR)$(PATHSEP)%.pcm | 
 	$(CXX) $(CXXFLAGS) $< -o $@
 $(OBJECTS): $(OBJECTSDIR)$(PATHSEP)%.o: %.cpp | $(OBJECTSDIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
-$(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB): $(MOBJECTS) $(OBJECTS)
+$(DEPENDENCIESDIR)$(PATHSEP)libdisxx-util.$(DYLIB): | $(DEPENDENCIESDIR)
+	make -C ..$(PATHSEP)utility
+	$(MOVE) ..$(PATHSEP)utility$(PATHSEP)build$(PATHSEP)libdisxx-util.$(DYLIB) $@
+$(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB): $(MOBJECTS) $(OBJECTS) | $(DEPENDENCIES)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:

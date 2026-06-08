@@ -21,6 +21,7 @@ namespace disxx::ui
 {
 	Button::Button(void) noexcept
 		: Widget{}
+		, m_Callback{[](const Widget *const) -> void {}}
 		, m_Trigger{ButtonTrigger::BTN_NONE}
 		, m_Image{}
 		, m_Text{}	
@@ -28,6 +29,7 @@ namespace disxx::ui
 
 	Button::Button(float x, float y, float width, float height) noexcept
 		: Widget{x, y, width, height}
+		, m_Callback{[](const Widget *const) -> void {}}
 		, m_Trigger{ButtonTrigger::BTN_NONE}
 		, m_Image{}
 		, m_Text{}
@@ -35,6 +37,7 @@ namespace disxx::ui
 
 	Button::Button(const Button &other) noexcept
 		: Widget{other}
+		, m_Callback{other.m_Callback}
 		, m_Trigger{other.m_Trigger}
 		, m_Image{other.m_Image}
 		, m_Text{other.m_Text}
@@ -45,6 +48,7 @@ namespace disxx::ui
 		if (this != &other) [[likely]]
 		{
 			Widget::operator=(other);
+			this->m_Callback = other.m_Callback;
 			this->m_Trigger = other.m_Trigger;
 			this->m_Image = other.m_Image;
 			this->m_Text = other.m_Text;
@@ -85,15 +89,12 @@ namespace disxx::ui
 		s.Resize(this->m_Width, this->m_Height);
 		s.SetColor(this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]);
 
-		this->m_Renderer.ClearShapes();
-		this->m_Renderer.AddShape(std::move(s));
-		
-		this->m_Renderer.Render();
+		s_pRenderer->PushShape(std::move(s));
+		s_pRenderer->Render();
 	}
 
 	void Button::HandleMouse(int button, int state, int x, int y) noexcept
 	{
-		//y = glutGet(GLUT_WINDOW_HEIGHT) - y;
 		if (!(x >= this->m_X && x <= this->m_X + this->m_Width && y >= this->m_Y && y <= this->m_Y + this->m_Height))
 			return;
 
@@ -103,16 +104,13 @@ namespace disxx::ui
 			this->m_IsClicked = false;
 
 		if (this->m_IsClicked && this->m_Trigger == ButtonTrigger::BTN_CLICKED)
-			(*this)();
-		glutPostRedisplay();
+			this->m_Callback(this);
 	}
 
 	void Button::HandleMotion(int x, int y) noexcept
 	{
-		//y = glutGet(GLUT_WINDOW_HEIGHT) - y;
 		this->m_IsHovered = (x >= this->m_X && x <= this->m_X + this->m_Width && y >= this->m_Y && y <= this->m_Y + this->m_Height);
 		if (this->m_IsHovered && this->m_Trigger == ButtonTrigger::BTN_HOVERED)
-			(*this)();
-		glutPostRedisplay();
+			this->m_Callback(this);
 	}
 } /* disxx::ui */

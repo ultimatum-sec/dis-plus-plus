@@ -1,25 +1,33 @@
 module;
 
+#include <disconf.hpp>
+
 #include <type_traits>
 #include <functional>
+#include <memory>
 #include <tuple>
 
 export module disxx.ui.Widget;
 
+import disxx.utility.wrapper.Pointer;
 import disxx.ui.backend.IRenderer;
 import disxx.ui.backend.GLRenderer;
 
 export namespace disxx::ui
 {
-	class Widget
+	class __DISXX_EXPORT__ [[nodiscard]] Widget
 	{
 	  protected:
-		mutable backend::GLRenderer m_Renderer;
-		[[maybe_unused]] std::function<void(const Widget *const)> m_Callback;
+		static disxx::utility::wrapper::Pointer<std::shared_ptr<backend::IRenderer>> s_pRenderer;
+
+	  protected:
 		float m_X, m_Y;
 		float m_Width, m_Height;
 		float m_pColor[3];
 		[[maybe_unused]] mutable bool m_IsClicked, m_IsHovered;
+
+	  public:
+		static void ClearBuffer(void) noexcept;
 	
 	  public:
 		explicit Widget(void) noexcept;
@@ -29,12 +37,8 @@ export namespace disxx::ui
 
 		virtual ~Widget(void) noexcept = default;
 
-		backend::IRenderer &GetRenderer(void) noexcept;
-
 		std::tuple<float, float> GetCords(void) const noexcept;
 		std::tuple<float, float> GetSizes(void) const noexcept;
-	
-		void operator()(void) const;
 	
 		virtual void Replace(float, float) noexcept;
 		virtual void Resize(float, float) noexcept;
@@ -48,10 +52,3 @@ export namespace disxx::ui
 		virtual void Render(void) const noexcept = 0;
 	};
 } /* disxx::ui */
-
-
-
-
-
-
-

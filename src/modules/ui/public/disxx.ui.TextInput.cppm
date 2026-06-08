@@ -1,6 +1,7 @@
 module;
 
 #include <string_view>
+#include <functional>
 #include <string>
 
 export module disxx.ui.TextInput;
@@ -12,6 +13,7 @@ export namespace disxx::ui
 	class TextInput final : public Widget
 	{
 	  private:
+		std::function<void(const Widget *const)> m_Callback;
 		std::string m_Text;
 
 	  public:

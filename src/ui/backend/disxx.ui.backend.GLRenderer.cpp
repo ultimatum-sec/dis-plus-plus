@@ -80,30 +80,38 @@ namespace disxx::ui::backend
 		glDeleteProgram(this->m_Program);
 	}
 
-	void GLRenderer::ResizeWindow(float width, float height) noexcept
+	void GLRenderer::PushShape(utility::Shape &&shape) noexcept
 	{
+		if (this->m_Shapes.size() < 1024 * 1024) [[likely]]
+			this->m_Shapes.emplace_back(std::move(shape));
+	}
+
+	void GLRenderer::PopShape(void) noexcept
+	{
+		if (this->m_Shapes.size() > 0) [[likely]]
+			this->m_Shapes.pop_back();
+	}
+
+	void GLRenderer::ClearBuffer(void) noexcept
+	{
+		if (this->m_Shapes.size() > 0) [[likely]]
+			this->m_Shapes.clear();
+	}
+
+	void GLRenderer::Render(void) noexcept
+	{
+		// Get actual window size and set up a projection
 		GLfloat projection[] = {
-			2.f / width, 0.f, 0.f, 0.f,
-			0.f, 2.f / height, 0.f, 0.f,
+			2.f / glutGet(GLUT_WINDOW_WIDTH), 0.f, 0.f, 0.f,
+			0.f, 2.f / glutGet(GLUT_WINDOW_HEIGHT), 0.f, 0.f,
 			0.f, 0.f, -1.f, 0.f,
 			-1.f, -1.f, 0.f, 1.f
 		};
 		
 		glUseProgram(this->m_Program);
 		GLint loc{glGetUniformLocation(this->m_Program, "projection")};
-		if (loc == -1)
-			std::cout << "Error!" << std::endl;
 		glUniformMatrix4fv(loc, 1, GL_FALSE, projection);
-	}
 
-	void GLRenderer::AddShape(utility::Shape &&shape) noexcept
-	{ this->m_Shapes.emplace_back(std::move(shape)); }
-
-	void GLRenderer::ClearShapes(void) noexcept
-	{ this->m_Shapes.clear(); }
-
-	void GLRenderer::Render(void) noexcept
-	{
 		std::vector<utility::Vertex<GLfloat>> vertices{};
 		for (const auto &shape : this->m_Shapes)
 		{
@@ -127,13 +135,11 @@ namespace disxx::ui::backend
 			 	
 				break;
 			  }
+			  
 			  default:
 				break;
 			}
 		}
-
-		glClear(GL_COLOR_BUFFER_BIT);
-		glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 
 		glBindVertexArray(this->m_Vao);
 		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
