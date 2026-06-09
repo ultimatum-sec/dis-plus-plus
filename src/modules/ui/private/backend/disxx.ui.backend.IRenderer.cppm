@@ -16,7 +16,6 @@ export namespace disxx::ui::backend
 		virtual void PushShape(utility::Shape &&) noexcept = 0;
 		virtual void PopShape(void) noexcept = 0;		
 		virtual void ClearBuffer(void) noexcept = 0;
-
 		virtual void Render(void) noexcept = 0;
 	};
 } /* disxx::ui::backend */

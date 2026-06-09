@@ -16,6 +16,7 @@ module disxx.ui.Button;
 
 import disxx.ui.backend.GLRenderer;
 import disxx.ui.utility.Shape;
+import disxx.ui.utility.Vec;
 
 namespace disxx::ui
 {
@@ -85,9 +86,9 @@ namespace disxx::ui
 	{
 		// Render the frame
 		utility::Shape s{utility::Shape::Type::RECTANGLE};
-		s.Replace(this->m_X, this->m_Y);
-		s.Resize(this->m_Width, this->m_Height);
-		s.SetColor(this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]);
+		s.Replace(utility::Vec2<float>{this->m_X, this->m_Y});
+		s.Resize(utility::Vec2<float>{this->m_Width, this->m_Height});
+		s.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
 
 		s_pRenderer->PushShape(std::move(s));
 		s_pRenderer->Render();

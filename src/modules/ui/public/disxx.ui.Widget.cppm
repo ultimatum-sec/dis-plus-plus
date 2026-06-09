@@ -28,6 +28,8 @@ export namespace disxx::ui
 
 	  public:
 		static void ClearBuffer(void) noexcept;
+		static void SwapBuffers(void) noexcept;
+		static void Redisplay(void) noexcept;
 	
 	  public:
 		explicit Widget(void) noexcept;

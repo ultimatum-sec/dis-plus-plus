@@ -15,8 +15,10 @@ module;
 
 module disxx.ui.SourceEditor;
 
+import disxx.ui.backend.GLRenderer;
 import disxx.ui.utility.ColorTag;
 import disxx.ui.utility.Shape;
+import disxx.ui.utility.Vec;
 
 namespace
 {
@@ -171,8 +173,8 @@ namespace disxx::ui
 
 			this->m_ScrollY -= delta * (this->m_MaxScrollY / (this->m_Height - CORNER_HEIGHT));
 			this->m_ScrollY = std::max(0.f, std::min(this->m_ScrollY, this->m_MaxScrollY));
-		
-			glutPostRedisplay();
+	
+			backend::GLRenderer::Redisplay();	
 		}
 		else if (this->m_IsActiveHorizontal)
 		{
@@ -181,8 +183,8 @@ namespace disxx::ui
 
   	        this->m_ScrollX += delta * (this->m_MaxScrollX / (this->m_Width - CORNER_WIDTH));
 			this->m_ScrollX = std::max(0.f, std::min(this->m_ScrollX, this->m_MaxScrollX));
-	
-			glutPostRedisplay();
+
+			backend::GLRenderer::Redisplay();	
 		}
 	}
 	
@@ -244,9 +246,9 @@ namespace disxx::ui
 			pos = std::max(0.f, std::min(pos, this->m_Height - CORNER_HEIGHT - this->m_VerticalSliderHeight));
 
 			utility::Shape vScrollbar{utility::Shape::Type::RECTANGLE};
-			vScrollbar.Replace(this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y + pos + CORNER_HEIGHT);
-			vScrollbar.Resize(CORNER_WIDTH, this->m_VerticalSliderHeight);
-			vScrollbar.SetColor(0.5f, 0.5f, 0.5f);
+			vScrollbar.Replace(utility::Vec2<float>{this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y + pos + CORNER_HEIGHT});
+			vScrollbar.Resize(utility::Vec2<float>{CORNER_WIDTH, this->m_VerticalSliderHeight});
+			vScrollbar.SetColor(utility::Vec3<float>{0.5f, 0.5f, 0.5f});
 		
 			s_pRenderer->PushShape(std::move(vScrollbar));
 		}
@@ -258,9 +260,9 @@ namespace disxx::ui
 			pos = std::max(0.f, std::min(pos, this->m_Width - CORNER_WIDTH - this->m_HorizontalSliderWidth));
 
 			utility::Shape hScrollbar{utility::Shape::Type::RECTANGLE};
-			hScrollbar.Replace(this->m_X + pos, this->m_Y);
-			hScrollbar.Resize(this->m_HorizontalSliderWidth, CORNER_HEIGHT);
-			hScrollbar.SetColor(0.5f, 0.5f, 0.5f);
+			hScrollbar.Replace(utility::Vec2<float>{this->m_X + pos, this->m_Y});
+			hScrollbar.Resize(utility::Vec2<float>{this->m_HorizontalSliderWidth, CORNER_HEIGHT});
+			hScrollbar.SetColor(utility::Vec3<float>{0.5f, 0.5f, 0.5f});
 
 			s_pRenderer->PushShape(std::move(hScrollbar));
 		}

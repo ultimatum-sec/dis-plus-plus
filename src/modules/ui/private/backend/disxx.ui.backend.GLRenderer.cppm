@@ -42,6 +42,10 @@ export namespace disxx::ui::backend
 		GLuint m_Program;
 
 	  public:
+		static void SwapBuffers(void) noexcept;
+		static void Redisplay(void) noexcept;
+
+	  public:
 		explicit GLRenderer(void) noexcept;
 
 		virtual ~GLRenderer(void) noexcept override;
@@ -55,7 +59,6 @@ export namespace disxx::ui::backend
 		virtual void PushShape(utility::Shape &&) noexcept override;
 		virtual void PopShape(void) noexcept override;
 		virtual void ClearBuffer(void) noexcept override;
-
 		virtual void Render(void) noexcept override;
 	};
 } /* disxx::ui::backend */

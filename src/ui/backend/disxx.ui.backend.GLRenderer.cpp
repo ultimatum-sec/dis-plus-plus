@@ -33,6 +33,12 @@ import disxx.ui.utility.Vec;
 
 namespace disxx::ui::backend
 {
+	void GLRenderer::SwapBuffers(void) noexcept
+	{ glutSwapBuffers(); }
+
+	void GLRenderer::Redisplay(void) noexcept
+	{ glutPostRedisplay(); }
+
 	GLRenderer::GLRenderer(void) noexcept
 		: m_Shapes{}
 		, m_Vao{}
@@ -124,14 +130,14 @@ namespace disxx::ui::backend
 				const auto &[r, g, b]{shape.GetColor()};
 
 				// First triangle
-				vertices.emplace_back(utility::Vertex<GLfloat>{{x, y}, {r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{{x, y + height}, {r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{{x + width, y + height}, {r, g, b}});
+				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y}, utility::Vec3<GLfloat>{r, g, b}});
+				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y + height}, utility::Vec3<GLfloat>{r, g, b}});
+				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y + height}, utility::Vec3<GLfloat>{r, g, b}});
 
 				// Second triangle
-				vertices.emplace_back(utility::Vertex<GLfloat>{{x + width, y + height}, {r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{{x + width, y}, {r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{{x, y}, {r, g, b}});
+				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y + height}, utility::Vec3<GLfloat>{r, g, b}});
+				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y}, utility::Vec3<GLfloat>{r, g, b}});
+				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y}, utility::Vec3<GLfloat>{r, g, b}});
 			 	
 				break;
 			  }
