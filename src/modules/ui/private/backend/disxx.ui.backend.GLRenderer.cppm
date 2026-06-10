@@ -22,7 +22,7 @@ export namespace disxx::ui::backend
 			"varying vec4 color;\n"
 			"void main()\n"
 			"{\n"
-			"\tgl_Position = projection * vec4(position, 0.f, 1.f);\n"
+			"\tgl_Position = projection * vec4(position, 1.f, 1.f);\n"
 			"\tcolor = vec4(incolor, 1.f);"
 			"}\n";
 		

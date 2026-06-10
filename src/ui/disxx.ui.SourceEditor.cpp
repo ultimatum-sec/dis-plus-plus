@@ -169,7 +169,7 @@ namespace disxx::ui
 			float delta{y - this->m_LastMouseY};
 			this->m_LastMouseY = y;
 
-			this->m_ScrollY -= delta * (this->m_MaxScrollY / (this->m_Height - CORNER_HEIGHT));
+			this->m_ScrollY += delta * (this->m_MaxScrollY / (this->m_Height - CORNER_HEIGHT));
 			this->m_ScrollY = std::max(0.f, std::min(this->m_ScrollY, this->m_MaxScrollY));
 	
 			backend::GLRenderer::Redisplay();	
@@ -192,7 +192,7 @@ namespace disxx::ui
 		utility::ColorTag tag{};
         for (const auto &i : std::views::iota(0UL, this->m_Lines.size()))
         {
-            if ((i * CHAR_WIDTH + CHAR_WIDTH - this->m_ScrollY < 0.f) || (i * CHAR_WIDTH - this->m_ScrollY > this->m_Height - CORNER_HEIGHT))
+            if (float lineY{this->m_Height - CORNER_HEIGHT - i * CHAR_WIDTH + this->m_ScrollY}; (lineY < 0.f) || (lineY > this->m_Height - CORNER_HEIGHT))
                 continue;
 
 			// The line without color tags
@@ -209,7 +209,7 @@ namespace disxx::ui
 						std::min
 						(
 							realText.size(),
-							renderStart + static_cast<unsigned long>((this->m_Width - CORNER_WIDTH) / CHAR_HEIGHT) + 2ul
+							renderStart + static_cast<unsigned long>((this->m_Width - CORNER_WIDTH) / CHAR_HEIGHT)
 						)
 					)
 				};
@@ -220,10 +220,9 @@ namespace disxx::ui
 					utility::Vec2<GLfloat>
 					{
 						std::max(1.f, 5.f - this->m_ScrollX + static_cast<float>(renderStart) * CHAR_HEIGHT),
-						std::clamp(5.f + i * CHAR_WIDTH - this->m_ScrollY + this->m_Y, 1.f, this->m_Y + this->m_Height - CORNER_HEIGHT - 1.f)
+						this->m_Y + this->m_Height - i * CHAR_WIDTH + this->m_ScrollY
 					}
 				);
-
 				txt.SetColor
 				(
 					utility::Vec3<float>
@@ -252,7 +251,7 @@ namespace disxx::ui
 			pos = std::max(0.f, std::min(pos, this->m_Height - CORNER_HEIGHT - this->m_VerticalSliderHeight));
 
 			utility::Shape vScrollbar{utility::Shape::Type::RECTANGLE};
-			vScrollbar.Replace(utility::Vec2<float>{this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y + pos + CORNER_HEIGHT});
+			vScrollbar.Replace(utility::Vec2<float>{this->m_X + this->m_Width - CORNER_WIDTH, this->m_Y + this->m_Height - this->m_VerticalSliderHeight - pos});
 			vScrollbar.Resize(utility::Vec2<float>{CORNER_WIDTH, this->m_VerticalSliderHeight});
 			vScrollbar.SetColor(utility::Vec3<float>{0.5f, 0.5f, 0.5f});
 		

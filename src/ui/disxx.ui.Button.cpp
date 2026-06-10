@@ -84,14 +84,14 @@ namespace disxx::ui
 
 	void Button::Render(void) const noexcept
 	{
-		// Render the frame
+		// Add a shape
 		utility::Shape s{utility::Shape::Type::RECTANGLE};
 		s.Replace(utility::Vec2<float>{this->m_X, this->m_Y});
 		s.Resize(utility::Vec2<float>{this->m_Width, this->m_Height});
 		s.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
 		s_pRenderer->PushShape(std::move(s));
 		
-		// Render the text
+		// Add a text
         if (!this->m_Text.empty())
         {
 			utility::Text txt{};
@@ -105,6 +105,7 @@ namespace disxx::ui
 			);
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
 			txt.SetText(this->m_Text);
+			s_pRenderer->PushText(std::move(txt));
         }
 
 		s_pRenderer->Render();

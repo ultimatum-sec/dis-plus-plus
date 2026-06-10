@@ -160,6 +160,14 @@ namespace disxx::ui::backend
 			}
 		}
 
+		glBindVertexArray(this->m_Vao);
+		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
+
+		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(utility::Vertex<GLfloat>), vertices.data());
+
+		glUseProgram(this->m_Program);
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	
 		glUseProgram(0);
 		
 		for (const auto &text : this->m_TextBuffer)
@@ -173,15 +181,6 @@ namespace disxx::ui::backend
 			for (const auto ch : text.GetText())
 				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, ch);
 		}
-		
-		glUseProgram(this->m_Program);
-	
-		glBindVertexArray(this->m_Vao);
-		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
 
-		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(utility::Vertex<GLfloat>), vertices.data());
-
-		glUseProgram(this->m_Program);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 	}
 } /* disxx::ui::backend */
