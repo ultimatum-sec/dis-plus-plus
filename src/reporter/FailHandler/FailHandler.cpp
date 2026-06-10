@@ -297,7 +297,7 @@ void FailHandler::__DisplayFunc(void) noexcept
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();
 	glutSwapBuffers();
-	disxx::ui::Widget::ClearBuffer();
+	disxx::ui::Widget::ClearBuffers();
 }
 
 [[nodiscard]] int FailHandler::Exec(void) const noexcept(false)

@@ -27,7 +27,7 @@ export namespace disxx::ui
 		[[maybe_unused]] mutable bool m_IsClicked, m_IsHovered;
 
 	  public:
-		static void ClearBuffer(void) noexcept;
+		static void ClearBuffers(void) noexcept;
 		static void SwapBuffers(void) noexcept;
 		static void Redisplay(void) noexcept;
 	

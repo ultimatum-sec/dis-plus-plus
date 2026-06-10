@@ -36,6 +36,7 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Vec.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Vertex.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Renderable.cppm \
+	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Text.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Shape.cppm \
 	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.IRenderer.cppm \
 	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLRenderer.cppm \
@@ -50,6 +51,7 @@ SOURCES=\
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ImageLoader.cpp \
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ColorTag.cpp \
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Renderable.cpp \
+	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Text.cpp \
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Shape.cpp \
 	.$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLRenderer.cpp \
 	.$(PATHSEP)disxx.ui.Widget.cpp \

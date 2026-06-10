@@ -8,6 +8,11 @@ module disxx.ui.utility.Shape;
 
 namespace disxx::ui::utility
 {
+	Shape::Shape(void) noexcept
+		: Renderable{}
+		, m_Type{Type::TRIANGLE}
+	{}
+
 	Shape::Shape(Type type) noexcept
 		: Renderable{}
 		, m_Type{type}

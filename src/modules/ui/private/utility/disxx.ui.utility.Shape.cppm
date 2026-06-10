@@ -25,6 +25,7 @@ export namespace disxx::ui::utility
 		Type m_Type;
 
 	  public:
+		explicit Shape(void) noexcept;
 		explicit Shape(Type) noexcept;
 		
 		explicit Shape(const Shape &) noexcept;

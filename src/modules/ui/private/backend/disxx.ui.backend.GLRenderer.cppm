@@ -34,7 +34,8 @@ export namespace disxx::ui::backend
 			"}\n";
 
 	  private:
-		std::vector<utility::Shape> m_Shapes;
+		std::vector<utility::Shape> m_ShapeBuffer;
+		std::vector<utility::Text> m_TextBuffer;
 		GLuint m_Vao;
 		GLuint m_Vbo;
 		GLuint m_VertexShader;
@@ -58,7 +59,11 @@ export namespace disxx::ui::backend
 
 		virtual void PushShape(utility::Shape &&) noexcept override;
 		virtual void PopShape(void) noexcept override;
-		virtual void ClearBuffer(void) noexcept override;
+		
+		virtual void PushText(utility::Text &&) noexcept override;
+		virtual void PopText(void) noexcept override;
+	
+		virtual void ClearBuffers(void) noexcept override;
 		virtual void Render(void) noexcept override;
 	};
 } /* disxx::ui::backend */

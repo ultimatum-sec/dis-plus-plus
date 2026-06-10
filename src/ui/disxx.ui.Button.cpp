@@ -1,7 +1,6 @@
 module;
 
 #ifdef __APPLE__
-#	include <OpenGL/gl.h>
 #	include <GLUT/glut.h>
 #else
 #	include <GL/freeglut.h>
@@ -16,6 +15,7 @@ module disxx.ui.Button;
 
 import disxx.ui.backend.GLRenderer;
 import disxx.ui.utility.Shape;
+import disxx.ui.utility.Text;
 import disxx.ui.utility.Vec;
 
 namespace disxx::ui
@@ -89,8 +89,24 @@ namespace disxx::ui
 		s.Replace(utility::Vec2<float>{this->m_X, this->m_Y});
 		s.Resize(utility::Vec2<float>{this->m_Width, this->m_Height});
 		s.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
-
 		s_pRenderer->PushShape(std::move(s));
+		
+		// Render the text
+        if (!this->m_Text.empty())
+        {
+			utility::Text txt{};
+			txt.Replace
+			(
+            	utility::Vec2<float>
+				{
+					this->m_X + (this->m_Width - (9.f * this->m_Text.size() * 0.1f)) / 2.0f, 
+            		this->m_Y + this->m_Height / 2.0f + 10.0f
+				}
+			);
+			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
+			txt.SetText(this->m_Text);
+        }
+
 		s_pRenderer->Render();
 	}
 

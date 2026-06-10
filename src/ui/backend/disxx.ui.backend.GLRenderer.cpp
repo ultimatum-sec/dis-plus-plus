@@ -6,11 +6,9 @@ module;
 #include <utility>
 #include <memory>
 #include <vector>
+#include <string>
 #include <array>
 #include <tuple>
-#include <cmath>
-
-#include <iostream>
 
 /*
 #define CHECKSH(sh) \
@@ -40,7 +38,8 @@ namespace disxx::ui::backend
 	{ glutPostRedisplay(); }
 
 	GLRenderer::GLRenderer(void) noexcept
-		: m_Shapes{}
+		: m_ShapeBuffer{}
+		, m_TextBuffer{}
 		, m_Vao{}
 		, m_Vbo{}
 		, m_VertexShader{}
@@ -52,7 +51,7 @@ namespace disxx::ui::backend
 
 		glGenBuffers(1, &this->m_Vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
-		glBufferData(GL_ARRAY_BUFFER, std::pow(1048, 2), nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 1024 * 1024, nullptr, GL_DYNAMIC_DRAW);
 		// For positions
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(utility::Vertex<GLfloat>), (GLvoid *)(offsetof(utility::Vertex<GLfloat>, position)));
 		glEnableVertexAttribArray(0);
@@ -88,20 +87,34 @@ namespace disxx::ui::backend
 
 	void GLRenderer::PushShape(utility::Shape &&shape) noexcept
 	{
-		if (this->m_Shapes.size() < 1024 * 1024) [[likely]]
-			this->m_Shapes.emplace_back(std::move(shape));
+		if (this->m_ShapeBuffer.size() < 1024 * 1024) [[likely]]
+			this->m_ShapeBuffer.emplace_back(std::move(shape));
 	}
 
 	void GLRenderer::PopShape(void) noexcept
 	{
-		if (this->m_Shapes.size() > 0) [[likely]]
-			this->m_Shapes.pop_back();
+		if (this->m_ShapeBuffer.size() > 0) [[likely]]
+			this->m_ShapeBuffer.pop_back();
 	}
 
-	void GLRenderer::ClearBuffer(void) noexcept
+	void GLRenderer::PushText(utility::Text &&text) noexcept
 	{
-		if (this->m_Shapes.size() > 0) [[likely]]
-			this->m_Shapes.clear();
+		// Text buffer hasn't got any size limit
+		this->m_TextBuffer.emplace_back(std::move(text));
+	}
+
+	void GLRenderer::PopText(void) noexcept
+	{
+		if (this->m_TextBuffer.size() > 0) [[likely]]
+			this->m_TextBuffer.pop_back();
+	}
+
+	void GLRenderer::ClearBuffers(void) noexcept
+	{
+		if (this->m_ShapeBuffer.size() > 0) [[likely]]
+			this->m_ShapeBuffer.clear();
+		if (this->m_TextBuffer.size() > 0) [[likely]]
+			this->m_TextBuffer.clear();
 	}
 
 	void GLRenderer::Render(void) noexcept
@@ -119,7 +132,7 @@ namespace disxx::ui::backend
 		glUniformMatrix4fv(loc, 1, GL_FALSE, projection);
 
 		std::vector<utility::Vertex<GLfloat>> vertices{};
-		for (const auto &shape : this->m_Shapes)
+		for (const auto &shape : this->m_ShapeBuffer)
 		{
 			switch (shape.GetType())
 			{
@@ -147,6 +160,22 @@ namespace disxx::ui::backend
 			}
 		}
 
+		glUseProgram(0);
+		
+		for (const auto &text : this->m_TextBuffer)
+		{
+			const auto &[r, g, b]{text.GetColor()};
+			const auto &[x, y]{text.GetPosition()};
+
+			// Using an old OpenGL with GLUT is the simplest way to render a text
+			glColor3f(r, g, b);
+			glWindowPos2f(x, y);
+			for (const auto ch : text.GetText())
+				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, ch);
+		}
+		
+		glUseProgram(this->m_Program);
+	
 		glBindVertexArray(this->m_Vao);
 		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
 

@@ -1,6 +1,5 @@
 module;
 
-#include <OpenGL/gl.h>
 #include <GLUT/glut.h>
 
 #include <string_view>
@@ -11,13 +10,12 @@ module;
 #include <string>
 #include <vector>
 
-#include <print>
-
 module disxx.ui.SourceEditor;
 
 import disxx.ui.backend.GLRenderer;
 import disxx.ui.utility.ColorTag;
 import disxx.ui.utility.Shape;
+import disxx.ui.utility.Text;
 import disxx.ui.utility.Vec;
 
 namespace
@@ -191,13 +189,6 @@ namespace disxx::ui
 	void SourceEditor::Render(void) const noexcept
 	{
 		// Render the text area
-		/*glViewport(this->m_X, this->m_Y + CORNER_HEIGHT, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluOrtho2D(0, this->m_Width - CORNER_WIDTH, this->m_Height - CORNER_HEIGHT, 0);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-        
 		utility::ColorTag tag{};
         for (const auto &i : std::views::iota(0UL, this->m_Lines.size()))
         {
@@ -223,21 +214,36 @@ namespace disxx::ui
 					)
 				};
 
-				glColor3f(color.at(0), color.at(1), color.at(2));
-       			glRasterPos2f
+				utility::Text txt{};
+				txt.Replace
 				(
-					std::max(1.f, 5.f - this->m_ScrollX + static_cast<float>(renderStart) * CHAR_HEIGHT),
-					std::clamp(5.f + i * CHAR_WIDTH - this->m_ScrollY, 1.f, this->m_Height - CORNER_HEIGHT - 1.f)
+					utility::Vec2<GLfloat>
+					{
+						std::max(1.f, 5.f - this->m_ScrollX + static_cast<float>(renderStart) * CHAR_HEIGHT),
+						std::clamp(5.f + i * CHAR_WIDTH - this->m_ScrollY + this->m_Y, 1.f, this->m_Y + this->m_Height - CORNER_HEIGHT - 1.f)
+					}
 				);
-       			
+
+				txt.SetColor
+				(
+					utility::Vec3<float>
+					{
+						color.at(0),
+						color.at(1),
+						color.at(2)
+					}
+				);
+       		
+				std::string str{};
 				if (renderStart < renderEnd)
 					for (const auto &j : std::views::iota(renderStart, renderEnd))
-           				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, realText.at(j));
-                   
+           				str += realText.at(j);
+				txt.SetText(str);
+                s_pRenderer->PushText(std::move(txt));
+
 				pos += text.size();
              }
         }
-		*/
 	
 		// Render the vertical scrollbar
 		if (this->m_MaxScrollY > 0)

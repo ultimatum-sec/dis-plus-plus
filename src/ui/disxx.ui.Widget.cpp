@@ -17,8 +17,8 @@ namespace disxx::ui
 {
 	disxx::utility::wrapper::Pointer<std::shared_ptr<backend::IRenderer>> Widget::s_pRenderer{nullptr};
 
-	void Widget::ClearBuffer(void) noexcept
-	{ s_pRenderer->ClearBuffer(); }
+	void Widget::ClearBuffers(void) noexcept
+	{ s_pRenderer->ClearBuffers(); }
 
 	Widget::Widget(void) noexcept
 		: m_X{0}
