@@ -5,11 +5,9 @@ module;
 #endif
 
 #ifdef __APPLE__
-#	include <OpenGL/gl.h>
 #	include <GLUT/glut.h>
 #else
 #	include <GL/freeglut.h>
-#	include <GL/opengl.h>
 #endif
 
 #include <functional>
@@ -37,10 +35,10 @@ FileInput::FileInput(void) noexcept
 	this->m_Win = glutCreateWindow("Select an executable to disassemble");
 
 	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::TextInput>(50, 50, 300, 40));
-	this->m_Widgets.at(0)->SetColor(0.3f, 0.3f, 0.3f);
+	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
 	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::Button>(150, 100, 100, 40));
-	this->m_Widgets.at(1)->SetColor(0.3f, 0.3f, 0.3f);
-	static_cast<disxx::ui::Button *>(this->m_Widgets.at(1).get())->SetText("OK");
+	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
+	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("OK");
 
 	glutKeyboardFunc
     (
@@ -82,14 +80,14 @@ FileInput::FileInput(std::span<const char *> args) noexcept(false)
 	if (!this->m_Args.data()) [[unlikely]]
 		throw std::invalid_argument{"ArgumentsValueError"};
 
-	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::TextInput>(50, 50, 300, 40));
-	this->m_Widgets.at(0)->SetColor(0.3f, 0.3f, 0.3f);
-	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::Button>(150, 100, 100, 40));
-	this->m_Widgets.at(1)->SetColor(0.3f, 0.3f, 0.3f);
-	static_cast<disxx::ui::Button *>(this->m_Widgets.at(1).get())->SetText("OK");
-
 	glutInitWindowSize(this->m_Width, this->m_Height);
 	this->m_Win = glutCreateWindow("Select an executable to disassemble");
+
+	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::TextInput>(50, 50, 300, 40));
+	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
+	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::Button>(150, 100, 100, 40));
+	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
+	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("OK");
 
 	glutKeyboardFunc
     (
@@ -147,15 +145,8 @@ void FileInput::SetCallback(std::function<void(const disxx::ui::MainWindow *cons
 		(
 			[](FileInput *const obj, std::function<void(const disxx::ui::MainWindow *const)> func) mutable -> void
 			{
-				//try
-				{
-					obj->m_Path = static_cast<disxx::ui::TextInput *>(obj->m_Widgets.at(0).get())->GetText();
-					func(obj);
-				}
-				//catch (const std::exception &err)
-				//{ std::exit(DisLog{obj->m_Args.at(0)}.LogErr(err)); }
-				//catch (...)
-				//{ std::exit(DisLog{obj->m_Args.at(0)}.LogErr()); }
+				obj->m_Path = static_cast<disxx::ui::TextInput *>(obj->m_Widgets.at(0).get())->GetText();
+				func(obj);
 			},
 			static_cast<FileInput *>(this),
 			func
@@ -176,15 +167,9 @@ void FileInput::__MouseFunc(int button, int state, int x, int y) noexcept(false)
 		pWidget->HandleMouse(button, state, x, y);
 }
 
-void FileInput::__ReshapeFunc(int width, int height) noexcept(false)
-{
-	glViewport(0, 0, width, height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, width, height, 0);
-    glMatrixMode(GL_MODELVIEW);
-	glutPostRedisplay();
-}
+// Do nothing
+void FileInput::__ReshapeFunc(int, int) noexcept(false)
+{ return; }
 
 // Do nothing
 void FileInput::__MotionFunc(int, int) noexcept(false)
@@ -192,9 +177,8 @@ void FileInput::__MotionFunc(int, int) noexcept(false)
 
 void FileInput::__DisplayFunc(void) noexcept
 {
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();
 	glutSwapBuffers();
+	disxx::ui::Widget::ClearBuffers();
 }

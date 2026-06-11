@@ -9,9 +9,15 @@ module;
 #endif
 
 #include <functional>
+#include <algorithm>
+#include <ranges>
 #include <string>
 
 module disxx.ui.TextInput;
+
+import disxx.ui.utility.Shape;
+import disxx.ui.utility.Text;
+import disxx.ui.utility.Vec;
 
 namespace disxx::ui
 {
@@ -75,55 +81,37 @@ namespace disxx::ui
 
 	void TextInput::Render(void) const noexcept
 	{
-		glColor3f(this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]);
-		glBegin(GL_QUADS);
-			glVertex2f(this->m_X, this->m_Y);
-			glVertex2f(this->m_X + this->m_Width, this->m_Y);
-			glVertex2f(this->m_X + this->m_Width, this->m_Y + this->m_Height);
-			glVertex2f(this->m_X, this->m_Y + this->m_Height);
-		glEnd();
+		utility::Shape frame{};
+		frame.Replace(utility::Vec2<float>{this->m_X, this->m_Y});
+		frame.Resize(utility::Vec2<float>{this->m_Width, this->m_Height});
+		frame.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
+		s_pRenderer->PushShape(std::move(frame));
 
-		glColor3f(1.f, 1.f, 1.f);
 		unsigned long int start{0};
 		if (!this->m_Text.empty())
 		{
-			auto totalWidth
-			{
-				glutBitmapLength
-				(
-					GLUT_BITMAP_HELVETICA_18, 
-					reinterpret_cast<const unsigned char *>(this->m_Text.c_str())
-				)
-			};
-		
-			if (totalWidth > this->m_Width - 20.f)
+			utility::Text txt{};
+			txt.Replace(utility::Vec2<float>{this->m_X + 10.f, this->m_Y + 25.f});
+			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
+			if ((this->m_Text.size() * 9) > this->m_Width - 20.f)
 			{
 				start = this->m_Text.size();
 				int currentWidth{0};
 				for (auto i{this->m_Text.size()}; i-- > 0;)
 				{
-					auto charWidth
-					{
-						glutBitmapWidth
-						(
-							GLUT_BITMAP_HELVETICA_18, 
-							this->m_Text[i]
-						)
-					};
-				
-					if (currentWidth + charWidth > this->m_Width - 20.f)
+					if (currentWidth + 9 > this->m_Width - 20.f)
 					{
 						start = i + 1;
 						break;
 					}
 
-					currentWidth += charWidth;
+					currentWidth += 9;
 				}
-			}	
-		}	
+			}
+			txt.SetText(this->m_Text.substr(start));
+			s_pRenderer->PushText(std::move(txt));
+		}
 
-		glRasterPos2f(this->m_X + 10.f, this->m_Y + 25.f);
-		for (auto i{start}; i < this->m_Text.size(); ++i)
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, this->m_Text[i]);
+		s_pRenderer->Render();
 	}
-}
+} /* disxx::ui */

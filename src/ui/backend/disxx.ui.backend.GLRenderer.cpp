@@ -119,6 +119,9 @@ namespace disxx::ui::backend
 
 	void GLRenderer::Render(void) noexcept
 	{
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+
 		// Get actual window size and set up a projection
 		GLfloat projection[] = {
 			2.f / glutGet(GLUT_WINDOW_WIDTH), 0.f, 0.f, 0.f,
@@ -169,7 +172,7 @@ namespace disxx::ui::backend
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 	
 		glUseProgram(0);
-		
+	
 		for (const auto &text : this->m_TextBuffer)
 		{
 			const auto &[r, g, b]{text.GetColor()};

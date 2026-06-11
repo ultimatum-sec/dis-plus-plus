@@ -2,10 +2,8 @@ module;
 
 #ifdef __APPLE__
 #	include <GLUT/glut.h>
-#	include <OpenGL/gl.h>
 #else
 #	include <GL/freeglut.h>
-#	include <GL/gl.h>
 #endif
 
 #include <disconf.hpp>
@@ -435,6 +433,7 @@ void Application::__KeyboardFunc(unsigned char key, int x, int y) noexcept(false
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleKeyboard(key, x, y);
+	glutPostRedisplay();
 }
 
 void Application::__MouseFunc(int button, int state, int x, int y) noexcept(false)
@@ -449,12 +448,6 @@ void Application::__ReshapeFunc(int width, int height) noexcept(false)
 	this->m_Width = width;
 	this->m_Height = height;
 
-	glViewport(0, 0, this->m_Width, this->m_Height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, this->m_Width, 0, this->m_Height);
-    glMatrixMode(GL_MODELVIEW);
-
     this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height * 0.25f);
 	this->m_Widgets.at(0)->Replace(0.f, this->m_Height * 0.75f);
 	this->m_Widgets.at(1)->Resize
@@ -462,28 +455,23 @@ void Application::__ReshapeFunc(int width, int height) noexcept(false)
 		this->m_Width,
 		this->m_Height * 0.75f
 	);
-    
-    glutPostRedisplay();
+
+	glutPostRedisplay();    
 }
 
 void Application::__MotionFunc(int x, int y) noexcept(false)
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleMotion(x, y);
+	glutPostRedisplay();
 }
 
 void Application::__DisplayFunc(void) noexcept
 {
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, this->m_Width, 0, this->m_Height);
-
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();
 	glutSwapBuffers();
+	disxx::ui::Widget::ClearBuffers();
 }
 
 [[nodiscard]] int Application::Exec(void) const noexcept(false)
