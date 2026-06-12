@@ -285,5 +285,5 @@ namespace disxx::ui
 		}
 
 		this->s_pRenderer->Render();
-	} 
+	}
 } /* disxx::ui */

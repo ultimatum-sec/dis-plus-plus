@@ -184,6 +184,5 @@ namespace disxx::ui::backend
 			for (const auto ch : text.GetText())
 				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, ch);
 		}
-
 	}
 } /* disxx::ui::backend */

@@ -99,8 +99,8 @@ namespace disxx::ui
 			(
             	utility::Vec2<float>
 				{
-					this->m_X + (this->m_Width - (9.f * this->m_Text.size() * 0.1f)) / 2.0f, 
-            		this->m_Y + this->m_Height / 2.0f + 10.0f
+					this->m_X + (this->m_Width - (9.f * this->m_Text.size())) / 2.0f, 
+            		this->m_Y + this->m_Height / 2.0f - 4.5f
 				}
 			);
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});

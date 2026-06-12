@@ -68,6 +68,8 @@ namespace disxx::ui
 			else if (key >= 32 && key <= 126)
 				this->m_Text += key;
 		}
+
+		glutPostRedisplay();
 	}
 
 	void TextInput::HandleMouse(int button, int state, int x, int y)
