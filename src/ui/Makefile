@@ -13,7 +13,7 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=-c -std=c++26 -arch $(ARCH) -O3 -Wall -Werror -Wextra -Wpedantic -DGL_SILENCE_DEPRECATION \
-	-DNDEBUG -I ..$(PATHSEP)include -isysroot $(shell xcrun --show-sdk-path) -fmodules -fcxx-modules \
+	-DNDEBUG -DBACKEND_CTX_GLUT -I ..$(PATHSEP)include -isysroot $(shell xcrun --show-sdk-path) -fmodules -fcxx-modules \
 	-Xclang -fmodules-local-submodule-visibility -fstack-protector-all \
 	-Wno-writable-strings -Wno-unused-command-line-argument -fprebuilt-module-path=$(PRECOMPILEDDIR)
 
@@ -40,6 +40,8 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Shape.cppm \
 	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.IRenderer.cppm \
 	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLRenderer.cppm \
+	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.IContext.cppm \
+	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Widget.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Button.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.TextInput.cppm \
@@ -54,6 +56,7 @@ SOURCES=\
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Text.cpp \
 	.$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Shape.cpp \
 	.$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLRenderer.cpp \
+	.$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cpp \
 	.$(PATHSEP)disxx.ui.Widget.cpp \
 	.$(PATHSEP)disxx.ui.Button.cpp \
 	.$(PATHSEP)disxx.ui.TextInput.cpp \

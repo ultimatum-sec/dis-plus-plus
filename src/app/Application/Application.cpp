@@ -1,11 +1,5 @@
 module;
 
-#ifdef __APPLE__
-#	include <GLUT/glut.h>
-#else
-#	include <GL/freeglut.h>
-#endif
-
 #include <disconf.hpp>
 
 #include <unordered_map>
@@ -66,8 +60,7 @@ Application::Application(std::span<const char *> args) noexcept(false)
 	
 	// Init some glut stuff
 	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
-	glutInit(&argc, const_cast<char **>(args.data()));
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	MainWindow::Init(&argc, const_cast<char **>(args.data()));
 
 	// Init file input window
     this->m_pInput = FileInput::Init(this->m_Args);
@@ -128,7 +121,7 @@ Application *Application::Init(int &argc, const char *argv[]) noexcept(false)
 	(
 		[](void) -> void
 		{
-			glutDestroyWindow(Application::s_pInstance->m_Win);
+			s_pInstance->DestroyWindow();
 
 			Application::s_pInstance->m_Logger.LogErr();
 		
@@ -167,40 +160,47 @@ void Application::__InitFunc([[maybe_unused]] const disxx::ui::MainWindow *const
 		throw std::filesystem::filesystem_error{"FileNotFoundError", errc};
 
 	// Init this window
-	s_pInstance->m_Win = glutCreateWindow(std::format("dis++ v" __DISXX_VERSION__ " - {}", path.string()).c_str());
-    glutReshapeWindow(s_pInstance->m_Width, s_pInstance->m_Height);
-
-	/* Set up GLUT functions */
-	
-	glutKeyboardFunc
+	s_pInstance->m_Win = s_pInstance->CreateWindow
 	(
-		[](unsigned char key, int x, int y) -> void
-		{ s_pInstance->__KeyboardFunc(key, x, y); }
+		disxx::ui::utility::Vec2<int>
+		{
+			s_pInstance->m_Width,
+			s_pInstance->m_Height
+		},
+		std::format("dis++ v" __DISXX_VERSION__ " - {}", path.string()).c_str()
 	);
+	s_pInstance->SwitchWindow(s_pInstance->m_Win);
 
-	glutMouseFunc
-	(
+	/* Set up callbacks */
+	s_pInstance->SetDisplayCallback
+    (
+        [](void) -> void
+        { s_pInstance->__DisplayFunc(); }
+    );
+
+	s_pInstance->SetReshapeCallback
+    (
+        [](int width, int height) -> void
+        { s_pInstance->__ReshapeFunc(width, height); }
+    );
+
+	s_pInstance->SetKeyboardCallback
+    (
+        [](unsigned char key, int x, int y) -> void
+        { s_pInstance->__KeyboardFunc(key, x, y); }
+    );
+
+    s_pInstance->SetMouseButtonCallback
+    (
 		[](int button, int state, int x, int y) -> void
 		{ s_pInstance->__MouseFunc(button, state, x, y); }
-	);
+    );
 
-	glutReshapeFunc
-	(
-		[](int width, int height) -> void
-		{ s_pInstance->__ReshapeFunc(width, height); }
-	);
-
-	glutMotionFunc
-	(
-		[](int x, int y) -> void
-		{ s_pInstance->__MotionFunc(x, y); }
-	);
-
-	glutDisplayFunc
-	(
-		[](void) -> void
-		{ s_pInstance->__DisplayFunc(); }
-	);
+    s_pInstance->SetMouseMotionCallback
+    (
+        [](int x, int y) -> void
+        { s_pInstance->__MotionFunc(x, y); }
+    );
 
 	// Destroy the previous window
     std::destroy_at(s_pInstance->m_pInput);
@@ -425,22 +425,21 @@ void Application::__InitFunc([[maybe_unused]] const disxx::ui::MainWindow *const
 
 	s_pInstance->__ReshapeFunc(s_pInstance->m_Width, s_pInstance->m_Height);
 	
-	glutShowWindow();
-    glutPostWindowRedisplay(s_pInstance->m_Win);
+    s_pInstance->Redisplay();
 }
 
 void Application::__KeyboardFunc(unsigned char key, int x, int y) noexcept(false)
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleKeyboard(key, x, y);
-	glutPostRedisplay();
+	this->Redisplay();
 }
 
 void Application::__MouseFunc(int button, int state, int x, int y) noexcept(false)
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleMouse(button, state, x, y);
-	glutPostRedisplay();
+	this->Redisplay();
 }
 
 void Application::__ReshapeFunc(int width, int height) noexcept(false)
@@ -456,26 +455,26 @@ void Application::__ReshapeFunc(int width, int height) noexcept(false)
 		this->m_Height * 0.75f
 	);
 
-	glutPostRedisplay();    
+	this->Redisplay();    
 }
 
 void Application::__MotionFunc(int x, int y) noexcept(false)
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleMotion(x, y);
-	glutPostRedisplay();
+	this->Redisplay();
 }
 
 void Application::__DisplayFunc(void) noexcept
 {
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();
-	glutSwapBuffers();
+	this->SwapBuffers();
 	disxx::ui::Widget::ClearBuffers();
 }
 
 [[nodiscard]] int Application::Exec(void) const noexcept(false)
 {
-	glutMainLoop();
+	this->ExecLoop();
 	return EXIT_SUCCESS;
 }

@@ -1,8 +1,5 @@
 module;
 
-#include <OpenGL/gl.h>
-#include <GLUT/glut.h>
-
 #include <algorithm>
 #include <cstdlib>
 #include <ranges>
@@ -38,13 +35,12 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 	, m_Args{args}
 	, m_Parser{}
 {
-	// Init some glut stuff
+	// Init some stuff
 	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
-	glutInit(&argc, const_cast<char **>(args.data()));
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	MainWindow::Init(&argc, const_cast<char **>(args.data()));
 
-	glutInitWindowSize(this->m_Width, this->m_Height);
-	this->m_Win = glutCreateWindow("dis++ crash reporter");
+	this->m_Win = this->CreateWindow(disxx::ui::utility::Vec2<int>{this->m_Width, this->m_Height}, "dis++ crash reporter");
+	this->SwitchWindow(this->m_Win);
 
 	this->m_Widgets.emplace_back
 	(
@@ -68,34 +64,34 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		)
 	);
 
-	glutKeyboardFunc
+	this->SetDisplayCallback
     (
-        [](unsigned char key, int x, int y) -> void
-        { s_pInstance->__KeyboardFunc(key, x, y); }
+        [](void) -> void
+        { s_pInstance->__DisplayFunc(); }
     );
 
-    glutMouseFunc
-    (
-		[](int button, int state, int x, int y) -> void
-		{ s_pInstance->__MouseFunc(button, state, x, y); }
-    );
-
-    glutReshapeFunc
+	this->SetReshapeCallback
     (
         [](int width, int height) -> void
         { s_pInstance->__ReshapeFunc(width, height); }
     );
 
-    glutMotionFunc
+	this->SetKeyboardCallback
+    (
+        [](unsigned char key, int x, int y) -> void
+        { s_pInstance->__KeyboardFunc(key, x, y); }
+    );
+
+    this->SetMouseButtonCallback
+    (
+		[](int button, int state, int x, int y) -> void
+		{ s_pInstance->__MouseFunc(button, state, x, y); }
+    );
+
+    this->SetMouseMotionCallback
     (
         [](int x, int y) -> void
         { s_pInstance->__MotionFunc(x, y); }
-    );
-
-    glutDisplayFunc
-    (
-        [](void) -> void
-        { s_pInstance->__DisplayFunc(); }
     );
 
 	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("Close");
@@ -265,7 +261,7 @@ void FailHandler::__MouseFunc(int button, int state, int x, int y) noexcept(fals
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleMouse(button, state, x, y);
-	glutPostRedisplay();
+	this->Redisplay();
 }
 
 void FailHandler::__ReshapeFunc(int width, int height) noexcept(false)
@@ -279,31 +275,28 @@ void FailHandler::__ReshapeFunc(int width, int height) noexcept(false)
 	this->m_Widgets.at(1)->Resize(this->m_Width / 6, this->m_Height / 7);
    	this->m_Widgets.at(1)->Replace(50.f, 10.f);
 
-    glutPostRedisplay();
+    this->Redisplay();
 }
 
 void FailHandler::__MotionFunc(int x, int y) noexcept(false)
 {
 	for (auto &pWidget : this->m_Widgets)
 		pWidget->HandleMotion(x, y);
-	glutPostRedisplay();
+	this->Redisplay();
 }
 
 void FailHandler::__DisplayFunc(void) noexcept
 {
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();
-	glutSwapBuffers();
+	this->SwapBuffers();
 	disxx::ui::Widget::ClearBuffers();
 }
 
 [[nodiscard]] int FailHandler::Exec(void) const noexcept(false)
 {
 	try
-	{ glutMainLoop(); }
+	{ this->ExecLoop(); }
 	catch (...)
 	{ return EXIT_FAILURE; }
 
