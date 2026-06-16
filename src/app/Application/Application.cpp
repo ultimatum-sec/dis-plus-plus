@@ -18,6 +18,8 @@ module;
 #include <array>
 #include <span>
 
+#include <print>
+
 #define MKHEX(x) (std::format("{:#x}", (x)))
 
 module Application;
@@ -116,7 +118,7 @@ Application *Application::Init(int &argc, const char *argv[]) noexcept(false)
 {
     if (!s_pInstance) [[likely]]
         s_pInstance = new Application{std::span<const char *>(argv, argc)};
-    
+	
 	std::set_terminate
 	(
 		[](void) -> void
@@ -148,7 +150,7 @@ Application *Application::Init(int &argc, const char *argv[]) noexcept(false)
 			std::exit(EXIT_FAILURE);
 		}
 	);
-
+	
 	return s_pInstance;
 }
 
@@ -158,6 +160,9 @@ void Application::__InitFunc([[maybe_unused]] const disxx::ui::MainWindow *const
 	auto path{s_pInstance->m_pInput->GetPath()};
 	if (std::error_code errc{}; !std::filesystem::exists(path, errc)) [[unlikely]]
 		throw std::filesystem::filesystem_error{"FileNotFoundError", errc};
+
+	// Destroy the previous window
+    std::destroy_at(s_pInstance->m_pInput);
 
 	// Init this window
 	s_pInstance->m_Win = s_pInstance->CreateWindow
@@ -201,9 +206,6 @@ void Application::__InitFunc([[maybe_unused]] const disxx::ui::MainWindow *const
         [](int x, int y) -> void
         { s_pInstance->__MotionFunc(x, y); }
     );
-
-	// Destroy the previous window
-    std::destroy_at(s_pInstance->m_pInput);
 
 	// Just take the ptrs, so I shouldn't cast it every time
 	auto *pLabels{reinterpret_cast<disxx::ui::SourceEditor *>(s_pInstance->m_Widgets.at(0).get())};

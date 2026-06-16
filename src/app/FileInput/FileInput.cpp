@@ -2,12 +2,9 @@ module;
 
 #ifndef _WIN32
 #	include <sys/syslimits.h> // For PATH_MAX
-#endif
-
-#ifdef __APPLE__
-#	include <GLUT/glut.h>
 #else
-#	include <GL/freeglut.h>
+#	include <windows.h>
+#	define PATH_MAX MAX_PATH
 #endif
 
 #include <functional>
@@ -31,8 +28,16 @@ FileInput::FileInput(void) noexcept
 	, m_Args{std::span<const char *>{(const char*[]){"unknown"}, 1}}
 	, m_Path{""}
 {
-	glutInitWindowSize(this->m_Width, this->m_Height);
-	this->m_Win = glutCreateWindow("Select an executable to disassemble");
+	this->m_Win = this->CreateWindow
+	(
+		disxx::ui::utility::Vec2<int>
+		{
+			this->m_Width,
+			this->m_Height
+		},
+		"Select an executable to disassemble"
+	);
+	this->SwitchWindow(this->m_Win);
 
 	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::TextInput>(50, 50, 300, 40));
 	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
@@ -40,34 +45,35 @@ FileInput::FileInput(void) noexcept
 	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
 	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("OK");
 
-	glutKeyboardFunc
+	/* Set up callbacks */
+	s_pInstance->SetDisplayCallback
     (
-        [](unsigned char key, int x, int y) -> void
-        { s_pInstance->__KeyboardFunc(key, x, y); }
+        [](void) -> void
+        { s_pInstance->__DisplayFunc(); }
     );
 
-    glutMouseFunc
-    (
-        [](int button, int state, int x, int y) -> void
-        { s_pInstance->__MouseFunc(button, state, x, y); }
-    );
-
-    glutReshapeFunc
+	s_pInstance->SetReshapeCallback
     (
         [](int width, int height) -> void
         { s_pInstance->__ReshapeFunc(width, height); }
     );
 
-    glutMotionFunc
+	s_pInstance->SetKeyboardCallback
+    (
+        [](unsigned char key, int x, int y) -> void
+        { s_pInstance->__KeyboardFunc(key, x, y); }
+    );
+
+    s_pInstance->SetMouseButtonCallback
+    (
+		[](int button, int state, int x, int y) -> void
+		{ s_pInstance->__MouseFunc(button, state, x, y); }
+    );
+
+    s_pInstance->SetMouseMotionCallback
     (
         [](int x, int y) -> void
         { s_pInstance->__MotionFunc(x, y); }
-    );
-
-    glutDisplayFunc
-    (
-        [](void) -> void
-        { s_pInstance->__DisplayFunc(); }
     );
 }
 
@@ -79,9 +85,17 @@ FileInput::FileInput(std::span<const char *> args) noexcept(false)
 	// Check if args not null
 	if (!this->m_Args.data()) [[unlikely]]
 		throw std::invalid_argument{"ArgumentsValueError"};
-
-	glutInitWindowSize(this->m_Width, this->m_Height);
-	this->m_Win = glutCreateWindow("Select an executable to disassemble");
+	
+	this->m_Win = this->CreateWindow
+	(
+		disxx::ui::utility::Vec2<int>
+		{
+			this->m_Width,
+			this->m_Height
+		},
+		"Select an executable to disassemble"
+	);
+	this->SwitchWindow(this->m_Win);
 
 	this->m_Widgets.emplace_back(std::make_unique<disxx::ui::TextInput>(50, 50, 300, 40));
 	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
@@ -89,34 +103,35 @@ FileInput::FileInput(std::span<const char *> args) noexcept(false)
 	(*this->m_Widgets.rbegin())->SetColor(0.3f, 0.3f, 0.3f);
 	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("OK");
 
-	glutKeyboardFunc
+	/* Set up callbacks */
+	s_pInstance->SetDisplayCallback
     (
-        [](unsigned char key, int x, int y) -> void
-        { s_pInstance->__KeyboardFunc(key, x, y); }
+        [](void) -> void
+        { s_pInstance->__DisplayFunc(); }
     );
 
-    glutMouseFunc
-    (
-	 [](int button, int state, int x, int y) -> void
-	 { s_pInstance->__MouseFunc(button, state, x, y); }
-    );
-
-    glutReshapeFunc
+	s_pInstance->SetReshapeCallback
     (
         [](int width, int height) -> void
         { s_pInstance->__ReshapeFunc(width, height); }
     );
 
-    glutMotionFunc
+	s_pInstance->SetKeyboardCallback
+    (
+        [](unsigned char key, int x, int y) -> void
+        { s_pInstance->__KeyboardFunc(key, x, y); }
+    );
+
+    s_pInstance->SetMouseButtonCallback
+    (
+		[](int button, int state, int x, int y) -> void
+		{ s_pInstance->__MouseFunc(button, state, x, y); }
+    );
+
+    s_pInstance->SetMouseMotionCallback
     (
         [](int x, int y) -> void
         { s_pInstance->__MotionFunc(x, y); }
-    );
-
-    glutDisplayFunc
-    (
-        [](void) -> void
-        { s_pInstance->__DisplayFunc(); }
     );
 }
 
@@ -128,7 +143,7 @@ FileInput *FileInput::Init(std::span<const char *> args) noexcept(false)
 }
 
 FileInput::~FileInput(void) noexcept
-{ glutDestroyWindow(this->m_Win); }
+{ this->DestroyWindow(); }
 
 void FileInput::SetPath(const std::filesystem::path &path) noexcept
 { static_cast<disxx::ui::TextInput *>(this->m_Widgets.at(0).get())->SetText(path.string()); }
@@ -179,6 +194,6 @@ void FileInput::__DisplayFunc(void) noexcept
 {
 	for (const auto &pWidget : this->m_Widgets)
 		pWidget->Render();
-	glutSwapBuffers();
+	this->SwapBuffers();
 	disxx::ui::Widget::ClearBuffers();
 }

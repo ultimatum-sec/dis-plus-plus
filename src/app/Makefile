@@ -20,7 +20,7 @@ CXXFLAGS=\
 
 LDFLAGS=\
 	-O2 $(LTOFLAGS) -S -demangle -arch $(ARCH) -pie -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
-	-L$(DEPENDENCIESDIR) -ldisxx-util -ldisxx-ui -ldisxx-disasm -ldisxx-macho
+	-L$(DEPENDENCIESDIR) -framework GLUT -ldisxx-util -ldisxx-ui -ldisxx-disasm -ldisxx-macho
 
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.DisassemblyError.cppm \

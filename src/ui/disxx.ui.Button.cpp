@@ -113,6 +113,8 @@ namespace disxx::ui
 
 	void Button::HandleMouse(int button, int state, int x, int y) noexcept
 	{
+		y -= this->m_Height;
+
 		if (!(x >= this->m_X && x <= this->m_X + this->m_Width && y >= this->m_Y && y <= this->m_Y + this->m_Height))
 			return;
 
