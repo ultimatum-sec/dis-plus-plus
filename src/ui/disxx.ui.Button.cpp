@@ -11,8 +11,6 @@ module;
 #include <string>
 #include <tuple>
 
-#include <print>
-
 module disxx.ui.Button;
 
 import disxx.ui.backend.GLRenderer;
