@@ -1,5 +1,6 @@
 module;
 
+#include <functional>
 #include <algorithm>
 #include <cstdlib>
 #include <ranges>
@@ -30,83 +31,26 @@ import disxx.ui.SourceEditor;
 
 FailHandler *FailHandler::s_pInstance = nullptr;
 
-FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
-	: MainWindow{800, 600}
-	, m_Args{args}
+FailHandler::FailHandler(void) noexcept(false)
+	: m_pWindow{disxx::ui::MainWindow::Init(disxx::ui::utility::Vec2<int>{800, 600}, "dis++ crash reporter")}
 	, m_Parser{}
 {
-	// Init some stuff
-	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
-	MainWindow::Init(&argc, const_cast<char **>(args.data()));
+	this->m_pWindow->SetVisible(true);
 
-	this->m_Win = this->CreateWindow(disxx::ui::utility::Vec2<int>{this->m_Width, this->m_Height}, "dis++ crash reporter");
-	this->SwitchWindow(this->m_Win);
-
-	this->m_Widgets.emplace_back
-	(
-		std::make_unique<disxx::ui::SourceEditor>
-		(
-			0.f,
-			100.f,
-			this->m_Width,
-			this->m_Height - 100
-		)
-	);
-	
-	this->m_Widgets.emplace_back
-	(
-		std::make_unique<disxx::ui::Button>
-		(
-			50.f,
-			10.f,
-			this->m_Width / 6.f,
-			this->m_Height / 7.f
-		)
-	);
-
-	this->SetDisplayCallback
-    (
-        [](void) -> void
-        { s_pInstance->__DisplayFunc(); }
-    );
-
-	this->SetReshapeCallback
-    (
-        [](int width, int height) -> void
-        { s_pInstance->__ReshapeFunc(width, height); }
-    );
-
-	this->SetKeyboardCallback
-    (
-        [](unsigned char key, int x, int y) -> void
-        { s_pInstance->__KeyboardFunc(key, x, y); }
-    );
-
-    this->SetMouseButtonCallback
-    (
-		[](int button, int state, int x, int y) -> void
-		{ s_pInstance->__MouseFunc(button, state, x, y); }
-    );
-
-    this->SetMouseMotionCallback
-    (
-        [](int x, int y) -> void
-        { s_pInstance->__MotionFunc(x, y); }
-    );
-
-	static_cast<disxx::ui::Button *>(this->m_Widgets.rbegin()->get())->SetText("Close");
-	(*this->m_Widgets.rbegin())->SetColor(0.5f, 0.5f, 0.5f);
-	
-	const auto &ptr{reinterpret_cast<disxx::ui::SourceEditor *>(this->m_Widgets.at(0).get())};
-	ptr->SetColor(0.2f, 0.2f, 0.2f);
-
-	ptr->AddLine("{:-<64}", "");
-    ptr->AddLine("Application dis++ was closed due to unexpected error!");
-    ptr->AddLine("Please attach description of the crash and its reasons at:");
-	ptr->AddLine("https://github.com/ultimatum-sec/dis-plus-plus/issues");
-	ptr->AddLine("{:-<64}", "");
-
-	ptr->AddLine("");
+	disxx::ui::SourceEditor report
+	{
+		0.f,
+		100.f,
+		800,
+		500
+	};
+	report.SetColor(0.2f, 0.2f, 0.2f);
+	report.AddLine("{:-<64}", "");
+    report.AddLine("Application dis++ was closed due to unexpected error!");
+    report.AddLine("Please attach description of the crash and its reasons at:");
+	report.AddLine("https://github.com/ultimatum-sec/dis-plus-plus/issues");
+	report.AddLine("{:-<64}", "");
+	report.AddLine("");
 
 	// Load file with data of the crash
 	this->m_Parser.Load
@@ -159,10 +103,10 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		str += " |";
 	}
 
-	ptr->AddLine("{}", frame);
+	report.AddLine("{}", frame);
 	for (const auto &str : strings)
-		ptr->AddLine("{}", str);
-	ptr->AddLine("{}", CLEARFRAME(frame));
+		report.AddLine("{}", str);
+	report.AddLine("{}", CLEARFRAME(frame));
 
 	sizes.clear();
 	strings.clear();
@@ -199,10 +143,10 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		str += " |";
 	}
 	
-	ptr->AddLine("{}", frame);
+	report.AddLine("{}", frame);
 	for (const auto &str : strings)
-		ptr->AddLine("{}", str);
-	ptr->AddLine("{}", CLEARFRAME(frame));
+		report.AddLine("{}", str);
+	report.AddLine("{}", CLEARFRAME(frame));
 
 	sizes.clear();
 	strings.clear();
@@ -238,65 +182,27 @@ FailHandler::FailHandler(std::span<const char *> args) noexcept(false)
 		str += "|";
 	}
 	
-	ptr->AddLine("{}", frame);
+	report.AddLine("{}", frame);
 	for (const auto &str : strings)
-		ptr->AddLine("{}", str);
-	ptr->AddLine("{}", CLEARFRAME(frame));
+		report.AddLine("{}", str);
+	report.AddLine("{}", CLEARFRAME(frame));
+
+	this->m_pWindow->AddWidget(std::make_unique<disxx::ui::SourceEditor>(report));
 }
 
 FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
 {
+	disxx::ui::MainWindow::InitContext(&argc, const_cast<char **>(argv));
     if (!s_pInstance) [[likely]]
-        s_pInstance = new FailHandler{std::span<const char *>(argv, argc)};
+        s_pInstance = new FailHandler{};
 	return s_pInstance;
 }
 
-void FailHandler::__KeyboardFunc(unsigned char key, int x, int y) noexcept(false)
-{
-	for (auto &pWidget : this->m_Widgets)
-		pWidget->HandleKeyboard(key, x, y);
-}
-
-void FailHandler::__MouseFunc(int button, int state, int x, int y) noexcept(false)
-{
-	for (auto &pWidget : this->m_Widgets)
-		pWidget->HandleMouse(button, state, x, y);
-	this->Redisplay();
-}
-
-void FailHandler::__ReshapeFunc(int width, int height) noexcept(false)
-{
-	this->m_Width = width;
-	this->m_Height = height;
-
-    this->m_Widgets.at(0)->Resize(this->m_Width, this->m_Height - 100);
-	this->m_Widgets.at(0)->Replace(0.f, 100.f);
-
-	this->m_Widgets.at(1)->Resize(this->m_Width / 6, this->m_Height / 7);
-   	this->m_Widgets.at(1)->Replace(50.f, 10.f);
-
-    this->Redisplay();
-}
-
-void FailHandler::__MotionFunc(int x, int y) noexcept(false)
-{
-	for (auto &pWidget : this->m_Widgets)
-		pWidget->HandleMotion(x, y);
-	this->Redisplay();
-}
-
-void FailHandler::__DisplayFunc(void) noexcept
-{
-	for (const auto &pWidget : this->m_Widgets)
-		pWidget->Render();
-	this->SwapBuffers();
-	disxx::ui::Widget::ClearBuffers();
-}
 
 [[nodiscard]] int FailHandler::Exec(void) const noexcept(false)
 {
 	try
-	{ this->ExecLoop(); }
+	{ this->m_pWindow->Exec(); }
 	catch (...)
 	{ return EXIT_FAILURE; }
 

@@ -18,109 +18,89 @@ export namespace disxx::ui
 	class MainWindow
 	{
 	  private:
-		static disxx::utility::wrapper::Pointer
-		<
-			std::shared_ptr
-			<
-				#if defined(BACKEND_CTX_GLUT)
-					disxx::ui::backend::GLUTContext
-				#endif
-			>
-		> s_pContext;
+		#ifdef BACKEND_CTX_GLUT
+			using WindowHandle = int;
+		#else
+		#	error "Context required"
+		#endif
 
-	  protected:
-		std::vector<std::unique_ptr<disxx::ui::Widget>> m_Widgets;
-		int m_Width, m_Height;
-		int m_Win;
+	  private:
+		static std::unique_ptr<MainWindow> s_pInstance;
 
-	  protected:
-		virtual void __KeyboardFunc(unsigned char, int, int) noexcept(false) = 0;
-		virtual void __MouseFunc(int, int, int, int) noexcept(false) = 0;
-		virtual void __ReshapeFunc(int, int) noexcept(false) = 0;
-		virtual void __MotionFunc(int, int) noexcept(false) = 0;
-		virtual void __DisplayFunc(void) noexcept = 0;
+	  private:
+		#if defined(BACKEND_CTX_GLUT)
+			disxx::ui::backend::GLUTContext
+		#else
+		#	error "Context required"
+		#endif
+		m_Context;
+		std::vector<std::unique_ptr<Widget>> m_Widgets;
+		utility::Vec2<int> m_InitialSize;
+		utility::Vec2<int> m_Size;
+		WindowHandle m_hWin;
 
-		explicit MainWindow(void) noexcept;
-		explicit MainWindow(int, int) noexcept;
+	  private:
+		explicit MainWindow(utility::Vec2<int>, std::string_view) noexcept;
+
+		void __DisplayCallback(void) const noexcept;
+		void __ReshapeCallback(int, int) noexcept(false);
+		void __KeyboardCallback(unsigned char, int, int) noexcept(false);
+		void __MouseButtonCallback(int, int, int, int) noexcept(false);
+		void __MouseMotionCallback(int, int) noexcept(false);
+	  
+	  public:
+		template <typename ...Args>
+		static void InitContext(Args &&...) noexcept;
+		static std::unique_ptr<MainWindow> &Init(utility::Vec2<int>, std::string_view) noexcept;
+
+	  public:
 		explicit MainWindow(const MainWindow &) = delete;
 		MainWindow &operator=(const MainWindow &) = delete;
 
-	  public:
-		#if defined(BACKEND_CTX_GLUT)
-			using WindowHandle = int;
-		#endif
+		~MainWindow(void) noexcept;
 
-	  public:
-		template <typename ...Args>
-		static void Init(Args &&...) noexcept;
-
-		static inline WindowHandle CreateWindow(utility::Vec2<int>, std::string_view) noexcept;
-		static inline void SwitchWindow(WindowHandle &) noexcept;
-		static inline void DestroyWindow(void) noexcept;
-
-		template <typename F>
-		static inline void SetDisplayCallback(F) noexcept;
-		template <typename F>
-		static inline void SetReshapeCallback(F) noexcept;
-		template <typename F>
-		static inline void SetKeyboardCallback(F) noexcept;
-		template <typename F>
-		static inline void SetMouseButtonCallback(F) noexcept;
-		template <typename F>
-		static inline void SetMouseMotionCallback(F) noexcept;
-		
-		static inline void SwapBuffers(void) noexcept;
-		static inline void Redisplay(void) noexcept;
-	
-		static inline void ExecLoop(void) noexcept;
-
-	  public:
-		virtual ~MainWindow(void) noexcept = default;
+		inline utility::Vec2<int> GetSize(void) const noexcept;
+		inline void SetVisible(bool) noexcept;
+		inline void AddWidget(std::unique_ptr<Widget> &&) noexcept;
+		inline std::vector<std::unique_ptr<Widget>> &GetWidgets(void) noexcept;
+		inline void Redisplay(void) const noexcept;
+		inline void Exec(void) noexcept;
 	};
 
 	template <typename ...Args>
-	void MainWindow::Init(Args &&...args) noexcept
+	void MainWindow::InitContext(Args &&...args) noexcept
 	{
 		#if defined(BACKEND_CTX_GLUT)
 			backend::GLUTContext::Init(std::forward<Args>(args)...);
+		#else
+		#	error "Context required"
 		#endif
 	}
 
-	inline MainWindow::WindowHandle MainWindow::CreateWindow(utility::Vec2<int> size, std::string_view title) noexcept
-	{ return s_pContext->CreateWindow(utility::Vec2<int>{size}, title); }
+	inline utility::Vec2<int> MainWindow::GetSize(void) const noexcept
+	{ return utility::Vec2<int>{this->m_Size}; }
 
-	inline void MainWindow::SwitchWindow(WindowHandle &hWin) noexcept
-	{ s_pContext->SwitchWindow(hWin); }
+	inline void MainWindow::SetVisible(bool visible) noexcept
+	{
+		this->m_Context.SwitchWindow(this->m_hWin);
+		if (visible)
+			m_Context.ShowWindow();
+		else
+			m_Context.HideWindow();
+	}
 
-	inline void MainWindow::DestroyWindow(void) noexcept
-	{ s_pContext->DestroyWindow(); }
+	inline void MainWindow::AddWidget(std::unique_ptr<Widget> &&pWidget) noexcept
+	{ this->m_Widgets.emplace_back(std::move(pWidget)); }
 
-	template <typename F>
-	inline void MainWindow::SetDisplayCallback(F pCallback) noexcept
-	{ s_pContext->SetDisplayCallback(pCallback); }
+	inline std::vector<std::unique_ptr<Widget>> &MainWindow::GetWidgets(void) noexcept
+	{ return this->m_Widgets; }
 
-	template <typename F>
-	inline void MainWindow::SetReshapeCallback(F pCallback) noexcept
-	{ s_pContext->SetReshapeCallback(pCallback); }
+	inline void MainWindow::Redisplay(void) const noexcept
+	{ this->m_Context.Redisplay(); }
 
-	template <typename F>
-	inline void MainWindow::SetKeyboardCallback(F pCallback) noexcept
-	{ s_pContext->SetKeyboardCallback(pCallback); }
-
-	template <typename F>
-	inline void MainWindow::SetMouseButtonCallback(F pCallback) noexcept
-	{ s_pContext->SetMouseButtonCallback(pCallback); }
-	
-	template <typename F>
-	inline void MainWindow::SetMouseMotionCallback(F pCallback) noexcept
-	{ s_pContext->SetMouseMotionCallback(pCallback); }
-
-	inline void MainWindow::SwapBuffers(void) noexcept
-	{ s_pContext->SwapBuffers(); }
-
-	inline void MainWindow::Redisplay(void) noexcept
-	{ s_pContext->Redisplay(); }
-
-	inline void MainWindow::ExecLoop(void) noexcept
-	{ s_pContext->ExecLoop(); }
+	inline void MainWindow::Exec(void) noexcept
+	{
+		//this->m_Context.SwitchWindow(this->m_hWin);
+		m_Context.Exec();
+	}
 } /* disxx::ui */

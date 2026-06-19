@@ -2,6 +2,7 @@ module;
 
 #include <disconf.hpp>
 
+#include <functional>
 #include <memory>
 #include <array>
 
@@ -14,25 +15,21 @@ import disxx.ui.Widget;
 import FileInput;
 import DisLog;
 
-export class __DISXX_PRIVATE__ [[nodiscard]] Application final : public disxx::ui::MainWindow
+export class __DISXX_PRIVATE__ [[nodiscard]] Application
 {
   private:
 	static Application *s_pInstance;
 	
   private:
+	std::reference_wrapper<std::unique_ptr<disxx::ui::MainWindow>> m_pWindow;
 	DisLog m_Logger;
 	std::span<const char *> m_Args;
 	FileInput *m_pInput;
 
   private:
-	virtual void __KeyboardFunc(unsigned char, int, int) noexcept(false) override;
-    virtual void __MouseFunc(int, int, int, int) noexcept(false) override;
-    virtual void __ReshapeFunc(int, int) noexcept(false) override;
-    virtual void __MotionFunc(int, int) noexcept(false) override;
-    virtual void __DisplayFunc(void) noexcept override;
+	static void __InitFunc(void) noexcept(false);
 
-	static void __InitFunc(const disxx::ui::MainWindow *const) noexcept(false);
-
+  private:
 	explicit Application(void) noexcept = delete;
 	explicit Application(std::span<const char *>) noexcept(false);
 	
@@ -43,6 +40,6 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application final : public disxx::u
 	// THIS FUNCTION CALLS ONCE!
 	static Application *Init(int &, const char *[]) noexcept(false);
 	
-	virtual ~Application(void) noexcept override;
+	~Application(void) noexcept;
 	int Exec(void) const noexcept(false);
 };

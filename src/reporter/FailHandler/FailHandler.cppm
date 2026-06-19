@@ -2,31 +2,25 @@ module;
 
 #include <disconf.hpp>
 
-#include <span>
+#include <functional>
+#include <memory>
 
 export module FailHandler;
 
 import disxx.utility.ini.Parser;
 import disxx.ui.MainWindow;
 
-export class __DISXX_PRIVATE__ [[nodiscard]] FailHandler final : public disxx::ui::MainWindow
+export class __DISXX_PRIVATE__ [[nodiscard]] FailHandler
 {
   private:
 	static FailHandler *s_pInstance;
 
   private:
-	std::span<const char *> m_Args;
+	std::unique_ptr<disxx::ui::MainWindow> &m_pWindow;
 	disxx::utility::ini::Parser m_Parser;
 
   private:
-	virtual void __KeyboardFunc(unsigned char, int, int) noexcept(false) override;
-    virtual void __MouseFunc(int, int, int, int) noexcept(false) override;
-    virtual void __ReshapeFunc(int, int) noexcept(false) override;
-    virtual void __MotionFunc(int, int) noexcept(false) override;
-    virtual void __DisplayFunc(void) noexcept override;
-
-	explicit FailHandler(void) noexcept = delete;
-	explicit FailHandler(std::span<const char *>) noexcept(false);
+	explicit FailHandler(void) noexcept(false);
 	
 	FailHandler(const FailHandler &) noexcept(false) = delete;
 	FailHandler &operator=(const FailHandler &) noexcept(false) = delete;
@@ -35,6 +29,6 @@ export class __DISXX_PRIVATE__ [[nodiscard]] FailHandler final : public disxx::u
 	// THIS FUNCTION CALLS ONCE!
 	static FailHandler *Init(int &, const char *[]) noexcept(false);
 	
-	virtual ~FailHandler(void) noexcept override = default;
+	~FailHandler(void) noexcept = default;
 	int Exec(void) const noexcept(false);
 };

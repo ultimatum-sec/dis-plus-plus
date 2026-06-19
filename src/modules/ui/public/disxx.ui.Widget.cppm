@@ -13,6 +13,8 @@ import disxx.utility.wrapper.Pointer;
 import disxx.ui.backend.IRenderer;
 import disxx.ui.backend.GLRenderer;
 
+export import disxx.ui.utility.Vec;
+
 export namespace disxx::ui
 {
 	class __DISXX_EXPORT__ [[nodiscard]] Widget
@@ -21,8 +23,8 @@ export namespace disxx::ui
 		static disxx::utility::wrapper::Pointer<std::shared_ptr<backend::IRenderer>> s_pRenderer;
 
 	  protected:
-		float m_X, m_Y;
-		float m_Width, m_Height;
+		utility::Vec2<float> m_Position;
+		utility::Vec2<float> m_Size;
 		float m_pColor[3];
 		[[maybe_unused]] mutable bool m_IsClicked, m_IsHovered;
 
@@ -39,18 +41,17 @@ export namespace disxx::ui
 
 		virtual ~Widget(void) noexcept = default;
 
-		std::tuple<float, float> GetCords(void) const noexcept;
-		std::tuple<float, float> GetSizes(void) const noexcept;
+		utility::Vec2<float> GetPosition(void) const noexcept;
+		utility::Vec2<float> GetSize(void) const noexcept;
 	
-		virtual void Replace(float, float) noexcept;
-		virtual void Resize(float, float) noexcept;
+		virtual void Replace(utility::Vec2<float>) noexcept;
+		virtual void Resize(utility::Vec2<float>) noexcept;
 		
 		void SetColor(float, float, float) noexcept;
 
 		virtual void HandleKeyboard(unsigned char, int, int);
 		virtual void HandleMouse(int, int, int, int);
 		virtual void HandleMotion(int, int);
-		
 		virtual void Render(void) const noexcept = 0;
 	};
 } /* disxx::ui */

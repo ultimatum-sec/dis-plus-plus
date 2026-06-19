@@ -37,25 +37,24 @@ export namespace disxx::ui::backend
 
 		~GLUTContext(void) noexcept;
 
+		// Sone window methods
 		virtual WindowHandle CreateWindow(utility::Vec2<int>, std::string_view) noexcept override;
 		virtual void SwitchWindow(WindowHandle &) noexcept override;
+		virtual void ShowWindow(void) noexcept override;
+		virtual void HideWindow(void) noexcept override;
 		virtual void DestroyWindow(void) noexcept override;
 
-		template <typename F>
-		void SetDisplayCallback(F) noexcept;
-		template <typename F>
-		void SetReshapeCallback(F) noexcept;
-		template <typename F>
-		void SetKeyboardCallback(F) noexcept;
-		template <typename F>
-		void SetMouseButtonCallback(F) noexcept;
-		template <typename F>
-		void SetMouseMotionCallback(F) noexcept;
-		
+		// Callback methods
+		virtual void SetDisplayCallback(const void *) noexcept override;
+		virtual void SetReshapeCallback(const void *) noexcept override;
+		virtual void SetKeyboardCallback(const void *) noexcept override;
+		virtual void SetMouseButtonCallback(const void *) noexcept override;
+		virtual void SetMouseMotionCallback(const void *) noexcept override;
+	
+		// Miscellaneous methods
 		virtual void SwapBuffers(void) const noexcept override;
 		virtual void Redisplay(void) const noexcept override;
-	
-		virtual void ExecLoop(void) const noexcept override;
+		virtual void Exec(void) const noexcept override;
 	};
 
 	template <typename ...Args>
@@ -73,24 +72,4 @@ export namespace disxx::ui::backend
 			static_assert(false, "Incorrect arguments for disxx::ui::backend::GLUTContext::Init");
 		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	}
-
-	template <typename F>
-	void GLUTContext::SetDisplayCallback(F pCallback) noexcept
-	{ glutDisplayFunc(pCallback); }
-		
-	template <typename F>
-	void GLUTContext::SetReshapeCallback(F pCallback) noexcept
-	{ glutReshapeFunc(pCallback); }
-	
-	template <typename F>
-	void GLUTContext::SetKeyboardCallback(F pCallback) noexcept
-	{ glutKeyboardFunc(pCallback); }
-
-	template <typename F>
-	void GLUTContext::SetMouseButtonCallback(F pCallback) noexcept
-	{ glutMouseFunc(pCallback); }
-	
-	template <typename F>
-	void GLUTContext::SetMouseMotionCallback(F pCallback) noexcept
-	{ glutMotionFunc(pCallback); }
 } /* disxx::ui::backend */

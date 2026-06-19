@@ -21,30 +21,24 @@ namespace disxx::ui
 	{ s_pRenderer->ClearBuffers(); }
 
 	Widget::Widget(void) noexcept
-		: m_X{0}
-		, m_Y{0}
-		, m_Width{0}
-		, m_Height{0}
+		: m_Position{0, 0}
+		, m_Size{0, 0}
 		, m_pColor{0.0f, 0.0f, 0.0f}
 		, m_IsClicked{false}
         , m_IsHovered{false}
 	{ MKPTR(s_pRenderer); }
 
 	Widget::Widget(float x, float y, float width, float height) noexcept
-		: m_X{x}
-		, m_Y{y}
-		, m_Width{width}
-		, m_Height{height}
+		: m_Position{x, y}
+		, m_Size{width, height}
 		, m_pColor{0.0f, 0.0f, 0.0f}
 		, m_IsClicked{false}
         , m_IsHovered{false}
 	{ MKPTR(s_pRenderer); }
 
 	Widget::Widget(const Widget &other) noexcept
-		: m_X{other.m_X}
-		, m_Y{other.m_Y}
-		, m_Width{other.m_Width}
-        , m_Height{other.m_Height}
+		: m_Position{other.m_Position}
+		, m_Size{other.m_Size}
 		, m_pColor{other.m_pColor[0], other.m_pColor[1], other.m_pColor[2]}
 		, m_IsClicked{false}
         , m_IsHovered{other.m_IsHovered}	
@@ -54,10 +48,8 @@ namespace disxx::ui
 	{
 		if (this != &other) [[likely]]
 		{
-			this->m_X = other.m_X;
-			this->m_Y = other.m_Y;
-			this->m_Width = other.m_Width;
-			this->m_Height = other.m_Height;
+			this->m_Position = other.m_Position;
+			this->m_Size = other.m_Size;
 			for (unsigned short int i{0}; i < 3; ++i)
 				this->m_pColor[i] = other.m_pColor[i];
 			this->m_IsClicked = other.m_IsClicked;
@@ -74,39 +66,17 @@ namespace disxx::ui
 		this->m_pColor[2] = b;
 	}
 
-	//bool Widget::Clicked(void) const noexcept
-	//{ return this->m_IsClicked; }
+	utility::Vec2<float> Widget::GetPosition(void) const noexcept
+	{ return utility::Vec2<float>{this->m_Position}; }
 
-	//bool Widget::Hovered(void) const noexcept
-	//{ return this->m_IsHovered; }
+	utility::Vec2<float> Widget::GetSize(void) const noexcept
+	{ return utility::Vec2<float>{this->m_Size}; }
 
-	std::tuple<float, float> Widget::GetCords(void) const noexcept
-	{ return std::make_tuple(this->m_X, this->m_Y); }
+	void Widget::Replace(utility::Vec2<float> position) noexcept
+	{ this->m_Position = position; }
 
-	std::tuple<float, float> Widget::GetSizes(void) const noexcept
-	{ return std::make_tuple(this->m_Width, this->m_Height); }
-
-	void Widget::Replace(float x, float y) noexcept
-	{
-		this->m_X = x;
-		this->m_Y = y;
-	}
-
-	void Widget::Resize(float width, float height) noexcept
-	{
-		this->m_Width = width;
-		this->m_Height = height;
-	}
-
-	/*
-	bool Widget::IsInField(float x, float y) const noexcept
-	{
-		return x >= this->m_X
-			&& x <= this->m_X + this->m_Width
-			&& y >= this->m_Y
-			&& y <= this->m_Y + this->m_Height;
-	}
-	*/
+	void Widget::Resize(utility::Vec2<float> size) noexcept
+	{ this->m_Size = size; }
 
 	/*
 	 * Handle Nothing.

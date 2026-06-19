@@ -35,7 +35,7 @@ export namespace disxx::ui
 
 		virtual ~SourceEditor(void) noexcept override = default;
 
-		virtual void Resize(float, float) noexcept override;
+		virtual void Resize(utility::Vec2<float>) noexcept override;
 
 		template <typename ...Args> inline void AddString(std::format_string<Args...>, Args &&...) noexcept(false);
 		template <typename ...Args> inline void AddLine(std::format_string<Args...>, Args &&...) noexcept(false);

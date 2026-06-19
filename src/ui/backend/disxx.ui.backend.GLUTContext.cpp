@@ -26,14 +26,16 @@ namespace disxx::ui::backend
 		return *this;
 	}
 
+	GLUTContext::~GLUTContext(void) noexcept
+    { this->DestroyWindow(); }
+
 	GLUTContext::WindowHandle GLUTContext::CreateWindow(utility::Vec2<int> size, std::string_view title) noexcept
 	{
 		glutInitWindowSize(size.x, size.y);
-		return glutCreateWindow(title.data());
+		const auto hWin{glutCreateWindow(title.data())};
+		glutHideWindow();
+		return hWin;
 	}
-
-	GLUTContext::~GLUTContext(void) noexcept
-    { this->DestroyWindow(); }
 
 	void GLUTContext::SwitchWindow(WindowHandle &hWin) noexcept
 	{
@@ -41,11 +43,32 @@ namespace disxx::ui::backend
 		this->m_hWin = hWin;
 	}
 
+	void GLUTContext::ShowWindow(void) noexcept
+	{ glutShowWindow(); }
+	
+	void GLUTContext::HideWindow(void) noexcept
+	{ glutHideWindow(); }
+
 	void GLUTContext::DestroyWindow(void) noexcept
 	{
 		if (this->m_hWin) [[likely]]
 			glutDestroyWindow(this->m_hWin);
 	}
+
+	void GLUTContext::SetDisplayCallback(const void *pCallback) noexcept
+	{ glutDisplayFunc((void (*)(void))pCallback); }
+
+	void GLUTContext::SetReshapeCallback(const void *pCallback) noexcept
+	{ glutReshapeFunc((void (*)(int, int))pCallback); }
+
+	void GLUTContext::SetKeyboardCallback(const void *pCallback) noexcept
+	{ glutKeyboardFunc((void (*)(unsigned char, int, int))pCallback); }
+
+	void GLUTContext::SetMouseButtonCallback(const void *pCallback) noexcept
+	{ glutMouseFunc((void (*)(int, int, int, int))pCallback); }
+
+	void GLUTContext::SetMouseMotionCallback(const void *pCallback) noexcept
+	{ glutMotionFunc((void (*)(int, int))pCallback); }
 
 	void GLUTContext::SwapBuffers(void) const noexcept
 	{ glutSwapBuffers(); }
@@ -53,6 +76,6 @@ namespace disxx::ui::backend
 	void GLUTContext::Redisplay(void) const noexcept
 	{ glutPostRedisplay(); }
 
-	void GLUTContext::ExecLoop(void) const noexcept
+	void GLUTContext::Exec(void) const noexcept
 	{ glutMainLoop(); }
 } /* disxx::ui::backend */

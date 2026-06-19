@@ -2,6 +2,7 @@ module;
 
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <span>
 
 export module FileInput;
@@ -11,10 +12,13 @@ import disxx.ui.TextInput;
 import disxx.ui.Button;
 import disxx.ui.Widget;
 
-export class FileInput final : public disxx::ui::MainWindow
+export class FileInput
 {
   private:
 	static FileInput *s_pInstance;
+
+  private:
+	std::unique_ptr<disxx::ui::MainWindow> &m_pWindow;
 	std::span<const char *> m_Args;
 	std::filesystem::path m_Path;
 
@@ -24,23 +28,12 @@ export class FileInput final : public disxx::ui::MainWindow
 	explicit FileInput(const FileInput &) noexcept(false) = delete;
 	FileInput &operator=(const FileInput &) noexcept(false) = delete;
   
-  protected:
-	virtual void __KeyboardFunc(unsigned char, int, int) noexcept(false) override;
-    virtual void __MouseFunc(int, int, int, int) noexcept(false) override;
-    virtual void __ReshapeFunc(int, int) noexcept(false) override;
-    virtual void __MotionFunc(int, int) noexcept(false) override;
-    virtual void __DisplayFunc(void) noexcept override;
- 
   public:
 	static FileInput *Init(std::span<const char *>) noexcept(false);
 
-	virtual ~FileInput(void) noexcept override;
+	~FileInput(void) noexcept = default;
 	// If argv has the file path
 	void SetPath(const std::filesystem::path &) noexcept;
 	const std::filesystem::path &GetPath(void) const noexcept;
-	void SetCallback(const std::function<void(const disxx::ui::MainWindow *const)>) noexcept;
+	void SetCallback(const std::function<void(void)>) noexcept;
 };
-
-
-
-

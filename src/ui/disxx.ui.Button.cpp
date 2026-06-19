@@ -11,6 +11,8 @@ module;
 #include <string>
 #include <tuple>
 
+#include <print>
+
 module disxx.ui.Button;
 
 import disxx.ui.backend.GLRenderer;
@@ -86,8 +88,8 @@ namespace disxx::ui
 	{
 		// Add a shape
 		utility::Shape s{utility::Shape::Type::RECTANGLE};
-		s.Replace(utility::Vec2<float>{this->m_X, this->m_Y});
-		s.Resize(utility::Vec2<float>{this->m_Width, this->m_Height});
+		s.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
+		s.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
 		s.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
 		s_pRenderer->PushShape(std::move(s));
 		
@@ -99,8 +101,8 @@ namespace disxx::ui
 			(
             	utility::Vec2<float>
 				{
-					this->m_X + (this->m_Width - (9.f * this->m_Text.size())) / 2.0f, 
-            		this->m_Y + this->m_Height / 2.0f - 4.5f
+					this->m_Position.x + (this->m_Position.x - (9.f * this->m_Text.size())) / 3.0f, 
+            		this->m_Position.y + this->m_Position.y / 4.0f - 4.5f
 				}
 			);
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
@@ -113,9 +115,7 @@ namespace disxx::ui
 
 	void Button::HandleMouse(int button, int state, int x, int y) noexcept
 	{
-		y -= this->m_Height;
-
-		if (!(x >= this->m_X && x <= this->m_X + this->m_Width && y >= this->m_Y && y <= this->m_Y + this->m_Height))
+		if (!(x >= this->m_Position.x && x <= this->m_Position.x + this->m_Position.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Position.y))
 			return;
 
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
@@ -129,7 +129,7 @@ namespace disxx::ui
 
 	void Button::HandleMotion(int x, int y) noexcept
 	{
-		this->m_IsHovered = (x >= this->m_X && x <= this->m_X + this->m_Width && y >= this->m_Y && y <= this->m_Y + this->m_Height);
+		this->m_IsHovered = (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Position.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Position.y);
 		if (this->m_IsHovered && this->m_Trigger == ButtonTrigger::BTN_HOVERED)
 			this->m_Callback(this);
 	}

@@ -76,7 +76,7 @@ namespace disxx::ui
 	{
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 		{
-			if (x >= this->m_X && x <= this->m_X + this->m_Width && y >= this->m_Y && y <= this->m_Y + this->m_Height)
+			if (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Position.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Position.y)
 				this->m_IsClicked = true;
 		}
 	}
@@ -84,8 +84,8 @@ namespace disxx::ui
 	void TextInput::Render(void) const noexcept
 	{
 		utility::Shape frame{};
-		frame.Replace(utility::Vec2<float>{this->m_X, this->m_Y});
-		frame.Resize(utility::Vec2<float>{this->m_Width, this->m_Height});
+		frame.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
+		frame.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
 		frame.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
 		s_pRenderer->PushShape(std::move(frame));
 
@@ -93,15 +93,15 @@ namespace disxx::ui
 		if (!this->m_Text.empty())
 		{
 			utility::Text txt{};
-			txt.Replace(utility::Vec2<float>{this->m_X + 10.f, this->m_Y + 25.f});
+			txt.Replace(utility::Vec2<float>{this->m_Position.x + 10.f, this->m_Position.y + 25.f});
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
-			if ((this->m_Text.size() * 9) > this->m_Width - 20.f)
+			if ((this->m_Text.size() * 9) > this->m_Position.x - 20.f)
 			{
 				start = this->m_Text.size();
 				int currentWidth{0};
 				for (auto i{this->m_Text.size()}; i-- > 0;)
 				{
-					if (currentWidth + 9 > this->m_Width - 20.f)
+					if (currentWidth + 9 > this->m_Position.x - 20.f)
 					{
 						start = i + 1;
 						break;

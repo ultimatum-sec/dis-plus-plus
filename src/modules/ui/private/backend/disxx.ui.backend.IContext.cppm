@@ -19,13 +19,23 @@ export namespace disxx::ui::backend
 		using WindowHandle = T;
 
 	  public:
+		// Some window methods
 		virtual WindowHandle CreateWindow(utility::Vec2<int>, std::string_view) noexcept = 0;
 		virtual void SwitchWindow(WindowHandle &) noexcept = 0;
+		virtual void ShowWindow(void) noexcept = 0;
+		virtual void HideWindow(void) noexcept = 0;
 		virtual void DestroyWindow(void) noexcept = 0;
 
+		// Callback methods
+		virtual void SetDisplayCallback(const void *) noexcept = 0;
+		virtual void SetReshapeCallback(const void *) noexcept = 0;
+		virtual void SetKeyboardCallback(const void *) noexcept = 0;
+		virtual void SetMouseButtonCallback(const void *) noexcept = 0;
+		virtual void SetMouseMotionCallback(const void *) noexcept = 0;
+
+		// Miscellaneous methods
 		virtual void SwapBuffers(void) const noexcept = 0;
 		virtual void Redisplay(void) const noexcept = 0;
-	
-		virtual void ExecLoop(void) const noexcept = 0;
+		virtual void Exec(void) const noexcept = 0;
 	};
 } /* disxx::ui::backend */
