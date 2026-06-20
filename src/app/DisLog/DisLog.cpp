@@ -194,12 +194,6 @@ template <> struct std::formatter<std::tm> : public std::formatter<std::string>
 
 DisLog::DisLog(void) noexcept
 	: m_Parser{}
-	, m_ProgName{"unknown"}
-{}
-
-DisLog::DisLog(const std::filesystem::path &prog) noexcept
-	: m_Parser{}
-	, m_ProgName{prog}
 {}
 
 __DEMANGLE_CONSTEVAL std::expected<std::unique_ptr<char, decltype(&std::free)>, DisLog::DemanglingError>
@@ -327,9 +321,9 @@ std::expected<std::string, DisLog::ThreadStateError> DisLog::__LogThreadState(vo
 	#endif
 }
 
-void DisLog::LogErr(void) noexcept
+void DisLog::LogErr(const std::filesystem::path &path) noexcept
 {
-	BEGIN_LOG(this->m_Parser, this->m_ProgName);
+	BEGIN_LOG(this->m_Parser, path);
 
 	if (const auto ptr{std::current_exception()})
 	{

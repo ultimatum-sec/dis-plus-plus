@@ -19,17 +19,16 @@ export class FileInput
 
   private:
 	std::unique_ptr<disxx::ui::MainWindow> &m_pWindow;
-	std::span<const char *> m_Args;
 	std::filesystem::path m_Path;
 
   private:
 	explicit FileInput(void) noexcept;
-	explicit FileInput(std::span<const char *>) noexcept(false);
+	
 	explicit FileInput(const FileInput &) noexcept(false) = delete;
 	FileInput &operator=(const FileInput &) noexcept(false) = delete;
   
   public:
-	static FileInput *Init(std::span<const char *>) noexcept(false);
+	static FileInput *Init(void) noexcept(false);
 
 	~FileInput(void) noexcept = default;
 	// If argv has the file path

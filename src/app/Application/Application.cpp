@@ -18,14 +18,13 @@ module;
 #include <array>
 #include <span>
 
-#include <print>
-
 #define MKHEX(x) (std::format("{:#x}", (x)))
 
 module Application;
 
 import disxx.utility.ini.Parser;
 
+import disxx.utility.error.NullPointerError;
 import disxx.loader.macho.Loader;
 import disxx.disasm.Disassembler;
 import disxx.ui.SourceEditor;
@@ -52,25 +51,14 @@ namespace
 // The only one instance
 Application *Application::s_pInstance{nullptr};
 
-Application::Application(std::span<const char *> args) noexcept(false)
+Application::Application(void) noexcept(false)
 	: m_pWindow{std::ref(const_cast<std::unique_ptr<disxx::ui::MainWindow> &>(pNull))}
-	, m_Logger{args.data() ? args.at(0) : "[unknown]"}
-	, m_Args{args}
+	, m_Logger{}
 	, m_pInput{nullptr}
 {
-	// Check if args not null
-	if (!args.data()) [[unlikely]]
-		throw std::invalid_argument{"ArgumentsValueError"};
-	
-	// Init some glut stuff
-	static auto argc{static_cast<int>(args.size() & std::numeric_limits<unsigned int>::max())};
-	disxx::ui::MainWindow::InitContext(&argc, const_cast<char **>(args.data()));
-
 	// Init file input window
-    this->m_pInput = FileInput::Init(this->m_Args);
+    this->m_pInput = FileInput::Init();
     this->m_pInput->SetCallback(Application::__InitFunc);
-	if (args.size() > 1)
-		this->m_pInput->SetPath(args.at(1));
 }
 
 Application::~Application(void) noexcept
@@ -80,23 +68,34 @@ Application::~Application(void) noexcept
 	this->m_pInput = nullptr;
 }
 
-Application *Application::Init(int &argc, const char *argv[]) noexcept(false)
+Application *Application::Init(int &argc, char **argv) noexcept(false)
 {
-    if (!s_pInstance) [[likely]]
-        s_pInstance = new Application{std::span<const char *>(argv, argc)};
-	
+	if (argv == nullptr) [[unlikely]]
+		throw disxx::utility::error::NullPointerError{"NullPointerError"};
+	disxx::ui::MainWindow::InitContext(&argc, argv);
+    
+	if (!s_pInstance) [[likely]]
+        s_pInstance = new Application{};
+
+	static int sArgc{argc};
+	static char **sArgv{argv};
 	std::set_terminate
 	(
-		[](void) -> void
+		[] -> void
 		{
-			Application::s_pInstance->m_Logger.LogErr();
+			Application::s_pInstance->m_Logger.LogErr
+			(
+				sArgc && sArgv
+					? sArgv[0]
+					: "unknown"
+			);
 		
 			std::string path
 			{
 				std::filesystem::path
 				{
-					Application::s_pInstance->m_Args.data()
-						? Application::s_pInstance->m_Args.at(0)
+					sArgc && sArgv
+						? sArgv[0]
 						:
 						#ifdef _WIN32
 							".\\dis++"

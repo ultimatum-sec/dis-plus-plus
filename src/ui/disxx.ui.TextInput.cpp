@@ -1,13 +1,5 @@
 module;
 
-#ifdef __APPLE__
-#	include <OpenGL/gl.h>
-#	include <GLUT/glut.h>
-#else
-#	include <GL/freeglut.h>
-#	include <GL/gl.h>
-#endif
-
 #include <functional>
 #include <algorithm>
 #include <ranges>
@@ -68,17 +60,13 @@ namespace disxx::ui
 			else if (key >= 32 && key <= 126)
 				this->m_Text += key;
 		}
-
-		glutPostRedisplay();
 	}
 
 	void TextInput::HandleMouse(int button, int state, int x, int y)
 	{
-		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-		{
-			if (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Position.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Position.y)
+		if (button == 0 && state == 0)
+			if (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y)
 				this->m_IsClicked = true;
-		}
 	}
 
 	void TextInput::Render(void) const noexcept
@@ -95,13 +83,13 @@ namespace disxx::ui
 			utility::Text txt{};
 			txt.Replace(utility::Vec2<float>{this->m_Position.x + 10.f, this->m_Position.y + 25.f});
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
-			if ((this->m_Text.size() * 9) > this->m_Position.x - 20.f)
+			if ((this->m_Text.size() * 9) > this->m_Size.x - 20.f)
 			{
 				start = this->m_Text.size();
 				int currentWidth{0};
 				for (auto i{this->m_Text.size()}; i-- > 0;)
 				{
-					if (currentWidth + 9 > this->m_Position.x - 20.f)
+					if (currentWidth + 9 > this->m_Size.x - 20.f)
 					{
 						start = i + 1;
 						break;

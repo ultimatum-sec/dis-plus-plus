@@ -47,7 +47,6 @@ export class DisLog
 
   private:
 	disxx::utility::ini::Parser m_Parser;
-	std::filesystem::path m_ProgName;
 
   public:
 	enum class DemanglingError { ERR_NOLIB, ERR_BADSTATUS };
@@ -64,11 +63,11 @@ export class DisLog
 
   public:
 	explicit DisLog(void) noexcept;
-	explicit DisLog(const std::filesystem::path &) noexcept;	
+	
 	DisLog(const DisLog &) noexcept = default;
 	DisLog &operator=(const DisLog &) noexcept = default;
 	
 	~DisLog(void) noexcept = default;
 
-	void LogErr(void) noexcept;
+	void LogErr(const std::filesystem::path &) noexcept;
 };

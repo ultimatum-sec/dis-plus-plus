@@ -24,13 +24,12 @@ FileInput *FileInput::s_pInstance{nullptr};
 // WARNING: this constructor shouldn't be used
 FileInput::FileInput(void) noexcept
 	: m_pWindow{disxx::ui::MainWindow::Init(disxx::ui::utility::Vec2<int>{400, 300}, "Select an executable to disassemble")}
-	, m_Args{std::span<const char *>{(const char*[]){"unknown"}, 1}}
 	, m_Path{""}
 {
 	this->m_pWindow->SetVisible(true);
 
 	{
-		disxx::ui::TextInput txt{150, 150, 300, 40};
+		disxx::ui::TextInput txt{125, 150, 300, 40};
 		txt.SetColor(0.3f, 0.3f, 0.3f);
 		this->m_pWindow->AddWidget(std::make_unique<disxx::ui::TextInput>(txt));
 	}
@@ -43,35 +42,10 @@ FileInput::FileInput(void) noexcept
 	}
 }
 
-FileInput::FileInput(std::span<const char *> args) noexcept(false)
-	: m_pWindow{disxx::ui::MainWindow::Init(disxx::ui::utility::Vec2<int>{400, 300}, "Select an executable to disassemble")}
-	, m_Args{args}
-	, m_Path{""}
-{
-	// Check if args not null
-	if (!this->m_Args.data()) [[unlikely]]
-		throw std::invalid_argument{"ArgumentsValueError"};
-	
-	this->m_pWindow->SetVisible(true);
-
-	{
-		disxx::ui::TextInput txt{50, 50, 300, 40};
-		txt.SetColor(0.3f, 0.3f, 0.3f);
-		this->m_pWindow->AddWidget(std::make_unique<disxx::ui::TextInput>(txt));
-	}
-
-	{
-		disxx::ui::Button btn{150, 100, 100, 40};
-		btn.SetColor(0.3f, 0.3f, 0.3f);
-		btn.SetText("OK");
-		this->m_pWindow->AddWidget(std::make_unique<disxx::ui::Button>(btn));
-	}
-}
-
-FileInput *FileInput::Init(std::span<const char *> args) noexcept(false)
+FileInput *FileInput::Init(void) noexcept(false)
 {
 	if (!s_pInstance) [[likely]]
-		s_pInstance = new FileInput{args};
+		s_pInstance = new FileInput{};
 	return s_pInstance;
 }
 

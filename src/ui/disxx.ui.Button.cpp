@@ -1,11 +1,5 @@
 module;
 
-#ifdef __APPLE__
-#	include <GLUT/glut.h>
-#else
-#	include <GL/freeglut.h>
-#endif
-
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -99,8 +93,8 @@ namespace disxx::ui
 			(
             	utility::Vec2<float>
 				{
-					this->m_Position.x + (this->m_Position.x - (9.f * this->m_Text.size())) / 3.0f, 
-            		this->m_Position.y + this->m_Position.y / 4.0f - 4.5f
+					this->m_Position.x + (this->m_Size.x - (9.f * this->m_Text.size())) / 2.0f, 
+            		this->m_Position.y + this->m_Size.y / 3.0f - 4.5f
 				}
 			);
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
@@ -113,12 +107,12 @@ namespace disxx::ui
 
 	void Button::HandleMouse(int button, int state, int x, int y) noexcept
 	{
-		if (!(x >= this->m_Position.x && x <= this->m_Position.x + this->m_Position.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Position.y))
+		if (!(x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y))
 			return;
 
-		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+		if (button == 0 && state == 0)
 			this->m_IsClicked = true;
-		else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+		else if (button == 0 && state == 1)
 			this->m_IsClicked = false;
 
 		if (this->m_IsClicked && this->m_Trigger == ButtonTrigger::BTN_CLICKED)
@@ -127,7 +121,7 @@ namespace disxx::ui
 
 	void Button::HandleMotion(int x, int y) noexcept
 	{
-		this->m_IsHovered = (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Position.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Position.y);
+		this->m_IsHovered = (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y);
 		if (this->m_IsHovered && this->m_Trigger == ButtonTrigger::BTN_HOVERED)
 			this->m_Callback(this);
 	}

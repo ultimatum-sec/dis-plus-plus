@@ -23,22 +23,20 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application
   private:
 	std::reference_wrapper<std::unique_ptr<disxx::ui::MainWindow>> m_pWindow;
 	DisLog m_Logger;
-	std::span<const char *> m_Args;
 	FileInput *m_pInput;
 
   private:
 	static void __InitFunc(void) noexcept(false);
 
   private:
-	explicit Application(void) noexcept = delete;
-	explicit Application(std::span<const char *>) noexcept(false);
+	explicit Application(void) noexcept(false);
 	
 	Application(const Application &) noexcept(false) = delete;
 	Application &operator=(const Application &) noexcept(false) = delete;
 
   public:
 	// THIS FUNCTION CALLS ONCE!
-	static Application *Init(int &, const char *[]) noexcept(false);
+	static Application *Init(int &, char **) noexcept(false);
 	
 	~Application(void) noexcept;
 	int Exec(void) const noexcept(false);
