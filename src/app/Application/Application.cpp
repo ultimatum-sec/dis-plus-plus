@@ -16,7 +16,6 @@ module;
 #include <regex>
 #include <tuple>
 #include <array>
-#include <span>
 
 #define MKHEX(x) (std::format("{:#x}", (x)))
 

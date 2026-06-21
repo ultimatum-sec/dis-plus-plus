@@ -25,7 +25,7 @@ module;
 
 module disxx.loader.macho.Loader;
 
-import disxx.loader.utility.Section;
+import disxx.loader.executable.Section;
 
 namespace disxx::loader::macho
 {
@@ -89,48 +89,50 @@ namespace disxx::loader::macho
 			throw std::invalid_argument{"CPUArchError"}; // Can dissasemble only aarch64 instructions!
 	}
 
-	std::vector<disxx::loader::utility::Section> Loader::LoadSections(void) const noexcept(false)
+	disxx::loader::executable::ExecitableFile Loader::LoadData(void) const noexcept(false)
 	{
-		std::vector<disxx::loader::utility::Section> sections;
-		auto sectIdx{1ULL};
+		disxx::loader::executable::ExecitableFile file{};
+		file.SetMagic(this->m_pHeader->magic);
+
+		auto sectionIndex{1ull};
+
 		load_command loadCmd;
 		auto offset{this->m_Offset + sizeof(mach_header_64)};
-		for (const auto &_ : std::views::iota(0U, this->m_pHeader->ncmds))
+		for (const auto _ : std::views::iota(0u, this->m_pHeader->ncmds))
 		{
 			loadCmd = this->m_Mapper.Read<load_command>(offset);
 			if (loadCmd.cmd == LC_SEGMENT_64)
 			{
 				auto segCmd{this->m_Mapper.Read<segment_command_64>(offset)};
 				auto pSects{std::make_unique<section_64[]>(segCmd.nsects)};
-				for (const auto &j : std::views::iota(0U, segCmd.nsects))
+				for (const auto &j : std::views::iota(0u, segCmd.nsects))
 				{
 					auto nsect{this->m_Mapper.Read<section_64>((offset + sizeof(segCmd)) + (j * sizeof(section_64)))};
 					if (!nsect.offset) [[unlikely]]
 						continue;
 
-					sections.emplace_back
-					(
-						__uint128_t{nsect.addr},
-						__uint128_t{this->m_Offset + nsect.offset},
-						__uint128_t{nsect.size},
-						std::string{nsect.segname} + std::string{","}
-							+ std::string{nsect.sectname},
-						sectIdx++
-					);
+					disxx::loader::executable::Section section{};
+					section.SetName(std::format("{},{}", nsect.segname, nsect.sectname));
+					section.SetAddress(nsect.addr);
+					section.SetOffset(nsect.offset);
+					section.SetSize(nsect.size);
+					section.SetIndex(sectionIndex++);
+					
+					file.AddSection(std::move(section));
 				}
 			}
 			else if (loadCmd.cmd == LC_SYMTAB)
 			{
 				auto symtabCmd{this->m_Mapper.Read<symtab_command>(offset)};
 				auto pSymbols{std::make_unique<nlist_64[]>(symtabCmd.nsyms)};
-				for (const auto &j : std::views::iota(0U, symtabCmd.nsyms))
+				for (const auto j : std::views::iota(0u, symtabCmd.nsyms))
 					pSymbols[j] = this->m_Mapper.Read<nlist_64>(symtabCmd.symoff + j * sizeof(nlist_64) + this->m_Offset);
 
 				auto pStrtab{std::make_unique<char[]>(symtabCmd.strsize)};
-				for (const auto j : std::views::iota(0U, symtabCmd.strsize))
+				for (const auto j : std::views::iota(0u, symtabCmd.strsize))
 					pStrtab[j] = this->m_Mapper.Read<char>(symtabCmd.stroff + j + this->m_Offset);
 
-				for (const auto &j : std::views::iota(0U, symtabCmd.nsyms))
+				for (const auto j : std::views::iota(0u, symtabCmd.nsyms))
 				{
 					if (!pSymbols[j].n_un.n_strx)
 						continue;
@@ -142,9 +144,9 @@ namespace disxx::loader::macho
 						// Find the section with the same number as an argument
 						std::ranges::find_if
 						(
-							sections,
+							file.GetSections(),
 							[&pSymbols, j](const auto &section) -> bool
-							{ return section.GetSectionNumber() == pSymbols[j].n_sect; }
+							{ return section.GetSectionIndex() == pSymbols[j].n_sect; }
 						)
 					};
 				
@@ -152,24 +154,16 @@ namespace disxx::loader::macho
 					if (it == sections.end()) [[unlikely]]
 						continue;
 	
-					auto start{0ULL};
-					if (pSymbols[j].n_value >= it->GetStart() && pSymbols[j].n_value < it->GetVirtualStart() + it->GetSize())
-						start = it->GetStart() + (pSymbols[j].n_value - it->GetVirtualStart());
+					auto start{0ull};
+					if (pSymbols[j].n_value >= it->GetOffset() && pSymbols[j].n_value < it->GetAddress() + it->GetSize())
+						start = it->GetOffset() + (pSymbols[j].n_value - it->GetAddress());
+					
+					disxx::loader::executable::Label label{};
+					label.SetName(&pStrtab[pSymbols[j].n_un.n_strx]);
+					label.SetAddress(pSymbols[j].n_value);
+					label.SetOffset(start);
 
-					it->GetLabelsAndData().emplace_back
-					(
-						std::make_pair<disxx::loader::utility::func_t, std::vector<std::uint8_t>>
-						(
-							disxx::loader::utility::func_t
-							{
-								&pStrtab[pSymbols[j].n_un.n_strx],
-								pSymbols[j].n_value,
-								start,
-								0 // The size will be calculated (guessed) later
-							},
-							std::vector<std::uint8_t>{} // Should be filled later
-						)
-					);
+					it->AddLabel(std::move(label));
 				}
 
 				break;
@@ -178,52 +172,18 @@ namespace disxx::loader::macho
 			offset += loadCmd.cmdsize;
 		}
 
-		// Sort sections
-		std::ranges::sort
-		(
-			sections,
-			[](const auto &a, const auto &b) -> bool
-			{ return a.GetStart() < b.GetStart(); }
-		);
-		
-		// Sort labels in each section
-		std::ranges::for_each
-		(
-			sections,
-			[](disxx::loader::utility::Section &section) -> void
-			{
-				std::sort
-				(
-					section.GetLabelsAndData().begin(),
-					section.GetLabelsAndData().end(),
-					[](const auto &a, const auto &b) -> bool
-					{ return a.first.addr < b.first.addr; }
-				);
-			}
-		);
-		
-		// Calculating (or guessing) labels sizes
-		std::ranges::for_each
-		(
-			sections,
-			[](auto &section) -> void
+		for (auto &sect : file.GetSections())
+		{
+			for (auto it{sect.GetLabels().begin()}; it != {sect.GetLabels.end()}; ++it)
 			{	
-				for (const auto &i : std::views::iota(0UL, section.GetLabelsAndData().size()))
-				{
-					if (i < section.GetLabelsAndData().size() - 1)
-						section.GetLabelsAndData().at(i).first.size = section.GetLabelsAndData().at(i + 1).first.addr
-							- section.GetLabelsAndData().at(i).first.addr;
-					else
-					{
-						auto addr{section.GetStart() + section.GetSize()};
-						section.GetLabelsAndData().at(i).first.size = addr
-							- section.GetLabelsAndData().at(i).first.addr;
-					}
-				}
+				std::vector<uint8_t> data{};
+				for (const auto i : std::views::iota(it->GetOffset(), std::next(it) != sect.GetLabels.end() ? std::next(it)->GetOffset() : sect.GetSize() + sect.GetOffset()))
+					data.emplace_back(this->m_Mapper.Read<std::uint8_t>(i));
+				it->AddData(std::move(data));
 			}
-		);
-	
-		return sections;
+		}
+
+		return file;
 	}
 	
 	void Loader::LoadSectionData(disxx::loader::utility::Section &section) const noexcept(false)
@@ -238,11 +198,11 @@ namespace disxx::loader::macho
 
 	disxx::loader::utility::BinaryInfo Loader::LoadMetadata(void) const noexcept(false)
 	{
-		disxx::loader::utility::BinaryInfo metadata;
+		disxx::loader::utility::BinaryInfo metadata{};
 
 		load_command loadCmd;
 		std::uint64_t offset{this->m_Offset + sizeof(mach_header_64)};
-		for (const auto &_ : std::views::iota(0U, this->m_pHeader->ncmds))
+		for (const auto &_ : std::views::iota(0u, this->m_pHeader->ncmds))
 		{
 			loadCmd = this->m_Mapper.Read<load_command>(offset);
 			if (loadCmd.cmd == LC_BUILD_VERSION)
@@ -265,7 +225,7 @@ namespace disxx::loader::macho
 	{
 		load_command loadCmd;
 		std::uint64_t offset{this->m_Offset + sizeof(mach_header_64)};
-		for (const auto &_ : std::views::iota(0U, this->m_pHeader->ncmds))
+		for (const auto &_ : std::views::iota(0u, this->m_pHeader->ncmds))
 		{
 			loadCmd = this->m_Mapper.Read<load_command>(offset);
 			if (loadCmd.cmd == LC_SEGMENT_64)

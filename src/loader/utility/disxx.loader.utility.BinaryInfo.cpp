@@ -90,7 +90,7 @@ namespace disxx::loader::utility
 		const auto &[major, minor, patchlevel] = __DecodeVersion(this->m_PlatformInfo.second);
 		// It would be nice to return std::stirng_view,
 		// but std::format returns std::string, so
-		// it probably cause use after scope :(
+		// it'll probably cause use after scope :(
 		return std::format
 		(
 			"{}.{}.{}",
@@ -140,5 +140,3 @@ namespace disxx::loader::utility
 		return out;
 	}
 } /* disxx::loaders::utils */
-
-
