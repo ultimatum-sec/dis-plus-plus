@@ -8,6 +8,7 @@ module;
 #include <cstdint>
 #include <memory>
 #include <ranges>
+#include <format>
 #include <vector>
 #include <string>
 
@@ -25,7 +26,7 @@ module;
 
 module disxx.loader.macho.Loader;
 
-import disxx.loader.executable.Section;
+import disxx.loader.executable.ExecutableFile;
 
 namespace disxx::loader::macho
 {
@@ -89,10 +90,10 @@ namespace disxx::loader::macho
 			throw std::invalid_argument{"CPUArchError"}; // Can dissasemble only aarch64 instructions!
 	}
 
-	disxx::loader::executable::ExecitableFile Loader::LoadData(void) const noexcept(false)
+	disxx::loader::executable::ExecutableFile Loader::LoadData(void) const noexcept(false)
 	{
-		disxx::loader::executable::ExecitableFile file{};
-		file.SetMagic(this->m_pHeader->magic);
+		disxx::loader::executable::ExecutableFile exec{};
+		exec.SetMagic(this->m_pHeader->magic);
 
 		auto sectionIndex{1ull};
 
@@ -118,7 +119,7 @@ namespace disxx::loader::macho
 					section.SetSize(nsect.size);
 					section.SetIndex(sectionIndex++);
 					
-					file.AddSection(std::move(section));
+					exec.AddSection(std::move(section));
 				}
 			}
 			else if (loadCmd.cmd == LC_SYMTAB)
@@ -144,14 +145,14 @@ namespace disxx::loader::macho
 						// Find the section with the same number as an argument
 						std::ranges::find_if
 						(
-							file.GetSections(),
+							exec.GetSections(),
 							[&pSymbols, j](const auto &section) -> bool
-							{ return section.GetSectionIndex() == pSymbols[j].n_sect; }
+							{ return section.GetIndex() == pSymbols[j].n_sect; }
 						)
 					};
 				
 					// If not found, just pass it
-					if (it == sections.end()) [[unlikely]]
+					if (it == exec.GetSections().end()) [[unlikely]]
 						continue;
 	
 					auto start{0ull};
@@ -172,18 +173,18 @@ namespace disxx::loader::macho
 			offset += loadCmd.cmdsize;
 		}
 
-		for (auto &sect : file.GetSections())
+		for (auto &sect : exec.GetSections())
 		{
-			for (auto it{sect.GetLabels().begin()}; it != {sect.GetLabels.end()}; ++it)
+			for (auto it{sect.GetLabels().begin()}; it != sect.GetLabels().end(); ++it)
 			{	
 				std::vector<uint8_t> data{};
-				for (const auto i : std::views::iota(it->GetOffset(), std::next(it) != sect.GetLabels.end() ? std::next(it)->GetOffset() : sect.GetSize() + sect.GetOffset()))
+				for (const auto i : std::views::iota(it->GetOffset(), std::next(it) != sect.GetLabels().end() ? std::next(it)->GetOffset() : sect.GetSize() + sect.GetOffset()))
 					data.emplace_back(this->m_Mapper.Read<std::uint8_t>(i));
-				it->AddData(std::move(data));
+				it->SetData(std::move(data));
 			}
 		}
 
-		return file;
+		return disxx::loader::executable::ExecutableFile{exec};
 	}
 	
 	void Loader::LoadSectionData(disxx::loader::utility::Section &section) const noexcept(false)

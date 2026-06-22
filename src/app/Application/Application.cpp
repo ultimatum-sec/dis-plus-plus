@@ -24,6 +24,7 @@ module Application;
 import disxx.utility.ini.Parser;
 
 import disxx.utility.error.NullPointerError;
+import disxx.loader.executable.ExecutableFile;
 import disxx.loader.macho.Loader;
 import disxx.disasm.Disassembler;
 import disxx.ui.SourceEditor;
@@ -76,8 +77,8 @@ Application *Application::Init(int &argc, char **argv) noexcept(false)
 	if (!s_pInstance) [[likely]]
         s_pInstance = new Application{};
 
-	static int sArgc{argc};
-	static char **sArgv{argv};
+	[[maybe_unused]] static int sArgc{argc};
+	[[maybe_unused]] static char **sArgv{argv};
 	std::set_terminate
 	(
 		[] -> void
@@ -112,7 +113,7 @@ Application *Application::Init(int &argc, char **argv) noexcept(false)
 			std::exit(EXIT_FAILURE);
 		}
 	);
-	
+
 	return s_pInstance;
 }
 
@@ -233,11 +234,9 @@ void Application::__InitFunc(void) noexcept(false)
 		sdkMinor
 	);
 
-	for (auto sections{ldr.LoadSections()}; auto &section : sections)
+	for (auto exec{ldr.LoadData()}; auto &section : exec.GetSections())
 	{
-		ldr.LoadSectionData(section);
-	
-		auto name{section.GetSectionName()};
+		auto name{section.GetName()};
 		pEditor->AddLine("");
 		pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">.section</color> {}", name);
 		pEditor->AddLine("");
@@ -245,34 +244,33 @@ void Application::__InitFunc(void) noexcept(false)
 		// Only "__TEXT,__text" section considers as executable
 		if (name == "__TEXT,__text")
 		{
-			const auto &labelsAndData{section.GetData<std::uint32_t>()};
     		std::unordered_map<std::uint64_t, std::string> names;
-    		for (const auto &[label, _] : labelsAndData)
-    		    names[label.vaddr] = label.name;
+    		for (const auto &label : section.GetLabels())
+    		    names[label.GetAddress()] = label.GetName();
 			
-			for (const auto &[func, data] : labelsAndData)
+			for (const auto &label : section.GetLabels())
 		    {
 		        pLabels->AddLine
 				(
 					"<color value=\"0.7 0.6 0.2 1.0\">{}</color>:"
 					"<color value=\"0.8 0.6 0.2 1.0\">{:#016}</color>:"
 					"<color value=\"0.6 0.6 0.2 1.0\">{}</color>",
-					name,
-					func.vaddr,
-					names[func.vaddr]
+					label.GetName(),
+					label.GetAddress(),
+					names[label.GetAddress()]
 				);
 
-		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", names[func.vaddr]);
+		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", names[label.GetAddress()]);
 	
 				std::vector<disxx::disasm::Bytes> vec
 				{
-					data
+					label.GetData()
 						| std::views::all
 						| std::views::transform([](auto &bytes) -> disxx::disasm::Bytes { return disxx::disasm::Bytes{bytes}; })
 						| std::ranges::to<std::vector<disxx::disasm::Bytes>>()
 				};
 
-	   		    for (const disxx::disasm::Disassembler disasm{true}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{func.vaddr}))
+	   		    for (const disxx::disasm::Disassembler disasm{true}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}))
     		    {
 					if (insn)
 					{
@@ -348,7 +346,7 @@ void Application::__InitFunc(void) noexcept(false)
 										},
 										it->second
 									),
-									func.vaddr
+									label.GetAddress()
 								);
 	   		            	    
 								continue;
@@ -365,7 +363,7 @@ void Application::__InitFunc(void) noexcept(false)
 		}
 		else
 		{
-			for (const auto &[label, data] : section.GetData<std::uint8_t>())
+			for (const auto &label : section.GetLabels())
 			{
 				pLabels->AddLine
 				(
@@ -373,13 +371,13 @@ void Application::__InitFunc(void) noexcept(false)
 					"<color value=\"0.8 0.6 0.2 1.0\">{:#016}</color>:"
 					"<color value=\"0.6 0.6 0.2 1.0\">{}</color>",
 					name,
-					label.vaddr,
-					label.name
+					label.GetAddress(),
+					label.GetName()
 				);
 
-		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", label.name);
+		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", label.GetName());
 
-				for (const auto &byte : data)
+				for (const auto &byte : label.GetData())
 				{
 					pEditor->AddLine
 					(

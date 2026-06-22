@@ -11,7 +11,7 @@ export module disxx.loader.executable.ExecutableFile;
 export import <cstdint>;
 export import <vector>;
 
-import disxx.loader.executable.Section;
+export import disxx.loader.executable.Section;
 
 export namespace disxx::loader::executable
 {
@@ -39,7 +39,7 @@ export namespace disxx::loader::executable
 
 	inline void ExecutableFile::AddSection(Section &&section) noexcept
 	{
-		this->m_Sections.emplace_back(std::move(sections));
+		this->m_Sections.emplace_back(std::move(section));
 		std::ranges::sort
 		(
 			this->m_Sections,
@@ -48,7 +48,7 @@ export namespace disxx::loader::executable
 		);
 	}
 
-	inline void ExecutableFile::SetMagic(std::uint64_t magic) noexcept
+	inline void ExecutableFile::SetMagic(std::uint32_t magic) noexcept
 	{ this->m_Magic = magic; }
 
 	inline const std::vector<Section> &ExecutableFile::GetSections(void) const noexcept

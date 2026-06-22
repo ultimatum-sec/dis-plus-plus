@@ -53,12 +53,17 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile-mapfile_t.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Section.cppm \
+	$(MODULESPATH)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Label.cppm \
+	$(MODULESPATH)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cppm \
+	$(MODULESPATH)public$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.loader.macho.Loader.cppm
 
 SOURCES=\
 	.$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.BinaryInfo.cpp \
 	.$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile.cpp \
-	.$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Section.cpp \
+	.$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Label.cpp \
+	.$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cpp \
+	.$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cpp \
 	.$(PATHSEP)disxx.loader.macho.Loader.cpp
 
 all: $(BUILDDIR)$(PATHSEP)libdisxx-macho.$(DYLIB)

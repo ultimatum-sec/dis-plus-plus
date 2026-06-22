@@ -11,7 +11,7 @@ namespace disxx::loader::executable
 		, m_Magic{}
 	{}
 
-	ExecutableFile(const ExecutableFile &other) noexcept
+	ExecutableFile::ExecutableFile(const ExecutableFile &other) noexcept
 		: m_Sections{other.m_Sections}
 		, m_Magic{other.m_Magic}
 	{}
@@ -27,7 +27,7 @@ namespace disxx::loader::executable
 		return *this;
 	}
 	
-	ExecutableFile(ExecutableFile &&other) noexcept
+	ExecutableFile::ExecutableFile(ExecutableFile &&other) noexcept
 		: m_Sections{std::move(other.m_Sections)}
 		, m_Magic{std::move(other.m_Magic)}
 	{}

@@ -70,8 +70,8 @@ void FileInput::SetCallback(std::function<void(void)> func) noexcept
 		this
 			->m_pWindow
 			->GetWidgets()
-			.at(1)
-			.get()
+			.rbegin()
+			->get()
 	)->SetCallback
 	(
 		disxx::ui::Button::ButtonTrigger::BTN_CLICKED,

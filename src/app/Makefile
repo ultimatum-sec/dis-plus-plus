@@ -10,13 +10,13 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-   	-c -std=c++26 -Wall -Wpedantic -Wextra -Wdeprecated -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+   	-c -std=c++26 -Wall -Wpedantic -Wextra -Wdeprecated -Werror -Og -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
 	-fno-omit-frame-pointer -Wshadow -Wdouble-promotion -Wfloat-equal -Wundef -Wswitch-default -Wimplicit-fallthrough \
 	-Wmissing-declarations -Wuninitialized -Wconditional-uninitialized -Wcast-qual -Wcast-align -Wformat -Wformat-security -Wnull-dereference \
 	-Wno-non-virtual-dtor -Woverloaded-virtual -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wold-style-cast -Wthread-safety -fstrict-aliasing \
 	-Wstrict-aliasing=2 -ftrapv -fwrapv -Wno-\#warnings -fsanitize-address-use-after-scope -Wno-unused-command-line-argument -Wno-c99-extensions \
 	-Wno-writable-strings -fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
-	-DGL_SILENCE_DEPRECATION -DBACKEND_CTX_GLUT -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden -DNDEBUG
+	-DGL_SILENCE_DEPRECATION -DBACKEND_CTX_GLUT -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden -g -DDEBUG
 
 LDFLAGS=\
 	-O2 $(LTOFLAGS) -S -demangle -arch $(ARCH) -pie -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
@@ -70,6 +70,10 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Section.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile-mapfile_t.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile.cppm \
+	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Section.cppm \
+	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Label.cppm \
+	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cppm \
+	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)public$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)public$(PATHSEP)disxx.loader.macho.Loader.cppm \
 	.$(PATHSEP)DisLog$(PATHSEP)DisLog.cppm \
 	.$(PATHSEP)FileInput$(PATHSEP)FileInput.cppm \
