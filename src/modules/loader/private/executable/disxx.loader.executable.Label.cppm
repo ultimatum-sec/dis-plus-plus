@@ -59,7 +59,7 @@ export namespace disxx::loader::executable
 	{ this->m_Offset = offset; }
 
 	inline void Label::SetData(Bytes &&data) noexcept
-	{ this->m_Data = data; }
+	{ this->m_Data = std::move(data); }
 
 	inline std::string_view Label::GetName(void) const noexcept
 	{ return this->m_Name; }
@@ -78,14 +78,18 @@ export namespace disxx::loader::executable
 	{
 		if constexpr (std::is_same<T, std::uint8_t>::value)
 			return this->m_Data;
-		else if (this->m_Data.size() % sizeof(T) != 0) [[unlikely]]
-			return std::vector<T>{};
+
+		// Copy the vector
+		auto copy{this->m_Data};
+		if (copy.size() % sizeof(T) != 0) [[unlikely]]
+			for (const auto _ : std::views::iota(0ul, sizeof(T) - (copy.size() % sizeof(T))))
+				copy.emplace_back(0);
 	
 		std::vector<T> result{};
-		result.reserve(this->m_Data.size() / sizeof(T));
-		for (auto i{0ul}; i < result.size(); i += sizeof(T))
-			for (auto j : std::views::iota(i, i + 4))
-				result.at(i / 4) |= static_cast<T>(this->m_Data.at(j)) << (j - i) * 8;
+		result.resize(copy.size() / sizeof(T), static_cast<T>(0));
+		for (auto i{0ul}; i < copy.size(); i += sizeof(T))
+			for (auto j : std::views::iota(i, i + sizeof(T)))
+				result.at(i / sizeof(T)) |= static_cast<T>(copy.at(j)) << (j - i) * 8;
 		return result;
 	}
 } /* disxx::loader::executable */

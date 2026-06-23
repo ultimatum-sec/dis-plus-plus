@@ -14,7 +14,6 @@ export module disxx.loader.macho.Loader;
 
 export import disxx.loader.executable.ExecutableFile;
 export import disxx.loader.utility.BinaryInfo;
-export import disxx.loader.utility.Section;
 import disxx.loader.utility.MappedFile;
 
 export namespace disxx::loader::macho
@@ -37,7 +36,6 @@ export namespace disxx::loader::macho
 		
 		void LoadFile(const std::filesystem::path &) noexcept(false);
 		disxx::loader::executable::ExecutableFile LoadData(void) const noexcept(false);
-		void LoadSectionData(disxx::loader::utility::Section &) const noexcept(false);
 		disxx::loader::utility::BinaryInfo LoadMetadata(void) const noexcept(false);
 		std::optional<std::uint64_t> LoadImageBase(void) const noexcept(false);
 

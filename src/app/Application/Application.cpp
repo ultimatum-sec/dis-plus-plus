@@ -234,15 +234,15 @@ void Application::__InitFunc(void) noexcept(false)
 		sdkMinor
 	);
 
-	for (auto exec{ldr.LoadData()}; auto &section : exec.GetSections())
+	for (auto &section : ldr.LoadData().GetSections())
 	{
 		const auto name{section.GetName()};
 		pEditor->AddLine("");
 		pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">.section</color> {}", name);
 		pEditor->AddLine("");
 
-		// Only "__TEXT,__text" section considers as executable
-		if (name == "__TEXT,__text")
+		// these sections are considered as executable
+		if (name == "__TEXT,__text" || name == "__TEXT,__stubs")
 		{
     		std::unordered_map<std::uint64_t, std::string> names;
     		for (const auto &label : section.GetLabels())
@@ -255,16 +255,17 @@ void Application::__InitFunc(void) noexcept(false)
 					"<color value=\"0.7 0.6 0.2 1.0\">{}</color>:"
 					"<color value=\"0.8 0.6 0.2 1.0\">{:#016}</color>:"
 					"<color value=\"0.6 0.6 0.2 1.0\">{}</color>",
-					label.GetName(),
+					section.GetName(),
 					label.GetAddress(),
-					names[label.GetAddress()]
+					label.GetName()
 				);
 
-		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", names[label.GetAddress()]);
+		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", label.GetName());
 
 				const auto &vec
 				{
 					label.GetData<std::uint32_t>()
+						| std::views::all
 						| std::views::transform([](const auto &bytes) -> auto { return disxx::disasm::Bytes{bytes}; })
 						| std::ranges::to<std::vector<disxx::disasm::Bytes>>()
 				};

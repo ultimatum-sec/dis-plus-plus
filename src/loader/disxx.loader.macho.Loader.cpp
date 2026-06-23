@@ -110,23 +110,22 @@ namespace disxx::loader::macho
 				{
 					auto nsect{this->m_Mapper.Read<section_64>((offset + sizeof(segCmd)) + (j * sizeof(section_64)))};
 					if (!nsect.offset) [[unlikely]]
+					{
+						sectionIndex++;
 						continue;
+					}
 
 					disxx::loader::executable::Section section{};
 					section.SetName
 					(
-						/*
 						std::format
 						(
 							"{},{}",
-							nsect.segname
-								| std::views::all
-								| std::views::take_while([](const auto &ch) -> bool { return ch != '\0'; })
-								| std::ranges::to<std::string>(),
-							nsect.sectname
+							// Cut null-terminators by wrapping ptr into str
+							std::string{nsect.segname},
+							// The same thing here
+							std::string{nsect.sectname}
 						)
-						*/
-						std::string{nsect.segname} + "," + nsect.sectname
 					);
 					section.SetAddress(nsect.addr);
 					section.SetOffset(nsect.offset);
@@ -170,7 +169,7 @@ namespace disxx::loader::macho
 						continue;
 	
 					auto start{0ull};
-					if (pSymbols[j].n_value >= it->GetOffset() && pSymbols[j].n_value < it->GetAddress() + it->GetSize())
+					if (pSymbols[j].n_value >= it->GetAddress() && pSymbols[j].n_value < it->GetAddress() + it->GetSize())
 						start = it->GetOffset() + (pSymbols[j].n_value - it->GetAddress());
 					
 					disxx::loader::executable::Label label{};
@@ -190,7 +189,7 @@ namespace disxx::loader::macho
 		for (auto &sect : exec.GetSections())
 		{
 			for (auto it{sect.GetLabels().begin()}; it != sect.GetLabels().end(); ++it)
-			{	
+			{
 				std::vector<uint8_t> data{};
 				for (const auto i : std::views::iota(it->GetOffset(), std::next(it) != sect.GetLabels().end() ? std::next(it)->GetOffset() : sect.GetSize() + sect.GetOffset()))
 					data.emplace_back(this->m_Mapper.Read<std::uint8_t>(i));
@@ -199,16 +198,6 @@ namespace disxx::loader::macho
 		}
 
 		return disxx::loader::executable::ExecutableFile{exec};
-	}
-	
-	void Loader::LoadSectionData(disxx::loader::utility::Section &section) const noexcept(false)
-	{
-		for	(auto &[label, data] : section.GetLabelsAndData())
-		{
-			data.resize(label.size);
-			for (const auto &i : std::views::iota(label.addr, label.addr + label.size))
-				data.at(i - label.addr) = this->m_Mapper.Read<std::uint8_t>(i);
-		}	
 	}
 
 	disxx::loader::utility::BinaryInfo Loader::LoadMetadata(void) const noexcept(false)
