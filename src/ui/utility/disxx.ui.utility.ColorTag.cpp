@@ -70,7 +70,7 @@ namespace disxx::ui::utility
 				std::make_pair
 				(
 					match[5].str(),
-					color	
+					color
 				)
 			);
 		}

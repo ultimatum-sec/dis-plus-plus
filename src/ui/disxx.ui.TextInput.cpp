@@ -5,8 +5,6 @@ module;
 #include <ranges>
 #include <string>
 
-#include <print>
-
 module disxx.ui.TextInput;
 
 import disxx.ui.utility.Shape;
@@ -82,8 +80,6 @@ namespace disxx::ui
 		unsigned long int start{0};
 		if (!this->m_Text.empty())
 		{
-			std::println("Position{{{}; {}}}", this->m_Position.x + 10.f, this->m_Position.y + 25.f);
-
 			utility::Text txt{};
 			txt.Replace(utility::Vec2<float>{this->m_Position.x + 10.f, this->m_Position.y + 25.f});
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});

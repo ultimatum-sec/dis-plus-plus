@@ -52,7 +52,6 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Label.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile-mapfile_t.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile.cppm \
-	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Section.cppm \
 	$(MODULESPATH)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Label.cppm \
 	$(MODULESPATH)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cppm \
 	$(MODULESPATH)public$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cppm \

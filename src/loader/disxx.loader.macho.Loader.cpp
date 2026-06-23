@@ -113,7 +113,21 @@ namespace disxx::loader::macho
 						continue;
 
 					disxx::loader::executable::Section section{};
-					section.SetName(std::format("{},{}", nsect.segname, nsect.sectname));
+					section.SetName
+					(
+						/*
+						std::format
+						(
+							"{},{}",
+							nsect.segname
+								| std::views::all
+								| std::views::take_while([](const auto &ch) -> bool { return ch != '\0'; })
+								| std::ranges::to<std::string>(),
+							nsect.sectname
+						)
+						*/
+						std::string{nsect.segname} + "," + nsect.sectname
+					);
 					section.SetAddress(nsect.addr);
 					section.SetOffset(nsect.offset);
 					section.SetSize(nsect.size);

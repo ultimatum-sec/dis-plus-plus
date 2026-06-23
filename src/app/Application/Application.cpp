@@ -77,8 +77,8 @@ Application *Application::Init(int &argc, char **argv) noexcept(false)
 	if (!s_pInstance) [[likely]]
         s_pInstance = new Application{};
 
-	[[maybe_unused]] static int sArgc{argc};
-	[[maybe_unused]] static char **sArgv{argv};
+	static int sArgc{argc};
+	static char **sArgv{argv};
 	std::set_terminate
 	(
 		[] -> void
@@ -129,7 +129,7 @@ void Application::__InitFunc(void) noexcept(false)
 
 	// Init this window
 	s_pInstance->m_pWindow = std::ref
-	(	
+	(
 		disxx::ui::MainWindow::Init
 		(
 			disxx::ui::utility::Vec2<int>
@@ -236,7 +236,7 @@ void Application::__InitFunc(void) noexcept(false)
 
 	for (auto exec{ldr.LoadData()}; auto &section : exec.GetSections())
 	{
-		auto name{section.GetName()};
+		const auto name{section.GetName()};
 		pEditor->AddLine("");
 		pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">.section</color> {}", name);
 		pEditor->AddLine("");
@@ -247,7 +247,7 @@ void Application::__InitFunc(void) noexcept(false)
     		std::unordered_map<std::uint64_t, std::string> names;
     		for (const auto &label : section.GetLabels())
     		    names[label.GetAddress()] = label.GetName();
-			
+		
 			for (const auto &label : section.GetLabels())
 		    {
 		        pLabels->AddLine
@@ -261,12 +261,11 @@ void Application::__InitFunc(void) noexcept(false)
 				);
 
 		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", names[label.GetAddress()]);
-	
-				std::vector<disxx::disasm::Bytes> vec
+
+				const auto &vec
 				{
-					label.GetData()
-						| std::views::all
-						| std::views::transform([](auto &bytes) -> disxx::disasm::Bytes { return disxx::disasm::Bytes{bytes}; })
+					label.GetData<std::uint32_t>()
+						| std::views::transform([](const auto &bytes) -> auto { return disxx::disasm::Bytes{bytes}; })
 						| std::ranges::to<std::vector<disxx::disasm::Bytes>>()
 				};
 
@@ -275,6 +274,7 @@ void Application::__InitFunc(void) noexcept(false)
 					if (insn)
 					{
 						const auto &value{insn.value()};
+						
 						auto mnemonic
 						{
 							[value](void) -> std::string
@@ -291,7 +291,7 @@ void Application::__InitFunc(void) noexcept(false)
 									else if (auto n{0ull}; std::from_chars(it->str().data() + 1, it->str().data() + it->str().size() - 1, n)) [[likely]]
 										if (n < 0 || n > 31) [[unlikely]]
 											continue;
-	
+
 									mnemonic = std::regex_replace
 									(
 										mnemonic,
@@ -327,7 +327,7 @@ void Application::__InitFunc(void) noexcept(false)
 								return mnemonic;
 							}()
 						};
-
+						
 						if (auto addr{value.GetProgramCounterRelevantAddress()})
     		        	{
     		            	if (auto it{names.find(*addr)}; it != names.end())
@@ -365,6 +365,7 @@ void Application::__InitFunc(void) noexcept(false)
 		{
 			for (const auto &label : section.GetLabels())
 			{
+				/*
 				pLabels->AddLine
 				(
 					"<color value=\"0.7 0.6 0.2 1.0\">{}</color>:"
@@ -374,10 +375,10 @@ void Application::__InitFunc(void) noexcept(false)
 					label.GetAddress(),
 					label.GetName()
 				);
+		       	*/ 
+				pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", label.GetName());
 
-		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", label.GetName());
-
-				for (const auto &byte : label.GetData())
+				for (const auto &byte : label.GetData<std::uint8_t>())
 				{
 					pEditor->AddLine
 					(

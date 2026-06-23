@@ -42,6 +42,11 @@ FileInput::FileInput(void) noexcept
 	}
 }
 
+FileInput::~FileInput(void) noexcept
+{
+	std::destroy_at(&this->m_pWindow);
+}
+
 FileInput *FileInput::Init(void) noexcept(false)
 {
 	if (!s_pInstance) [[likely]]

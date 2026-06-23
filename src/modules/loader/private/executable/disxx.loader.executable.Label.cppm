@@ -7,7 +7,10 @@ module;
 export module disxx.loader.executable.Label;
 
 export import <string_view>;
+export import <type_traits>;
+export import <algorithm>;
 export import <cstdint>;
+export import <ranges>;
 export import <vector>;
 export import <string>;
 
@@ -42,7 +45,8 @@ export namespace disxx::loader::executable
 		inline std::uint64_t GetAddress(void) const noexcept;
 		inline std::uint64_t GetSize(void) const noexcept;
 		inline std::uint64_t GetOffset(void) const noexcept;
-		inline const Bytes &GetData(void) const noexcept;
+		template <typename T> requires std::is_integral<T>::value
+		inline std::vector<T> GetData(void) const noexcept;
 	};
 
 	inline void Label::SetName(std::string name) noexcept
@@ -69,6 +73,19 @@ export namespace disxx::loader::executable
 	inline std::uint64_t Label::GetSize(void) const noexcept
 	{ return this->m_Data.size(); }
 
-	inline const Label::Bytes &Label::GetData(void) const noexcept
-	{ return this->m_Data; }
+	template <typename T> requires std::is_integral<T>::value
+	inline std::vector<T> Label::GetData(void) const noexcept
+	{
+		if constexpr (std::is_same<T, std::uint8_t>::value)
+			return this->m_Data;
+		else if (this->m_Data.size() % sizeof(T) != 0) [[unlikely]]
+			return std::vector<T>{};
+	
+		std::vector<T> result{};
+		result.reserve(this->m_Data.size() / sizeof(T));
+		for (auto i{0ul}; i < result.size(); i += sizeof(T))
+			for (auto j : std::views::iota(i, i + 4))
+				result.at(i / 4) |= static_cast<T>(this->m_Data.at(j)) << (j - i) * 8;
+		return result;
+	}
 } /* disxx::loader::executable */

@@ -30,7 +30,8 @@ export class FileInput
   public:
 	static FileInput *Init(void) noexcept(false);
 
-	~FileInput(void) noexcept = default;
+	~FileInput(void) noexcept;
+
 	// If argv has the file path
 	void SetPath(const std::filesystem::path &) noexcept;
 	const std::filesystem::path &GetPath(void) const noexcept;
