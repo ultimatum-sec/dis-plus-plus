@@ -26,20 +26,20 @@ export namespace disxx::disasm
 	class __DISXX_EXPORT__ [[nodiscard]] Instruction
 	{
 	  private:
-		// ID of the instruction's mnemonic
-		InstructionID m_InstructionID;
-
 		// Bunch of operands (may be empty)
-		std::vector<std::unique_ptr<operand::AbstractOperand>> m_Operands;
+		std::vector<std::unique_ptr<operand::AbstractOperand>> m_Operands{};
 
 		// Program-counter relevant address
-		std::optional<signed long long int> m_ProgramCounterRelevantAddress;
+		std::optional<signed long long int> m_ProgramCounterRelevantAddress{};
 		
 		// Position of the instruction
-		Address m_Address;
+		Address m_Address{};
 		
 		// Raw bytes of the instruction (4 bytes for AArch64)
-		Bytes m_Bytes;
+		Bytes m_Bytes{};
+
+		// ID of the instruction's mnemonic
+		InstructionID m_InstructionID{};
 
 	  public:
 		explicit Instruction(void) noexcept;

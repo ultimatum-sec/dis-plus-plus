@@ -19,11 +19,11 @@ namespace disxx::disasm::operand
 	class Register::Impl final : public AbstractOperand::AbstractImpl
     {
 	  private:
-		std::optional<std::string> m_VectorArrangementSpecifier;
-		Type m_RegType;
-		unsigned short int m_Bits;
-		unsigned short int m_Size;
-		bool m_ExcludeZero;
+		std::optional<std::string> m_VectorArrangementSpecifier{};
+		Type m_RegType{};
+		unsigned short int m_Bits{};
+		unsigned short int m_Size{};
+		bool m_ExcludeZero{};
 
       public:
 		explicit Impl(void) noexcept;

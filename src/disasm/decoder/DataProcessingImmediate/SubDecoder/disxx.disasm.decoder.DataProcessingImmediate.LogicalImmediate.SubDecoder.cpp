@@ -106,8 +106,8 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::LogicalImmediate
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
             std::visit
             (
-                [this](auto &&imm) -> void
-                { this->m_Operands.emplace_back(std::make_unique<std::decay_t<decltype(imm)>>(imm)); },
+                [this](auto &&immediate) -> void
+                { this->m_Operands.emplace_back(std::make_unique<std::decay_t<decltype(immediate)>>(immediate)); },
                 imm
             );
 
@@ -118,8 +118,8 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::LogicalImmediate
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize, opc != 0b11));
             std::visit
             (
-                [this](auto &&imm) -> void
-                { this->m_Operands.emplace_back(std::make_unique<std::decay_t<decltype(imm)>>(imm)); },
+                [this](auto &&immediate) -> void
+                { this->m_Operands.emplace_back(std::make_unique<std::decay_t<decltype(immediate)>>(immediate)); },
                 imm
             );
 
@@ -130,8 +130,8 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::LogicalImmediate
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
         std::visit
         (
-            [this](auto &&imm) -> void
-            { this->m_Operands.emplace_back(std::make_unique<std::decay_t<decltype(imm)>>(imm)); },
+            [this](auto &&immediate) -> void
+            { this->m_Operands.emplace_back(std::make_unique<std::decay_t<decltype(immediate)>>(immediate)); },
             imm
         );
     

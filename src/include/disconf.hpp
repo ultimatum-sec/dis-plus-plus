@@ -1,8 +1,6 @@
 #ifndef __DISCONF_HPP__
 #define __DISCONF_HPP__
 
-#define __DISXX_BEGIN_NAMESPACE__ namespace disxx {
-
 #define __DISXX_MAJOR__			0
 #define __DISXX_MINOR__ 		2
 #define __DISXX_PATCHLEVEL__	0
@@ -17,7 +15,5 @@
 #else
 #	error "UnsupportedPlatformError"
 #endif
-
-#define __DISXX_END_NAMESPACE__ } /* disxx */
 
 #endif /* disconf.hpp */

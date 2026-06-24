@@ -12,13 +12,12 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-	-c -std=c++26 -O3 -Wall -Wextra -Wpedantic -Wshadow -Werror -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
-	-fno-omit-frame-pointer -Wdouble-promotion -Wfloat-equal -Wundef -Wswitch-default -Wimplicit-fallthrough \
-	-Wmissing-declarations -Wuninitialized -Wconditional-uninitialized -Wcast-qual -Wcast-align \
-	-Wnon-virtual-dtor -Woverloaded-virtual -Wdelete-non-virtual-dtor -Wold-style-cast -Wthread-safety \
-	-fstrict-aliasing -Wstrict-aliasing=2 -ftrapv -fwrapv -Wformat -Wformat-security -Wnull-dereference \
-	-Wrange-loop-analysis -Werror=return-type -Werror=format-security -Werror=null-dereference \
-	-fmodules -fcxx-modules -fvisibility=hidden -fprebuilt-module-path=$(PRECOMPILEDDIR) \
+	-c -std=c++26 -O3 -Weverything -Werror -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+	-Wno-weak-vtables -Wno-c++98-compat -Wno-implicit-int-conversion -Wno-reserved-macro-identifier \
+	-Wno-padded -Wno-c++98-c++11-compat-binary-literal -Wno-sign-conversion -Wno-reserved-identifier \
+	-Wno-c++98-compat-pedantic -Wno-global-constructors -Wno-exit-time-destructors -Wno-switch-enum \
+	-Wno-shift-count-overflow \
+	-ftrapv -fwrapv -fmodules -fcxx-modules -fvisibility=hidden -fprebuilt-module-path=$(PRECOMPILEDDIR) \
 	-Xclang -fmodules-local-submodule-visibility -I..$(PATHSEP)include -fstack-protector-all -DNDEBUG
 
 LDFLAGS=\
@@ -334,7 +333,7 @@ SOURCES=\
 	.$(PATHSEP)disxx.disasm.Instruction.cpp \
 	.$(PATHSEP)disxx.disasm.Disassembler.cpp
 
-.PHONY: all clean
+.PHONY: all analyse clean
 all: $(BUILDDIR)$(PATHSEP)libdisxx-disasm.$(DYLIB)
 
 ..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Register-RegsTable.cppm: \

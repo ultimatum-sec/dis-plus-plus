@@ -37,7 +37,7 @@ export namespace disxx::ui::utility
     			int32_t yPixelsPerMeter;
     			uint32_t colorsUsed; 
     			uint32_t colorsImportant;
-			} *m_pHeader;
+			} *m_pHeader{};
 		#pragma pack(pop)
 
 	  public:

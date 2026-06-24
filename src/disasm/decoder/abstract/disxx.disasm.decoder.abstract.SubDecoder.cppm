@@ -42,19 +42,20 @@ export namespace disxx::disasm::decoder::abstract
 			// create a nullptr for this vector
 			std::unique_ptr
 			<disxx::disasm::operand::AbstractOperand>
-		> m_Operands;
+		> m_Operands{};
 
 		// Possible reference to one of immediate operands
-		mutable std::optional<std::reference_wrapper<disxx::disasm::operand::AbstractOperand>> m_ProgramCounterRelevantAddress;
+		mutable std::optional<std::reference_wrapper<disxx::disasm::operand::AbstractOperand>>
+		m_ProgramCounterRelevantAddress{};
 	
 		// Program counter address	
-		[[maybe_unused]] std::uint64_t m_ProgramCounter;
+		[[maybe_unused]] std::uint64_t m_ProgramCounter{};
 	
 		// Bytes of the instruction (4 bytes for AArch64)
-		std::uint32_t m_Insn;
+		std::uint32_t m_Insn{};
 		
 		// explicit padding
-		[[maybe_unused]] std::uint32_t m_Padding;
+		[[maybe_unused]] std::uint32_t m_Padding{};
 
 	  public:
 		explicit SubDecoder(void) noexcept;

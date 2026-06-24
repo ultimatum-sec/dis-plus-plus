@@ -15,11 +15,3 @@ export namespace disxx::disasm::operand
 		TYPE_SHIFT
 	};
 } /* operand */
-
-
-
-
-
-
-
-

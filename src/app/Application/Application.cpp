@@ -270,7 +270,7 @@ void Application::__InitFunc(void) noexcept(false)
 						| std::ranges::to<std::vector<disxx::disasm::Bytes>>()
 				};
 
-	   		    for (const disxx::disasm::Disassembler disasm{true}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}))
+	   		    for (const disxx::disasm::Disassembler disasm{}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}))
     		    {
 					if (insn)
 					{
@@ -280,52 +280,52 @@ void Application::__InitFunc(void) noexcept(false)
 						{
 							[value](void) -> std::string
 							{
-								auto mnemonic{std::format("{}", value)};
+								auto str{std::format("{}", value)};
 								
 								static const std::regex regs{R"(((b|h|s|d|q|v|w|x)\d{1,2})|(sp)|((w|x)zr))"};
-								for (std::sregex_iterator it{mnemonic.begin(), mnemonic.end(), regs}, end{}; it != end; ++it)
+								for (std::sregex_iterator it{str.begin(), str.end(), regs}, end{}; it != end; ++it)
 								{
 									// Check if it was accidentally confused with immediate operand
-									if (const auto prev{mnemonic.at(it->position() - 1)}; prev == 'x' || std::isdigit(prev) || (prev >= 97 && prev <= 102)) [[unlikely]]
+									if (const auto prev{str.at(it->position() - 1uz)}; prev == 'x' || std::isdigit(prev) || (prev >= 97 && prev <= 102)) [[unlikely]]
 										continue;
 									// Check if number of the register is valid
 									else if (auto n{0ull}; std::from_chars(it->str().data() + 1, it->str().data() + it->str().size() - 1, n)) [[likely]]
-										if (n < 0 || n > 31) [[unlikely]]
+										if (n > 31) [[unlikely]]
 											continue;
 
-									mnemonic = std::regex_replace
+									str = std::regex_replace
 									(
-										mnemonic,
+										str,
 										std::regex{it->str()},
 										std::format("<color value=\"0.3 0.7 0.7 1.0\">{}</color>", it->str())
 									);
 								}
 
 								static const std::regex imms{R"(#-?((0x[a-f0-9]+)|(\d+\.\d+)))"};
-								for (std::sregex_iterator it{mnemonic.begin(), mnemonic.end(), imms}, end{}; it != end; ++it)
+								for (std::sregex_iterator it{str.begin(), str.end(), imms}, end{}; it != end; ++it)
 								{
 									// Check if it's a pc-relevant address (using .value_or(0) instead of .value() method)
 									if (auto addr{value.GetProgramCounterRelevantAddress()}; addr && std::string{"#"} + MKHEX(addr.value_or(0)) == it->str())
 									{
-										mnemonic = std::regex_replace
+										str = std::regex_replace
 										(
-											mnemonic,
+											str,
 											std::regex{it->str()},
 											std::format("<color value=\"0.6 0.6 0.2 1.0\">{}</color>", it->str())
 										);
 									}
 									else
 									{
-										mnemonic = std::regex_replace
+										str = std::regex_replace
 										(
-											mnemonic,
+											str,
 											std::regex{it->str()},
 											std::format("<color value=\"0.7 0.2 0.1 1.0\">{}</color>", it->str())
 										);
 									}
 								}
 
-								return mnemonic;
+								return str;
 							}()
 						};
 						
@@ -402,7 +402,7 @@ void Application::__InitFunc(void) noexcept(false)
 		->Redisplay();
 }
 
-[[nodiscard]] int Application::Exec(void) const noexcept(false)
+int Application::Exec(void) const noexcept(false)
 {
 	this->m_pWindow.get()->Exec();
 	return EXIT_SUCCESS;

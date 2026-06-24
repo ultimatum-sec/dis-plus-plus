@@ -33,11 +33,11 @@ export namespace disxx::ui
 		#else
 		#	error "Context required"
 		#endif
-		m_Context;
-		std::vector<std::unique_ptr<Widget>> m_Widgets;
-		utility::Vec2<int> m_InitialSize;
-		utility::Vec2<int> m_Size;
-		WindowHandle m_hWin;
+		m_Context{};
+		std::vector<std::unique_ptr<Widget>> m_Widgets{};
+		utility::Vec2<int> m_InitialSize{};
+		utility::Vec2<int> m_Size{};
+		WindowHandle m_hWin{};
 
 	  private:
 		explicit MainWindow(utility::Vec2<int>, std::string_view) noexcept;

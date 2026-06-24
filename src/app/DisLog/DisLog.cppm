@@ -46,7 +46,7 @@ export class DisLog
 	#endif
 
   private:
-	disxx::utility::ini::Parser m_Parser;
+	disxx::utility::ini::Parser m_Parser{};
 
   public:
 	enum class DemanglingError { ERR_NOLIB, ERR_BADSTATUS };

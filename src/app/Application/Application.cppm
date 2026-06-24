@@ -22,8 +22,8 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application
 	
   private:
 	std::reference_wrapper<std::unique_ptr<disxx::ui::MainWindow>> m_pWindow;
-	DisLog m_Logger;
-	FileInput *m_pInput;
+	DisLog m_Logger{};
+	FileInput *m_pInput{};
 
   private:
 	static void __InitFunc(void) noexcept(false);

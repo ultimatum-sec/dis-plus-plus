@@ -23,10 +23,10 @@ export namespace disxx::ui
 		static disxx::utility::wrapper::Pointer<std::shared_ptr<backend::IRenderer>> s_pRenderer;
 
 	  protected:
-		utility::Vec2<float> m_Position;
-		utility::Vec2<float> m_Size;
-		float m_pColor[3];
-		[[maybe_unused]] mutable bool m_IsClicked, m_IsHovered;
+		utility::Vec2<float> m_Position{};
+		utility::Vec2<float> m_Size{};
+		float m_pColor[3]{};
+		[[maybe_unused]] mutable bool m_IsClicked{}, m_IsHovered{};
 
 	  public:
 		static void ClearBuffers(void) noexcept;

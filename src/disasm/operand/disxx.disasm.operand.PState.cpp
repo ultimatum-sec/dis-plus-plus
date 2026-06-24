@@ -37,7 +37,7 @@ namespace disxx::disasm::operand
 		static const std::unordered_map<Type, const char *> s_PStateTable;
 
 	  private:
-		Type m_PState;
+		Type m_PState{};
 
 	  public:
 		explicit Impl(void) noexcept;
@@ -153,6 +153,3 @@ namespace disxx::disasm::operand
 	std::unique_ptr<AbstractOperand> PState::Clone(void) const noexcept
 	{ return std::make_unique<PState>(*this); }
 } /* operand */
-
-
-

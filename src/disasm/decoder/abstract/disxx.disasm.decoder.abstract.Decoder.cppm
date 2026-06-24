@@ -20,16 +20,16 @@ export namespace disxx::disasm::decoder::abstract
 	{
       protected:
 		// Subdecoder (in some cases may become nullptr)
-		disxx::utility::wrapper::Pointer<std::unique_ptr<SubDecoder>> m_pSubDecoder;
+		disxx::utility::wrapper::Pointer<std::unique_ptr<SubDecoder>> m_pSubDecoder{};
 		
 		// Instruction's address
-		std::uint64_t m_ProgramCounter;
+		std::uint64_t m_ProgramCounter{};
 		
 		// Instruction's bytes
-		std::uint32_t m_Insn;
+		std::uint32_t m_Insn{};
 
 		// Explicit padding
-		std::uint32_t m_Pad;
+		std::uint32_t m_Pad{};
 
 	  protected:
 		virtual std::expected

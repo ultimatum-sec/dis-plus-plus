@@ -187,7 +187,7 @@ namespace disxx::ui
 	{
 		// Render the text area
 		utility::ColorTag tag{};
-        for (const auto &i : std::views::iota(0UL, this->m_Lines.size()))
+        for (const auto i : std::views::iota(0UL, this->m_Lines.size()))
         {
             if (float lineY{this->m_Size.y - CORNER_HEIGHT - i * CHAR_WIDTH + this->m_ScrollY}; (lineY < 0.f) || (lineY > this->m_Size.y - CORNER_HEIGHT))
                 continue;
@@ -232,7 +232,7 @@ namespace disxx::ui
        		
 				std::string str{};
 				if (renderStart < renderEnd)
-					for (const auto &j : std::views::iota(renderStart, renderEnd))
+					for (const auto j : std::views::iota(renderStart, renderEnd))
            				str += realText.at(j);
 				txt.SetText(str);
                 s_pRenderer->PushText(std::move(txt));

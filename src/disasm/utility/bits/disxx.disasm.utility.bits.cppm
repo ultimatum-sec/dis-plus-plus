@@ -5,17 +5,6 @@ module;
 #include <stdexcept>
 #include <format>
 
-#if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wshift-count-overflow"
-    #pragma GCC diagnostic ignored "-Winteger-overflow"
-#endif
-
-#ifdef _MSC_VER
-    #pragma warning(push)
-    #pragma warning(disable : 4293)
-#endif
-
 export module disxx.disasm.utility.bits;
 
 export import <type_traits>;
@@ -224,13 +213,3 @@ export namespace bits
 
 	__DISXX_PRIVATE__ bool BFXPreffered(bool, bool, unsigned short int, unsigned short int) noexcept;
 } /* bits */
-
-#if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic pop
-#endif
-
-#ifdef _MSC_VER
-    #pragma warning(pop)
-#endif
-
-

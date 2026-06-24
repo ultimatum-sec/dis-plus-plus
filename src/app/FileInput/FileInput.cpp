@@ -82,7 +82,7 @@ void FileInput::SetCallback(std::function<void(void)> func) noexcept
 		disxx::ui::Button::ButtonTrigger::BTN_CLICKED,
 		std::bind
 		(
-			[](FileInput *const obj, std::function<void(void)> func) mutable -> void
+			[](FileInput *const obj, std::function<void(void)> function) mutable -> void
 			{
 				obj->m_Path = static_cast<disxx::ui::TextInput *>
 				(
@@ -92,7 +92,7 @@ void FileInput::SetCallback(std::function<void(void)> func) noexcept
 						.begin()
 						->get()
 				)->GetText();
-				func();
+				function();
 			},
 			static_cast<FileInput *>(this),
 			func

@@ -3,6 +3,7 @@ module;
 #include <disconf.hpp>
 
 #include <string_view>
+#include <cstdint>
 #include <string>
 
 export module disxx.ui.utility.Text;
@@ -14,7 +15,7 @@ export namespace disxx::ui::utility
 	class __DISXX_PRIVATE__ [[nodiscard]] Text final : public Renderable
 	{
 	  private:
-		std::string m_Text;
+		std::string m_Text{};
 
 	  public:
 		explicit Text(void) noexcept;

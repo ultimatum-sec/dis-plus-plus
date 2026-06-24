@@ -22,10 +22,10 @@ export namespace disxx::ui
 		};
 
 	  private:
-		std::function<void(const Widget *const)> m_Callback;
-		ButtonTrigger m_Trigger;
-		utility::Image m_Image;
-		std::string m_Text;
+		std::function<void(const Widget *const)> m_Callback{};
+		ButtonTrigger m_Trigger{};
+		utility::Image m_Image{};
+		std::string m_Text{};
 
 	  public:
 		explicit Button(void) noexcept;
@@ -44,10 +44,3 @@ export namespace disxx::ui
 		virtual void Render(void) const noexcept override;
 	};
 } /* disxx::ui */
-
-
-
-
-
-
-

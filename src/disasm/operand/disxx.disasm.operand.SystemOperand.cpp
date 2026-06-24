@@ -247,7 +247,7 @@ namespace disxx::disasm::operand
 		static const std::unordered_map<Type, const char *> s_OprsTable;
 
 	  private:
-		Type m_Opr;
+		Type m_Opr{};
 
 	  public:
 		explicit Impl(void) noexcept;
@@ -573,6 +573,3 @@ namespace disxx::disasm::operand
 	std::unique_ptr<AbstractOperand> SystemOperand::Clone(void) const noexcept
 	{ return std::make_unique<SystemOperand>(*this); }
 } /* operand */
-
-
-

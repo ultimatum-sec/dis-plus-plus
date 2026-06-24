@@ -86,11 +86,9 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Floatin
           case 0b11:
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<std::uint64_t, 64>>(imm8, disxx::disasm::operand::Immediate<std::uint64_t, 64>::Option::OPT_VFPEXPANDIMM));
             return std::make_pair(it->second, std::move(this->m_Operands));
-
-          default:
+          
+		  default:
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-            // Never reahced
-            return std::make_pair(it->second, std::move(this->m_Operands));
         }
 	}
 } /* disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::FloatingPointImmediate */

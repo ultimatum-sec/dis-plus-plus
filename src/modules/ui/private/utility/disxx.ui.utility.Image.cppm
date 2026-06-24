@@ -16,8 +16,8 @@ export namespace disxx::ui::utility
 	class Image
 	{
 	  private:
-		GLuint m_Id;
-		int m_Width, m_Height;
+		GLuint m_Id{};
+		int m_Width{}, m_Height{};
 
 	  public:
 		explicit Image(void) noexcept;

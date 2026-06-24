@@ -14,7 +14,7 @@ export namespace disxx::utility::error
 	class __DISXX_EXPORT__ [[nodiscard]] DisassemblyError : public std::exception
 	{
 	  private:
-		std::string m_Error;
+		std::string m_Error{};
 
 	  public:
 		explicit DisassemblyError(void) noexcept;

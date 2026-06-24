@@ -20,12 +20,12 @@ export namespace disxx::loader::executable
 	class __DISXX_PRIVATE__ [[nodiscard]] Section
 	{
 	  private:
-		std::string m_Name;
-		mutable std::vector<Label> m_Labels;
-		std::uint64_t m_Address;
-		std::uint64_t m_Size;
-		std::uint64_t m_Offset;
-		unsigned short int m_Index;
+		std::string m_Name{};
+		mutable std::vector<Label> m_Labels{};
+		std::uint64_t m_Address{};
+		std::uint64_t m_Size{};
+		std::uint64_t m_Offset{};
+		unsigned short int m_Index{};
 
 	  public:
 		explicit Section(void) noexcept;

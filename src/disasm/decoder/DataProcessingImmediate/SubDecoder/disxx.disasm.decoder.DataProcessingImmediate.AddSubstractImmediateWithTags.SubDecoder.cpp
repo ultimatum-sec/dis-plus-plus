@@ -54,12 +54,12 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::AddSubstractImmediate
         // |sf|op|S|1000110|imm6|op3|imm4|Rn|Rd|
         // +--+--+-+-------+----+---+----+--+--+
 
-        unsigned short int sf, op, S, imm6, imm4, Rn, Rd;
+        unsigned short int sf, op, S, imm6, /* op3, */ imm4, Rn, Rd;
         sf = bits::extract<unsigned short int, std::uint32_t, 31, 31>(this->m_Insn);
         op = bits::extract<unsigned short int, std::uint32_t, 30, 30>(this->m_Insn);
         S = bits::extract<unsigned short int, std::uint32_t, 29, 29>(this->m_Insn);
         imm6 = bits::extract<unsigned short int, std::uint32_t, 16, 21>(this->m_Insn);
-        op = bits::extract<unsigned short int, std::uint32_t, 14, 15>(this->m_Insn);
+        //op3 = bits::extract<unsigned short int, std::uint32_t, 14, 15>(this->m_Insn);
         imm4 = bits::extract<unsigned short int, std::uint32_t, 10, 13>(this->m_Insn);
         Rn = bits::extract<unsigned short int, std::uint32_t, 5, 9>(this->m_Insn);
         Rd = bits::extract<unsigned short int, std::uint32_t, 0, 4>(this->m_Insn);

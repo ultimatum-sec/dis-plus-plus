@@ -112,9 +112,9 @@ template <> struct std::formatter<DisLog::DemanglingError> : public std::formatt
 		(
 			ctx.out(),
 			"{}",
-			[](const DisLog::DemanglingError &err) -> std::string_view
+			[](const DisLog::DemanglingError &error) -> std::string_view
 			{
-				switch (err)
+				switch (error)
 				{
 				  using enum DisLog::DemanglingError;
 				  case ERR_NOLIB: return "libunwind not found";
@@ -135,9 +135,9 @@ template <> struct std::formatter<DisLog::UnwindingError> : public std::formatte
 		(
 			ctx.out(),
 			"{}",
-			[](const DisLog::UnwindingError &err) -> std::string_view
+			[](const DisLog::UnwindingError &error) -> std::string_view
 			{
-				switch (err)
+				switch (error)
 				{
 				  using enum DisLog::UnwindingError;
 				  case ERR_NOLIB: return "libunwind not found";
@@ -159,9 +159,9 @@ template <> struct std::formatter<DisLog::ThreadStateError> : public std::format
 		(
 			ctx.out(),
 			"{}",
-			[](const DisLog::ThreadStateError &err) -> std::string_view
+			[](const DisLog::ThreadStateError &error) -> std::string_view
 			{
-				switch (err)
+				switch (error)
 				{
 				  using enum DisLog::ThreadStateError;
 				  case ERR_NOLIB: return "libunwind not found";

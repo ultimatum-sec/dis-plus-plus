@@ -127,7 +127,7 @@ namespace disxx::disasm::decoder::LoadsAndStores::SIMDSingleStructure
                     return std::make_pair(disxx::disasm::operand::Register::GetArrangementSpecifier(Q, size).data(), std::nullopt);
             
                 // Calculating registers size
-                const auto result
+                const auto var
                 {
                     [this, opcode, size, S](void) -> std::expected<unsigned short int, disxx::utility::error::DisassemblyError>
                     {
@@ -138,9 +138,9 @@ namespace disxx::disasm::decoder::LoadsAndStores::SIMDSingleStructure
                     }()
                 };
 
-                if (!result) [[unlikely]]
-                    return std::unexpected{result.error()};
-                const auto &regSize{result.value()};
+                if (!var) [[unlikely]]
+                    return std::unexpected{var.error()};
+                const auto &regSize{var.value()};
 
                 return std::make_pair
                 (

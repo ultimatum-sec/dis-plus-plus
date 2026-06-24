@@ -22,10 +22,10 @@ export namespace disxx::loader::executable
 		using Bytes = std::vector<std::uint8_t>;
 
 	  private:
-		std::string m_Name;
-		std::uint64_t m_Address;
-		std::uint64_t m_Offset;
-		Bytes m_Data;
+		std::string m_Name{};
+		std::uint64_t m_Address{};
+		std::uint64_t m_Offset{};
+		Bytes m_Data{};
 
 	  public:
 		explicit Label(void) noexcept;

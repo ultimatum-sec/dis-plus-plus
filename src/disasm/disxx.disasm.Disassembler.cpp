@@ -16,17 +16,7 @@ import disxx.disasm.Address;
 
 namespace disxx::disasm
 {
-	Disassembler::Disassembler(bool fatalErrors) noexcept
-		: m_FatalErrors{fatalErrors}
-	{}
-
-	Disassembler &&Disassembler::FatalErrors(bool fatalErrors) noexcept
-	{
-		this->m_FatalErrors = fatalErrors;
-		return std::move(*this);
-	}
-
-	std::expected<Instruction, disxx::utility::error::DisassemblyError> Disassembler::DisassembleSingle(Bytes word, Address addr) const noexcept(false)
+	Disassembler::DisassemblyResult Disassembler::DisassembleSingle(Bytes word, Address addr) const noexcept(false)
 	{
 		const auto &obj
 		{
@@ -76,7 +66,7 @@ namespace disxx::disasm
 			}()
 		};
 
-		return std::expected<Instruction, disxx::utility::error::DisassemblyError> 
+		return DisassemblyResult
 		{	
 			Instruction{}
 				.SetBytes(std::move(word))
@@ -87,5 +77,3 @@ namespace disxx::disasm
 		};
 	}
 } /* disxx::disasm */
-
-

@@ -10,6 +10,7 @@ module;
 #include <filesystem>
 #include <fstream>
 #include <cstdint>
+#include <bit>
 
 module disxx.ui.utility.ImageLoader;
 
@@ -30,7 +31,7 @@ namespace disxx::ui::utility
 		std::fstream f{rPath, std::fstream::in | std::fstream::binary};
 		if (!f.is_open()) [[unlikely]]
    	        throw std::runtime_error("ImageLoadingError");
-		f.read((char *)this->m_pHeader, sizeof(BMPHeader));
+		f.read(reinterpret_cast<char *>(this->m_pHeader), sizeof(BMPHeader));
 
     	if (this->m_pHeader->signature[0] != 'B' || this->m_pHeader->signature[1] != 'M') [[unlikely]]
     	    throw std::runtime_error("ImageLoadingError");
@@ -51,7 +52,7 @@ namespace disxx::ui::utility
     	auto pBuff{std::make_unique<std::uint8_t[]>((this->m_pHeader->width * 3 + 3) & ~3)};
     	for (unsigned int y{0}; y < static_cast<unsigned int>(abs(this->m_pHeader->height)); ++y)
     	{
-    	    f.read(reinterpret_cast<char *>(pBuff.get()), (this->m_pHeader->width * 3 + 3) & ~3);
+    	    f.read(std::bit_cast<char *>(pBuff.get()), (this->m_pHeader->width * 3 + 3) & ~3);
     	    
     	    auto targetY{(this->m_pHeader->height > 0) ? abs(this->m_pHeader->height) - 1 - y : y};
     	    std::uint8_t *pTarget{pImage.get() + targetY * this->m_pHeader->width * 3};

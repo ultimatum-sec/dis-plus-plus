@@ -89,8 +89,8 @@ namespace disxx::disasm::operand
 	class Immediate<T, _Size>::Impl final : public AbstractImpl
 	{
 	  private:
-		Option m_Opt;
-		T m_Value;
+		Option m_Opt{};
+		T m_Value{};
 		
 	  public:
 		explicit Impl(void) noexcept;
@@ -152,7 +152,7 @@ namespace disxx::disasm::operand
 	{}
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	Immediate<T, _Size>::Impl &Immediate<T, _Size>::Impl::operator=(const Impl &other) noexcept
+	typename Immediate<T, _Size>::Impl &Immediate<T, _Size>::Impl::operator=(const Impl &other) noexcept
 	{
 		if (this != &other) [[likely]]
 		{
@@ -171,7 +171,7 @@ namespace disxx::disasm::operand
 	{}
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	Immediate<T, _Size>::Impl &Immediate<T, _Size>::Impl::operator=(const Impl &&other) noexcept
+	typename Immediate<T, _Size>::Impl &Immediate<T, _Size>::Impl::operator=(const Impl &&other) noexcept
 	{
 		this->m_Opt = other.m_Opt;
 		this->m_Value = other.m_Value;

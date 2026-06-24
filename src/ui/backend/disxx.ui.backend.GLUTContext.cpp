@@ -7,6 +7,7 @@ module;
 #endif
 
 #include <utility>
+#include <bit>
 
 module disxx.ui.backend.GLUTContext;
 
@@ -56,19 +57,19 @@ namespace disxx::ui::backend
 	}
 
 	void GLUTContext::SetDisplayCallback(const void *pCallback) noexcept
-	{ glutDisplayFunc((void (*)(void))pCallback); }
+	{ glutDisplayFunc(std::bit_cast<void (*)(void)>(pCallback)); }
 
 	void GLUTContext::SetReshapeCallback(const void *pCallback) noexcept
-	{ glutReshapeFunc((void (*)(int, int))pCallback); }
+	{ glutReshapeFunc(std::bit_cast<void (*)(int, int)>(pCallback)); }
 
 	void GLUTContext::SetKeyboardCallback(const void *pCallback) noexcept
-	{ glutKeyboardFunc((void (*)(unsigned char, int, int))pCallback); }
+	{ glutKeyboardFunc(std::bit_cast<void (*)(unsigned char, int, int)>(pCallback)); }
 
 	void GLUTContext::SetMouseButtonCallback(const void *pCallback) noexcept
-	{ glutMouseFunc((void (*)(int, int, int, int))pCallback); }
+	{ glutMouseFunc(std::bit_cast<void (*)(int, int, int, int)>(pCallback)); }
 
 	void GLUTContext::SetMouseMotionCallback(const void *pCallback) noexcept
-	{ glutMotionFunc((void (*)(int, int))pCallback); }
+	{ glutMotionFunc(std::bit_cast<void (*)(int, int)>(pCallback)); }
 
 	void GLUTContext::SwapBuffers(void) const noexcept
 	{ glutSwapBuffers(); }

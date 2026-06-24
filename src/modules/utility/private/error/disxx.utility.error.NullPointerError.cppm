@@ -14,5 +14,7 @@ export namespace disxx::utility::error
 	  public:
 		explicit NullPointerError(const char *) noexcept;
 		explicit NullPointerError(const std::string &) noexcept;
+
+		virtual ~NullPointerError(void) noexcept override = default;
 	};
 } /* disxx::disasm::util */

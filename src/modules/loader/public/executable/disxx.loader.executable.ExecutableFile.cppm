@@ -18,8 +18,9 @@ export namespace disxx::loader::executable
 	class __DISXX_EXPORT__ [[nodiscard]] ExecutableFile
 	{
 	  private:
-		std::vector<Section> m_Sections;
-		std::uint32_t m_Magic;
+		std::vector<Section> m_Sections{};
+		std::string m_Description{};
+		std::uint32_t m_Magic{};
 
 	  public:
 		explicit ExecutableFile(void) noexcept;

@@ -62,11 +62,11 @@ export namespace disxx::utility::wrapper
 
 		virtual ~Pointer(void) noexcept override = default;
 
-		T::element_type *operator->(void) noexcept(false);
-		const T::element_type *operator->(void) const noexcept(false);
+		typename T::element_type *operator->(void) noexcept(false);
+		const typename T::element_type *operator->(void) const noexcept(false);
 
-		T::element_type &operator*(void) noexcept(false);
-		const T::element_type &operator*(void) const noexcept(false);
+		typename T::element_type &operator*(void) noexcept(false);
+		const typename T::element_type &operator*(void) const noexcept(false);
 
 		operator bool(void) const noexcept;
 
@@ -77,7 +77,7 @@ export namespace disxx::utility::wrapper
 		Pointer &operator--(int) noexcept = delete;
 		Pointer &operator+=(std::size_t) noexcept = delete;
 		Pointer &operator-=(std::size_t) noexcept = delete;
-		T::element_type &operator[](std::size_t) noexcept = delete;
+		typename T::element_type &operator[](std::size_t) noexcept = delete;
 	};
 
 	template <SmartPointer T>
@@ -96,7 +96,7 @@ export namespace disxx::utility::wrapper
 	}
 
 	template <SmartPointer T>
-	T::element_type *Pointer<T>::operator->(void) noexcept(false)
+	typename T::element_type *Pointer<T>::operator->(void) noexcept(false)
 	{
 		if (this->m_Object == nullptr) [[unlikely]]
 			throw error::NullPointerError{"Attempt to get violated access to nullptr"};
@@ -104,7 +104,7 @@ export namespace disxx::utility::wrapper
 	}
 
 	template <SmartPointer T>
-	const T::element_type *Pointer<T>::operator->(void) const noexcept(false)
+	const typename T::element_type *Pointer<T>::operator->(void) const noexcept(false)
 	{
 		if (this->m_Object == nullptr) [[unlikely]]
 			throw error::NullPointerError{"Attempt to get violated access to nullptr"};
@@ -112,7 +112,7 @@ export namespace disxx::utility::wrapper
 	}
 
 	template <SmartPointer T>
-	T::element_type &Pointer<T>::operator*(void) noexcept(false)
+	typename T::element_type &Pointer<T>::operator*(void) noexcept(false)
 	{
 		if (this->m_Object == nullptr) [[unlikely]]
 			throw error::NullPointerError{"Attempt to get violated access to nullptr"};
@@ -120,7 +120,7 @@ export namespace disxx::utility::wrapper
 	}
 
 	template <SmartPointer T>
-	const T::element_type &Pointer<T>::operator*(void) const noexcept(false)
+	const typename T::element_type &Pointer<T>::operator*(void) const noexcept(false)
 	{
 		if (this->m_Object == nullptr) [[unlikely]]
 			throw error::NullPointerError{"Attempt to get violated access to nullptr"};

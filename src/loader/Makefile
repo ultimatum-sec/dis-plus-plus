@@ -15,8 +15,11 @@ ASMFLAGS=-c -arch arm64
 CFLAGS=-c -std=c99 -arch $(ARCH) -Wall -Wextra -Wpedantic -Werror -O3 -DNDEBUG \
 	-isysroot $(shell xcrun --show-sdk-path)
 
-CXXFLAGS=-std=c++26 -Wall -Wextra -Wpedantic -Werror -O3 -arch $(ARCH) \
+CXXFLAGS=-std=c++26 -Weverything -Werror -O3 -arch $(ARCH) \
 	-isysroot $(shell xcrun --show-sdk-path) -I..$(PATHSEP)include \
+	-Wno-c99-extensions -Wno-global-constructors -Wno-exit-time-destructors -Wno-reserved-identifier -Wno-non-virtual-dtor \
+	-Wno-switch-enum -Wno-reserved-macro-identifier -Wno-writable-strings -Wno-weak-vtables -Wno-undefined-func-template \
+	-Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-covered-switch-default -Wno-padded -Wno-sign-conversion \
 	-Wno-unused-command-line-argument -fmodules -fcxx-modules -Xclang -fmodules-local-submodule-visibility \
 	-fprebuilt-module-path=$(PRECOMPILEDDIR) -fstack-protector-all -DNDEBUG
 

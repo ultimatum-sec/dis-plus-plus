@@ -19,7 +19,7 @@ export class FileInput
 
   private:
 	std::unique_ptr<disxx::ui::MainWindow> &m_pWindow;
-	std::filesystem::path m_Path;
+	std::filesystem::path m_Path{};
 
   private:
 	explicit FileInput(void) noexcept;

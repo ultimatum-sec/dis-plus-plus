@@ -5,7 +5,7 @@ export namespace disxx::disasm::operand
 	class AbstractOperand::AbstractImpl
     {
       private:
-        OperandType m_Type;
+        OperandType m_Type{};
 
        public:
         explicit AbstractImpl(OperandType) noexcept;
@@ -22,11 +22,3 @@ export namespace disxx::disasm::operand
 	    virtual std::string GetMnemonic(void) const noexcept(false) = 0;
 	};
 } /* operand */
-
-
-
-
-
-
-
-

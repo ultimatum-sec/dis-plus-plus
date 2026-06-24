@@ -473,7 +473,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
     
         const auto specArray
         {
-            [&opcode, &Q](std::string_view spec) -> std::array<std::string, 3>
+            [&opcode, &Q](std::string_view specifier) -> std::array<std::string, 3>
             {
                 if (opcode == 0b11001)
                 {
@@ -485,7 +485,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     };
                 }
 
-                const auto T{spec.data()};
+                const auto T{specifier.data()};
                 return {T, T, T};
             }(spec.value())
         };

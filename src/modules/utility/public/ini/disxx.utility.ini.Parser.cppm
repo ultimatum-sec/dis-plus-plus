@@ -17,8 +17,8 @@ export namespace disxx::utility::ini
 	class __DISXX_EXPORT__ [[nodiscard]] Parser
 	{
 	  private:
-		Reader m_Reader;
-		Writer m_Writer;
+		Reader m_Reader{};
+		Writer m_Writer{};
 
 	  public:
 		explicit Parser(void) noexcept;

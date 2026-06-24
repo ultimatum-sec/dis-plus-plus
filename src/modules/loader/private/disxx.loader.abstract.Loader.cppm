@@ -9,7 +9,7 @@ export namespace disxx::loader::abstact
 	class __DISXX_PRIVATE__ [[nodiscard]] Loader
 	{
 	  protected:
-		MappedFile m_Mapper;
+		MappedFile m_Mapper{};
 
 	  public:
 		explicit Loader(void) noexcept(false);

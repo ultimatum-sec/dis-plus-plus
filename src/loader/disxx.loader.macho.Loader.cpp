@@ -95,7 +95,7 @@ namespace disxx::loader::macho
 		disxx::loader::executable::ExecutableFile exec{};
 		exec.SetMagic(this->m_pHeader->magic);
 
-		auto sectionIndex{1ull};
+		unsigned short int sectionIndex{1};
 
 		load_command loadCmd;
 		auto offset{this->m_Offset + sizeof(mach_header_64)};
@@ -106,7 +106,7 @@ namespace disxx::loader::macho
 			{
 				auto segCmd{this->m_Mapper.Read<segment_command_64>(offset)};
 				auto pSects{std::make_unique<section_64[]>(segCmd.nsects)};
-				for (const auto &j : std::views::iota(0u, segCmd.nsects))
+				for (const auto j : std::views::iota(0u, segCmd.nsects))
 				{
 					auto nsect{this->m_Mapper.Read<section_64>((offset + sizeof(segCmd)) + (j * sizeof(section_64)))};
 					if (!nsect.offset) [[unlikely]]
@@ -206,7 +206,7 @@ namespace disxx::loader::macho
 
 		load_command loadCmd;
 		std::uint64_t offset{this->m_Offset + sizeof(mach_header_64)};
-		for (const auto &_ : std::views::iota(0u, this->m_pHeader->ncmds))
+		for (const auto _ : std::views::iota(0u, this->m_pHeader->ncmds))
 		{
 			loadCmd = this->m_Mapper.Read<load_command>(offset);
 			if (loadCmd.cmd == LC_BUILD_VERSION)
@@ -229,7 +229,7 @@ namespace disxx::loader::macho
 	{
 		load_command loadCmd;
 		std::uint64_t offset{this->m_Offset + sizeof(mach_header_64)};
-		for (const auto &_ : std::views::iota(0u, this->m_pHeader->ncmds))
+		for (const auto _ : std::views::iota(0u, this->m_pHeader->ncmds))
 		{
 			loadCmd = this->m_Mapper.Read<load_command>(offset);
 			if (loadCmd.cmd == LC_SEGMENT_64)

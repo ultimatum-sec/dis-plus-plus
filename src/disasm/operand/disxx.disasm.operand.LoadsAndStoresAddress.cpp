@@ -24,7 +24,7 @@ namespace disxx::disasm::operand
 				disxx::disasm::operand::Extension,
 				disxx::disasm::operand::Shift
 			>
-		> m_Modifier;
+		> m_Modifier{};
 		std::optional
 		<
 			std::variant
@@ -36,8 +36,8 @@ namespace disxx::disasm::operand
 					bool
 				>
 			>
-		> m_ExtraValue;
-		Register m_BaseRegister;
+		> m_ExtraValue{};
+		Register m_BaseRegister{};
 
 	  public:
 		explicit Impl(void) noexcept;

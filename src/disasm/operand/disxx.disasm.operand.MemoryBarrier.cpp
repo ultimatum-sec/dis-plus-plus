@@ -33,8 +33,8 @@ namespace disxx::disasm::operand
 		static const std::unordered_map<Type, const char *> s_BarrierTable;
 
 	  private:
-		Type m_Barrier;
-		bool m_NXS;
+		Type m_Barrier{};
+		bool m_NXS{};
 
 	  public:
 		explicit Impl(void) noexcept;

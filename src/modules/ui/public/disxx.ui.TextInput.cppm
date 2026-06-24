@@ -13,8 +13,8 @@ export namespace disxx::ui
 	class TextInput final : public Widget
 	{
 	  private:
-		std::function<void(const Widget *const)> m_Callback;
-		std::string m_Text;
+		std::function<void(const Widget *const)> m_Callback{};
+		std::string m_Text{};
 
 	  public:
 		explicit TextInput(void) noexcept;
@@ -32,10 +32,3 @@ export namespace disxx::ui
 		virtual void Render(void) const noexcept override;
 	};
 } // disxx::ui
-
-
-
-
-
-
-

@@ -9,6 +9,7 @@ module;
 #include <string>
 #include <array>
 #include <tuple>
+#include <bit>
 
 /*
 #define CHECKSH(sh) \
@@ -53,10 +54,10 @@ namespace disxx::ui::backend
 		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
 		glBufferData(GL_ARRAY_BUFFER, 1024 * 1024, nullptr, GL_DYNAMIC_DRAW);
 		// For positions
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(utility::Vertex<GLfloat>), (GLvoid *)(offsetof(utility::Vertex<GLfloat>, position)));
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(utility::Vertex<GLfloat>), std::bit_cast<GLvoid *>(offsetof(utility::Vertex<GLfloat>, position)));
 		glEnableVertexAttribArray(0);
 		// For colors
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(utility::Vertex<GLfloat>), (GLvoid *)(offsetof(utility::Vertex<GLfloat>, color)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(utility::Vertex<GLfloat>), std::bit_cast<GLvoid *>(offsetof(utility::Vertex<GLfloat>, color)));
 		glEnableVertexAttribArray(1);
 
 		this->m_VertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -169,7 +170,7 @@ namespace disxx::ui::backend
 		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(utility::Vertex<GLfloat>), vertices.data());
 
 		glUseProgram(this->m_Program);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size() & std::numeric_limits<GLuint>::max());
 	
 		glUseProgram(0);
 	

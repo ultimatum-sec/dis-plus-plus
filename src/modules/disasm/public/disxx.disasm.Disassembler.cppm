@@ -31,25 +31,30 @@ export namespace disxx::disasm
 {
 	class [[nodiscard]] __DISXX_EXPORT__ Disassembler
 	{
-	  private:
-		bool m_FatalErrors;
+	  public:
+		using DisassemblyResult = std::expected
+		<
+			Instruction,
+			disxx::utility::error::DisassemblyError
+		>;
 
 	  public:
-		explicit Disassembler(bool) noexcept;
-	
-		Disassembler &&FatalErrors(bool) noexcept;
+		explicit Disassembler(void) noexcept = default;
 
-		std::expected<Instruction, disxx::utility::error::DisassemblyError> DisassembleSingle(const Bytes, const Address) const noexcept(false);
-		
-		template<BytesRange T> std::vector<std::expected<Instruction, disxx::utility::error::DisassemblyError>>
-		DisassembleAll(std::ranges::ref_view<T>, Address) const noexcept(false);
+		explicit Disassembler(const Disassembler &) noexcept = default;
+		Disassembler &operator=(const Disassembler &) noexcept = default;
+
+		~Disassembler(void) noexcept = default;
+
+		DisassemblyResult DisassembleSingle(const Bytes, const Address) const noexcept(false);
+		template <BytesRange T>
+		std::vector<DisassemblyResult> DisassembleAll(std::ranges::ref_view<T>, Address) const noexcept(false);
 	};
 
-	template<BytesRange T>
-	std::vector<std::expected<Instruction, disxx::utility::error::DisassemblyError>>
-	Disassembler::DisassembleAll(std::ranges::ref_view<T> ref, Address addr) const noexcept(false)
+	template <BytesRange T>
+	std::vector<Disassembler::DisassemblyResult> Disassembler::DisassembleAll(std::ranges::ref_view<T> ref, Address addr) const noexcept(false)
 	{
-		std::vector<std::expected<Instruction, disxx::utility::error::DisassemblyError>> result{};
+		std::vector<DisassemblyResult> result{};
 		for (const auto &insn : ref)
 			result.emplace_back(this->DisassembleSingle(insn, addr++));
 		return result;

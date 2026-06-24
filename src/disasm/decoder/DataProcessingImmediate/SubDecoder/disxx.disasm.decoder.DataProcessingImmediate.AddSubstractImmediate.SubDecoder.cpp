@@ -87,7 +87,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::AddSubstractImmediate
             if (const auto &value{alias.value()}; Rd == 0b11111 && (value == InstructionID::INSN_CMN || value == InstructionID::INSN_CMP))
             {
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize, true));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 28>>(imm12 /*<< (sh == 0b1 ? 12 : 0)*/));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 28>>(imm12 /* << (sh == 0b1 ? 12 : 0) */));
                 if (sh) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(disxx::disasm::operand::Shift::Type::SHIFT_LSL, 12));
             
                 return std::make_pair(alias.value(), std::move(this->m_Operands));
@@ -103,7 +103,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::AddSubstractImmediate
 
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize, S != 0b1));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize, true));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 28>>(imm12 /*<< (sh == 0b1 ? 12 : 0)*/));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 28>>(imm12 /* << (sh == 0b1 ? 12 : 0) */));
         if (sh) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(disxx::disasm::operand::Shift::Type::SHIFT_LSL, 12));
     
         return std::make_pair(insn, std::move(this->m_Operands));

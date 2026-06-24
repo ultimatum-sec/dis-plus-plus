@@ -56,7 +56,7 @@ namespace disxx::ui::utility
 			const auto &match{*it};
 	
 			std::array<float, 4> color{};
-			for (const auto &i : std::views::iota(0, 4))
+			for (const auto i : std::views::iota(0, 4))
 			{
 				const auto diget{match[i + 1].str()};
 				if (float n{}; std::from_chars(diget.data(), diget.data() + diget.size(), n))

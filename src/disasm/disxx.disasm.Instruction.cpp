@@ -17,19 +17,19 @@ import disxx.disasm.decoder.DecoderFactory;
 namespace disxx::disasm
 {
 	Instruction::Instruction(void) noexcept
-		: m_InstructionID{}
-		, m_Operands{}
+		: m_Operands{}
 		, m_ProgramCounterRelevantAddress{std::nullopt}
 		, m_Address{std::numeric_limits<Address>::min()}
 		, m_Bytes{std::numeric_limits<Bytes>::min()}
+		, m_InstructionID{}
 	{}
 
 	Instruction::Instruction(const Instruction &other) noexcept
-		: m_InstructionID{other.m_InstructionID}
-		, m_Operands{}
+		: m_Operands{}
 		, m_ProgramCounterRelevantAddress{other.m_ProgramCounterRelevantAddress}
 		, m_Address{other.m_Address}
 		, m_Bytes{other.m_Bytes}
+		, m_InstructionID{other.m_InstructionID}
 	{
 		for (const auto &opr : other.m_Operands)
 			this->m_Operands.emplace_back(opr->Clone());
@@ -48,11 +48,11 @@ namespace disxx::disasm
 	}
 
 	Instruction::Instruction(Instruction &&other) noexcept
-		: m_InstructionID{std::move(other.m_InstructionID)}
-		, m_Operands{std::move(other.m_Operands)}
+		: m_Operands{std::move(other.m_Operands)}
 		, m_ProgramCounterRelevantAddress{std::move(other.m_ProgramCounterRelevantAddress)}
 		, m_Address{std::move(other.m_Address)}
 		, m_Bytes{std::move(other.m_Bytes)}
+		, m_InstructionID{std::move(other.m_InstructionID)}
 	{}
 
 	Instruction &Instruction::operator=(Instruction &&other) noexcept

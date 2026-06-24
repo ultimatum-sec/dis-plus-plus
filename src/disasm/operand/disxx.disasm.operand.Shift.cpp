@@ -18,8 +18,8 @@ namespace disxx::disasm::operand
         static const std::unordered_map<Type, const char *> m_sShiftTable;
 
 	  private:
-		Type m_ShiftType;
-		unsigned short int m_Amount;
+		Type m_ShiftType{};
+		unsigned short int m_Amount{};
 
       public:
 		explicit Impl(void) noexcept;

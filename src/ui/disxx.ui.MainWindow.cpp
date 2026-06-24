@@ -1,7 +1,8 @@
 module;
 
-#include <vector>
 #include <memory>
+#include <vector>
+#include <bit>
 
 module disxx.ui.MainWindow;
 
@@ -18,11 +19,11 @@ namespace disxx::ui
 	{
 		this->m_hWin = this->m_Context.CreateWindow(utility::Vec2<int>{this->m_Size}, title);
 		this->m_Context.SwitchWindow(this->m_hWin);
-		this->m_Context.SetDisplayCallback((void *)+[] -> void { s_pInstance->__DisplayCallback(); });
-		this->m_Context.SetReshapeCallback((void *)+[](int x, int y) -> void { s_pInstance->__ReshapeCallback(x, y); });
-		this->m_Context.SetKeyboardCallback((void *)+[](unsigned char key, int x, int y) -> void { s_pInstance->__KeyboardCallback(key, x, y); });
-		this->m_Context.SetMouseButtonCallback((void *)+[](int button, int state, int x, int y) -> void { s_pInstance->__MouseButtonCallback(button, state, x, y); });
-		this->m_Context.SetMouseMotionCallback((void *)+[](int x, int y) -> void { s_pInstance->__MouseMotionCallback(x, y); });
+		this->m_Context.SetDisplayCallback(std::bit_cast<void *>(+[] -> void { s_pInstance->__DisplayCallback(); }));
+		this->m_Context.SetReshapeCallback(std::bit_cast<void *>(+[](int x, int y) -> void { s_pInstance->__ReshapeCallback(x, y); }));
+		this->m_Context.SetKeyboardCallback(std::bit_cast<void *>(+[](unsigned char key, int x, int y) -> void { s_pInstance->__KeyboardCallback(key, x, y); }));
+		this->m_Context.SetMouseButtonCallback(std::bit_cast<void *>(+[](int button, int state, int x, int y) -> void { s_pInstance->__MouseButtonCallback(button, state, x, y); }));
+		this->m_Context.SetMouseMotionCallback(std::bit_cast<void *>(+[](int x, int y) -> void { s_pInstance->__MouseMotionCallback(x, y); }));
 	}
 
 	MainWindow::~MainWindow(void) noexcept

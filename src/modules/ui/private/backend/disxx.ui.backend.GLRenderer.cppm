@@ -4,6 +4,7 @@ module;
 
 #include <OpenGL/gl3.h>
 
+#include <cstdint>
 #include <vector>
 
 export module disxx.ui.backend.GLRenderer;
@@ -34,13 +35,13 @@ export namespace disxx::ui::backend
 			"}\n";
 
 	  private:
-		std::vector<utility::Shape> m_ShapeBuffer;
-		std::vector<utility::Text> m_TextBuffer;
-		GLuint m_Vao;
-		GLuint m_Vbo;
-		GLuint m_VertexShader;
-		GLuint m_FragmentShader;
-		GLuint m_Program;
+		std::vector<utility::Shape> m_ShapeBuffer{};
+		std::vector<utility::Text> m_TextBuffer{};
+		GLuint m_Vao{};
+		GLuint m_Vbo{};
+		GLuint m_VertexShader{};
+		GLuint m_FragmentShader{};
+		GLuint m_Program{};
 
 	  public:
 		static void SwapBuffers(void) noexcept;
@@ -49,7 +50,7 @@ export namespace disxx::ui::backend
 	  public:
 		explicit GLRenderer(void) noexcept;
 
-		virtual ~GLRenderer(void) noexcept override;
+		~GLRenderer(void) noexcept;
 
 		explicit GLRenderer(const GLRenderer &) noexcept = delete;
 		GLRenderer &operator=(const GLRenderer &) noexcept = delete;

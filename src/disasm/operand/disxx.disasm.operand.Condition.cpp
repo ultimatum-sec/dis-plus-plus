@@ -26,7 +26,7 @@ namespace disxx::disasm::operand
         static const std::unordered_map<Type, const char *> m_sCondTable;
 
 	  private:
-		Type m_Value;
+		Type m_Value{};
 
       public:
 		explicit Impl(void) noexcept;
@@ -143,6 +143,3 @@ namespace disxx::disasm::operand
 	std::unique_ptr<AbstractOperand> Condition::Clone(void) const noexcept
 	{ return std::make_unique<Condition>(*this); }
 } /* operand */
-
-
-

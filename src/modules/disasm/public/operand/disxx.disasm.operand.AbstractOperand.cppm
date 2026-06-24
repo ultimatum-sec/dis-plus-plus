@@ -32,13 +32,10 @@ export namespace disxx::disasm::operand
 		class __DISXX_PRIVATE__ [[nodiscard]] AbstractImpl
     	{
      	  private:
-        	Type m_Type;
-	  
-	  	  public:
+        	Type m_Type{};
+	  	  
+		  public:
 			explicit AbstractImpl(Type) noexcept;
-
-        	//explicit AbstractImpl(const AbstractImpl &) noexcept;
-        	//AbstractImpl &operator=(const AbstractImpl &) noexcept;
 
         	explicit AbstractImpl(AbstractImpl &&) noexcept;
         	AbstractImpl &operator=(AbstractImpl &&) noexcept;
@@ -57,9 +54,6 @@ export namespace disxx::disasm::operand
       public:
 		explicit AbstractOperand(void) noexcept;
 		explicit AbstractOperand(std::unique_ptr<AbstractImpl> &&) noexcept;
-
-		//explicit AbstractOperand(const AbstractOperand &) noexcept(false);
-		//AbstractOperand &operator=(const AbstractOperand &) noexcept(false);
 
 		explicit AbstractOperand(AbstractOperand &&) noexcept;
 		AbstractOperand &operator=(AbstractOperand &&) noexcept;

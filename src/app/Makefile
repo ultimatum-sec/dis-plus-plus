@@ -10,12 +10,11 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-   	-c -std=c++26 -Wall -Wpedantic -Wextra -Wdeprecated -Werror -Og -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
-	-fno-omit-frame-pointer -Wshadow -Wdouble-promotion -Wfloat-equal -Wundef -Wswitch-default -Wimplicit-fallthrough \
-	-Wmissing-declarations -Wuninitialized -Wconditional-uninitialized -Wcast-qual -Wcast-align -Wformat -Wformat-security -Wnull-dereference \
-	-Wno-non-virtual-dtor -Woverloaded-virtual -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wold-style-cast -Wthread-safety -fstrict-aliasing \
-	-Wstrict-aliasing=2 -ftrapv -fwrapv -Wno-\#warnings -fsanitize-address-use-after-scope -Wno-unused-command-line-argument -Wno-c99-extensions \
-	-Wno-writable-strings -fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
+   	-c -std=c++26 -Weverything -Werror -Og -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+	-fstrict-aliasing -ftrapv -fwrapv -Wno-unused-command-line-argument -Wno-c99-extensions -Wno-global-constructors -Wno-exit-time-destructors \
+	-Wno-reserved-identifier -Wno-switch-enum -Wno-reserved-macro-identifier -Wno-writable-strings -Wno-weak-vtables \
+	-Wno-covered-switch-default -Wno-padded -Wno-sign-conversion -Wno-c++98-compat -Wno-c++98-compat-pedantic \
+	-fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
 	-DGL_SILENCE_DEPRECATION -DBACKEND_CTX_GLUT -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden -g -DDEBUG
 
 LDFLAGS=\

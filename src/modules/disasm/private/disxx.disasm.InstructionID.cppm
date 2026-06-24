@@ -1423,9 +1423,3 @@ export enum class InstructionID
 	INSN_UBFX,
 	INSN_ROR
 };
-
-
-
-
-
-

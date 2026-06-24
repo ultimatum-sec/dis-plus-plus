@@ -30,8 +30,8 @@ namespace disxx::disasm::operand
 		static const std::unordered_map<Type, const char *> s_ExtensionTable;
 
 	  private:
-		Type m_ExtensionType;
-		unsigned short int m_Val;
+		Type m_ExtensionType{};
+		unsigned short int m_Val{};
 
 	  public:
 		explicit Impl(void) noexcept;
