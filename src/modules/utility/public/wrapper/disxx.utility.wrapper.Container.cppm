@@ -86,8 +86,3 @@ export namespace disxx::utility::wrapper
 		return std::nullopt;
 	}
 } /* disxx::util */
-
-
-
-
-
