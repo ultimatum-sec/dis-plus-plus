@@ -16,7 +16,7 @@ CXXFLAGS=\
 	-Wno-weak-vtables -Wno-c++98-compat -Wno-implicit-int-conversion -Wno-reserved-macro-identifier \
 	-Wno-padded -Wno-c++98-c++11-compat-binary-literal -Wno-sign-conversion -Wno-reserved-identifier \
 	-Wno-c++98-compat-pedantic -Wno-global-constructors -Wno-exit-time-destructors -Wno-switch-enum \
-	-Wno-shift-count-overflow \
+	-Wno-undefined-func-template -Wno-shift-count-overflow -Wno-integer-overflow \
 	-ftrapv -fwrapv -fmodules -fcxx-modules -fvisibility=hidden -fprebuilt-module-path=$(PRECOMPILEDDIR) \
 	-Xclang -fmodules-local-submodule-visibility -I..$(PATHSEP)include -fstack-protector-all -DNDEBUG
 
@@ -39,8 +39,8 @@ REGSSCRIPT=.$(PATHSEP)misc$(PATHSEP)registers.rb
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.DisassemblyError.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cppm \
-	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.AbstractWrapper.cppm \
-	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.Pointer.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.DefaultDeleter.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.NonNull.cppm \
 	.$(PATHSEP)utility$(PATHSEP)bits$(PATHSEP)disxx.disasm.utility.bits.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)private$(PATHSEP)disxx.disasm.InstructionID.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.AbstractOperand.cppm \

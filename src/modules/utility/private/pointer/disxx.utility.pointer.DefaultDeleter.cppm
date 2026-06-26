@@ -18,11 +18,11 @@ export namespace disxx::utility::pointer
 		constexpr DefaultDeleter(const DefaultDeleter &) noexcept = default;
 		constexpr DefaultDeleter &operator=(const DefaultDeleter &) noexcept = default;
 
-		constexpr void operator()(T) const noexcept;
+		constexpr void operator()(T &) const noexcept;
 	};
 
 	template <typename T>
-	constexpr void DefaultDeleter<T>::operator()(T ptr) const noexcept
+	constexpr void DefaultDeleter<T>::operator()(T &ptr) const noexcept
 	{
 		if (std::is_array<T>::value && ptr)
 			delete [] ptr;

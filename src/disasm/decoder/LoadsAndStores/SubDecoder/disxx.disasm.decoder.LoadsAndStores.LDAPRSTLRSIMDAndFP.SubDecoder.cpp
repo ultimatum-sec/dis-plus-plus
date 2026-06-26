@@ -86,7 +86,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::LDAPRSTLRSIMDAndFP
         const auto &[insn, regSize]{it->second};
         
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rt, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true));
+        disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
+		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
         static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())
             ->AddImmediatePreIndexedOffset(imm9.GetValue(), false);
         return std::make_pair(insn, std::move(this->m_Operands));

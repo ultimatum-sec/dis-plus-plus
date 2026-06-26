@@ -107,7 +107,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterPairPostIndexed
             
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rt, regSize));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rt2, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true));
+        disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
+		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
         if (imm7.GetValue())
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<signed short int, 7>>(imm7 << scale));
 

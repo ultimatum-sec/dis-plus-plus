@@ -7,301 +7,49 @@ module disxx.disasm.operand.SystemOperand;
 
 namespace disxx::disasm::operand
 {
-	/* 	SystemOperand::Impl */
-
-	class SystemOperand::Impl final : public AbstractOperand::AbstractImpl
-	{
-	  private:
-		enum class Type : unsigned short int
-		{
-			TYPE_S1E1R = 0b0001000000,
-			TYPE_S1E1W = 0b0001000001,
-			TYPE_S1E0R = 0b0001000010,
-			TYPE_S1E0W = 0b0001000011,
-			TYPE_S1E1RP = 0b0001001000,
-			TYPE_S1E1WP = 0b0001001001,
-			TYPE_S1E1A = 0b0001001010,
-			TYPE_S1E2R = 0b1001000000,
-			TYPE_S1E2W = 0b1001000001,
-			TYPE_S12E1R = 0b1001000100,
-			TYPE_S12E1W = 0b1001000101,
-			TYPE_S12E0R = 0b1001000110,
-			TYPE_S12E0W = 0b1001000111,
-			TYPE_S1E2A = 0b1001001010,
-			TYPE_S1E3R = 0b1101000000,
-			TYPE_S1E3W = 0b1101000001,
-			TYPE_S1E3A = 0b1101001010,
-			TYPE_RCTX = 0b0011,
-			TYPE_IALL = 0b100,
-			TYPE_INJ = 0b101,
-			TYPE_IVAC = 0b0000110001,
-			TYPE_ISW = 0b0000110010,
-			TYPE_IGVAC = 0b0000110011,
-			TYPE_IGSW = 0b0000110100,
-			TYPE_IGDVAC = 0b0000110101,
-			TYPE_IGDSW = 0b0000110110,
-			TYPE_CSW = 0b0001010010,
-			TYPE_CGSW = 0b0001010100,
-			TYPE_CGDSW = 0b0001010110,
-			TYPE_CISW = 0b0001110010,
-			TYPE_CIGSW = 0b0001110100,
-			TYPE_CIGDSW = 0b0001110110,
-			TYPE_CIVAPS = 0b0001111001,
-			TYPE_CIGDVAPS = 0b0001111101,
-			TYPE_ZVA = 0b0110100001,
-			TYPE_GVA = 0b0110100011,
-			TYPE_GZVA = 0b0110100100,
-			TYPE_CVAC = 0b0111010001,
-			TYPE_CGVAC = 0b0111010011,
-			TYPE_CGDVAC = 0b0111010101,
-			TYPE_CVAOC = 0b0111011000,
-			TYPE_CVAU = 0b0111011001,
-			TYPE_CGDVAOC = 0b0111011111,
-			TYPE_CVAP = 0b0111100001,
-			TYPE_CGVAP = 0b0111100110,
-			TYPE_CGDVAP = 0b0111100101,
-			TYPE_CVADP = 0b0111101001,
-			TYPE_CGVADP = 0b0111101011,
-			TYPE_CGDVADP = 0b0111101101,
-			TYPE_CIVAC = 0b0111110001,
-			TYPE_CIGVAC = 0b0111110011,
-			TYPE_CIGDVAC = 0b0111110101,
-			TYPE_CIVAOC = 0b0111111000,
-			TYPE_CIGDVAOC = 0b0111111111,
-			TYPE_CIPAE = 0b1001110000,
-			TYPE_CIGDPAE = 0b1001110111,
-			TYPE_CIPAPA = 0b1101110001,
-			TYPE_CIGDPAPA = 0b1101110101,
-			TYPE_IALLUIS = 0b0000001000,
-			TYPE_IALLU = 0b0000101000,
-			TYPE_IVAU = 0b0110101001,
-			TYPE_VMALLE1OS = 0b00010000001000,
-			TYPE_VAE1OS = 0b00010000001001,
-			TYPE_ASIDE1OS = 0b00010000001010,
-			TYPE_VAAE1OS = 0b00010000001011,
-			TYPE_VALE1OS = 0b00010000001101,
-			TYPE_VAALE1OS = 0b00010000001111,
-			TYPE_RVAE1IS = 0b00010000010001,
-			TYPE_RVAAE1IS = 0b00010000010011,
-			TYPE_RVALE1IS = 0b00010000010101,
-			TYPE_RVAALE1IS = 0b00010000010111,
-			TYPE_VMALLE1IS = 0b00010000011000,
-			TYPE_VAE1IS = 0b00010000011001,
-			TYPE_ASIDE1IS = 0b00010000011010,
-			TYPE_VAAE1IS = 0b00010000011011,
-			TYPE_VALE1IS = 0b00010000011101,
-			TYPE_VAALE1IS = 0b00010000011111,
-			TYPE_RVAE1OS = 0b00010000101001,
-			TYPE_RVAAE1OS = 0b00010000101011,
-			TYPE_RVALE1OS = 0b00010000101101,
-			TYPE_RVAALE1OS = 0b00010000101111,
-			TYPE_RVAE1 = 0b00010000110001,
-			TYPE_RVAAE1 = 0b00010000110011,
-			TYPE_RVALE1 = 0b00010000110101,
-			TYPE_RVAALE1 = 0b00010000110111,
-			TYPE_VMALLE1 = 0b00010000111000,
-			TYPE_VAE1 = 0b00010000111001,
-			TYPE_ASIDE1 = 0b00010000111010,
-			TYPE_VAAE1 = 0b00010000111011,
-			TYPE_VALE1 = 0b00010000111101,
-			TYPE_VAALE1 = 0b00010000111111,
-			TYPE_VMALLE1OSNXS = 0b00010010001000,
-			TYPE_VAE1OSNXS = 0b00010010001001,
-			TYPE_ASIDE1OSNXS = 0b00010010001010,
-			TYPE_VAAE1OSNXS = 0b00010010001011,
-			TYPE_VALE1OSNXS = 0b00010010001101,
-			TYPE_VAALE1OSNXS = 0b00010010001111,
-			TYPE_RVAE1ISNXS = 0b00010010010001,
-			TYPE_RVAAE1ISNXS = 0b00010010010011,
-			TYPE_RVALE1ISNXS = 0b00010010010101,
-			TYPE_RVAALE1ISNXS = 0b00010010010111,
-			TYPE_VMALLE1ISNXS = 0b00010010011000,
-			TYPE_VAE1ISNXS = 0b00010010011001,
-			TYPE_ASIDE1ISNXS = 0b00010010011010,
-			TYPE_VAAE1ISNXS = 0b00010010011011,
-			TYPE_VALE1ISNXS = 0b00010010011101,
-			TYPE_VAALE1ISNXS = 0b00010010011111,
-			TYPE_RVAE1OSNXS = 0b00010010101001,
-			TYPE_RVAAE1OSNXS = 0b00010010101011,
-			TYPE_RVALE1OSNXS = 0b00010010101101,
-			TYPE_RVAALE1OSNXS = 0b00010010101111,
-			TYPE_RVAE1NXS = 0b00010010110001,
-			TYPE_RVAAE1NXS = 0b00010010110011,
-			TYPE_RVALE1NXS = 0b00010010110101,
-			TYPE_RVAALE1NXS = 0b00010010110111,
-			TYPE_VMALLE1NXS = 0b00010010111000,
-			TYPE_VAE1NXS = 0b00010010111001,
-			TYPE_ASIDE1NXS = 0b00010010111010,
-			TYPE_VAAE1NXS = 0b00010010111011,
-			TYPE_VALE1NXS = 0b00010010111101,
-			TYPE_VAALE1NXS = 0b00010010111111,
-			TYPE_IPAS2E1IS = 0b10010000000001,
-			TYPE_RIPAS2E1IS = 0b10010000000010,
-			TYPE_IPAS2LE1IS = 0b10010000000101,
-			TYPE_RIPAS2LE1IS = 0b10010000000110,
-			TYPE_ALLE2OS = 0b10010000001000,
-			TYPE_VAE2OS = 0b10010000001001,
-			TYPE_ALLE1OS = 0b10010000001100,
-			TYPE_VALE2OS = 0b10010000001101,
-			TYPE_VMALLS12E1OS = 0b10010000001110,
-			TYPE_RVAE2IS = 0b10010000010001,
-			TYPE_VMALLWS2E1IS = 0b10010000010010,
-			TYPE_RVALE2IS = 0b10010000010101,
-			TYPE_ALLE2IS = 0b10010000011000,
-			TYPE_VAE2IS = 0b10010000011001,
-			TYPE_ALLE1IS = 0b10010000011100,
-			TYPE_VALE2IS = 0b10010000011101,
-			TYPE_VMALLS12E1IS = 0b10010000011110,
-			TYPE_IPAS2E1OS = 0b10010000100000,
-			TYPE_IPAS2E1 = 0b10010000100001,
-			TYPE_RIPAS2E1 = 0b10010000100010,
-			TYPE_RIPAS2E1OS = 0b10010000100011,
-			TYPE_IPAS2LE1OS = 0b10010000100100,
-			TYPE_IPAS2LE1 = 0b10010000100101,
-			TYPE_RIPAS2LE1 = 0b10010000100110,
-			TYPE_RIPAS2LE1OS = 0b10010000100111,
-			TYPE_RVAE2OS = 0b10010000101001,
-			TYPE_VMALLWS2E1OS = 0b10010000101010,
-			TYPE_RVALE2OS = 0b10010000101101,
-			TYPE_RVAE2 = 0b10010000110001,
-			TYPE_VMALLWS2E1 = 0b10010000110010,
-			TYPE_RVALE2 = 0b10010000110101,
-			TYPE_ALLE2 = 0b10010000111000,
-			TYPE_VAE2 = 0b10010000111001,
-			TYPE_ALLE1 = 0b10010000111100,
-			TYPE_VALE2 = 0b10010000111101,
-			TYPE_VMALLS12E1 = 0b10010000111110,
-			TYPE_IPAS2E1ISNXS = 0b10010010000001,
-			TYPE_RIPAS2E1ISNXS = 0b10010010000010,
-			TYPE_IPAS2LE1ISNXS = 0b10010010000101,
-			TYPE_RIPAS2LE1ISNXS = 0b10010010000110,
-			TYPE_ALLE2OSNXS = 0b10010010001000,
-			TYPE_VAE2OSNXS = 0b10010010001001,
-			TYPE_ALLE1OSNXS = 0b10010010001100,
-			TYPE_VALE2OSNXS = 0b10010010001101,
-			TYPE_VMALLS12E1OSNXS = 0b10010010001110,
-			TYPE_RVAE2ISNXS = 0b10010010010001,
-			TYPE_VMALLWS2E1ISNXS = 0b10010010010010,
-			TYPE_RVALE2ISNXS = 0b10010010010101,
-			TYPE_ALLE2ISNXS = 0b10010010011000,
-			TYPE_VAE2ISNXS = 0b10010010011001,
-			TYPE_ALLE1ISNXS = 0b10010010011100,
-			TYPE_VALE2ISNXS = 0b10010010011101,
-			TYPE_VMALLS12E1ISNXS = 0b10010010011110,
-			TYPE_IPAS2E1OSNXS = 0b10010010100000,
-			TYPE_IPAS2E1NXS = 0b10010010100001,
-			TYPE_RIPAS2E1NXS = 0b10010010100010,
-			TYPE_RIPAS2E1OSNXS = 0b10010010100011,
-			TYPE_IPAS2LE1OSNXS = 0b10010010100100,
-			TYPE_IPAS2LE1NXS = 0b10010010100101,
-			TYPE_RIPAS2LE1NXS = 0b10010010100110,
-			TYPE_RIPAS2LE1OSNXS = 0b10010010100111,
-			TYPE_RVAE2OSNXS = 0b10010010101001,
-			TYPE_VMALLWS2E1OSNXS = 0b10010010101010,
-			TYPE_RVALE2OSNXS = 0b10010010101101,
-			TYPE_RVAE2NXS = 0b10010010110001,
-			TYPE_VMALLWS2E1NXS = 0b10010010110010,
-			TYPE_RVALE2NXS = 0b10010010110101,
-			TYPE_ALLE2NXS = 0b10010010111000,
-			TYPE_VAE2NXS = 0b10010010111001,
-			TYPE_ALLE1NXS = 0b10010010111100,
-			TYPE_VALE2NXS = 0b10010010111101,
-			TYPE_VMALLS12E1NXS = 0b10010010111110,
-			TYPE_ALLE3OS = 0b11010000001000,
-			TYPE_VAE3OS = 0b11010000001001,
-			TYPE_PAALLOS = 0b11010000001100,
-			TYPE_VALE3OS = 0b11010000001101,
-			TYPE_RVAE3IS = 0b11010000010001,
-			TYPE_RVALE3IS = 0b11010000010101,
-			TYPE_ALLE3IS = 0b11010000011000,
-			TYPE_VAE3IS = 0b11010000011001,
-			TYPE_VALE3IS = 0b11010000011101,
-			TYPE_RPAOS = 0b11010000100011,
-			TYPE_RPALOS = 0b11010000100111,
-			TYPE_RVAE3OS = 0b11010000101001,
-			TYPE_RVALE3OS = 0b11010000101101,
-			TYPE_RVAE3 = 0b11010000110001,
-			TYPE_RVALE3 = 0b11010000110101,
-			TYPE_ALLE3 = 0b11010000111000,
-			TYPE_VAE3 = 0b11010000111001,
-			TYPE_PAALL = 0b11010000111100,
-			TYPE_VALE3 = 0b11010000111101,
-			TYPE_ALLE3OSNXS = 0b11010010001000,
-			TYPE_VAE3OSNXS = 0b11010010001001,
-			TYPE_VALE3OSNXS = 0b11010010001101,
-			TYPE_RVAE3ISNXS = 0b11010010010001,
-			TYPE_RVALE3ISNXS = 0b11010010010101,
-			TYPE_ALLE3ISNXS = 0b11010010011000,
-			TYPE_VAE3ISNXS = 0b11010010011001,
-			TYPE_VALE3ISNXS = 0b11010010011101,
-			TYPE_RVAE3OSNXS = 0b11010010101001,
-			TYPE_RVALE3OSNXS = 0b11010010101101,
-			TYPE_RVAE3NXS = 0b11010010110001,
-			TYPE_RVALE3NXS = 0b11010010110101,
-			TYPE_ALLE3NXS = 0b11010010111000,
-			TYPE_VAE3NXS = 0b11010010111001,
-			TYPE_VALE3NXS = 0b11010010111101
-		};
-
-	  private:
-		static const std::unordered_map<Type, const char *> s_OprsTable;
-
-	  private:
-		Type m_Opr{};
-
-	  public:
-		explicit Impl(void) noexcept;
-		explicit Impl(unsigned short int) noexcept;
-
-		explicit Impl(const Impl &) noexcept;
-		Impl &operator=(const Impl &) noexcept;
-
-		explicit Impl(const Impl &&) noexcept;
-		Impl &operator=(const Impl &&) noexcept;
-
-		virtual std::string GetMnemonic(void) const noexcept(false) override;
-	};
-
-	SystemOperand::Impl::Impl(void) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
+	SystemOperand::SystemOperand(void) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
 		, m_Opr{}
 	{}
 
-	SystemOperand::Impl::Impl(unsigned short int bits) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
+	SystemOperand::SystemOperand(unsigned short int bits) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
 		, m_Opr{static_cast<Type>(bits)}
 	{}
 
-	SystemOperand::Impl::Impl(const Impl &other) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
+	SystemOperand::SystemOperand(const SystemOperand &other) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
 		, m_Opr{other.m_Opr}
 	{}
 
-	SystemOperand::Impl &SystemOperand::Impl::operator=(const Impl &other) noexcept
+	SystemOperand &SystemOperand::operator=(const SystemOperand &other) noexcept
 	{
 		if (this != &other) [[likely]]
 			this->m_Opr = other.m_Opr;
 		return *this;
 	}
 
-	SystemOperand::Impl::Impl(const Impl &&other) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
-		, m_Opr{other.m_Opr}
+	SystemOperand::SystemOperand(SystemOperand &&other) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
+		, m_Opr{std::move(other.m_Opr)}
 	{}
 
-	SystemOperand::Impl &SystemOperand::Impl::operator=(const Impl &&other) noexcept
+	SystemOperand &SystemOperand::operator=(SystemOperand &&other) noexcept
 	{
-		this->m_Opr = other.m_Opr;
+		this->m_Opr = std::move(other.m_Opr);
 		return *this;
 	}
 
-	std::string SystemOperand::Impl::GetMnemonic(void) const noexcept(false)
+	std::string SystemOperand::GetMnemonic(void) const noexcept(false)
 	{
 		return s_OprsTable
 			.at(this->m_Opr);
 	}
 
-	const std::unordered_map<SystemOperand::Impl::Type, const char *> SystemOperand::Impl::s_OprsTable = {
+	std::unique_ptr<AbstractOperand> SystemOperand::Clone(void) const noexcept
+	{ return std::make_unique<SystemOperand>(*this); }
+
+	const std::unordered_map<SystemOperand::SystemOperand::Type, const char *> SystemOperand::SystemOperand::s_OprsTable = {
 		{Type::TYPE_S1E1R, "s1e1r"},
 		{Type::TYPE_S1E1W, "s1e1w"},
 		{Type::TYPE_S1E0R, "s1e0r"},
@@ -530,46 +278,4 @@ namespace disxx::disasm::operand
 		{Type::TYPE_VAE3NXS, "vae3nxs"},
 		{Type::TYPE_VALE3NXS, "vale3nxs"}
 	};
-
-	/* SystemOperand */
-
-	SystemOperand::SystemOperand(void) noexcept
-		: AbstractOperand{}
-	{}
-
-	SystemOperand::SystemOperand(unsigned short int bits) noexcept
-		: AbstractOperand{std::make_unique<Impl>(bits)}
-	{}
-
-	SystemOperand::SystemOperand(const SystemOperand &other) noexcept(false)
-		: AbstractOperand{std::make_unique<Impl>(*dynamic_cast<const Impl *>(&(*other.m_pImpl)))}
-	{}
-
-	SystemOperand &SystemOperand::operator=(const SystemOperand &other) noexcept(false)
-	{
-		if (this != &other) [[unlikely]]
-		{
-			if (this->m_pImpl)
-				this->m_pImpl.Get().reset();
-			this->m_pImpl.Get() = std::make_unique<Impl>(*dynamic_cast<const Impl *>(&(*other.m_pImpl)));
-		}
-
-		return *this;
-	}
-
-	SystemOperand::SystemOperand(SystemOperand &&other) noexcept
-		: AbstractOperand{std::move(other.m_pImpl.Get())}
-	{}
-
-	SystemOperand &SystemOperand::operator=(SystemOperand &&other) noexcept
-	{
-		if (this->m_pImpl)
-			this->m_pImpl.Get().reset();
-		this->m_pImpl.Get() = std::move(other.m_pImpl.Get());
-
-		return *this;
-	}
-
-	std::unique_ptr<AbstractOperand> SystemOperand::Clone(void) const noexcept
-	{ return std::make_unique<SystemOperand>(*this); }
 } /* operand */

@@ -86,7 +86,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::AtomicMemoryOperationsUnprivil
         const auto regSize{sz == 0b0 ? 32 : 64};
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rs, regSize));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true));
+        disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
+		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
 
         const unsigned short int encoding = (A << 5) | (R << 4) | (o3 << 3) | opc;
         const auto it{insnTable.find(encoding)};

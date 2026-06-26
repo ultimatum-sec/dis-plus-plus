@@ -107,7 +107,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterOffset
             };
 
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rt, regSize));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true));
+            disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
+			this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
     
             if (option != 0b011)
             {
@@ -127,10 +128,24 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterOffset
 
                 if (encoding <= 0b00101 || (option != 0b010 && option != 0b110 && option != 0b111))
                     static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())
-                        ->AddExtension(option, amount);
+                        ->AddExtension
+						(
+							disxx::disasm::operand::Extension
+							{
+								option,
+								amount
+							}
+						);
                 else if (S && amount)
                     static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())
-                        ->AddShift(disxx::disasm::operand::Shift::Type::SHIFT_LSL, amount);
+                        ->AddShift
+						(
+							disxx::disasm::operand::Shift
+							{
+								disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+								amount
+							}
+						);
                 return std::make_pair(insn, std::move(this->m_Operands));
             }
             
@@ -138,7 +153,14 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterOffset
                 ->AddRegisterOffset(disxx::disasm::operand::Register{disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, 64});
             if (S && amount)
                 static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())
-                    ->AddShift(disxx::disasm::operand::Shift::Type::SHIFT_LSL, amount);
+                    ->AddShift
+					(
+						disxx::disasm::operand::Shift
+						{
+							disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+							amount
+						}
+					);
             return std::make_pair(insn, std::move(this->m_Operands));
         }
         
@@ -163,7 +185,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterOffset
         */
 
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::PrefetchOperand>(encoding));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true));
+		disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
         static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())->AddRegisterOffset
         (
             disxx::disasm::operand::Register
@@ -186,13 +209,27 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterOffset
               case 0b110: [[fallthrough]];
               case 0b111:
                 static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.at(2).get())
-                    ->AddExtension(option, S ? 3 : 0);
+                    ->AddExtension
+					(
+						disxx::disasm::operand::Extension
+						{
+							option,
+							static_cast<unsigned short int>(S ? 3 : 0)
+						}
+					);
                 return std::make_pair(insn, std::move(this->m_Operands));
 
               default:
                 if (S)
                     static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.at(2).get())
-                        ->AddShift(disxx::disasm::operand::Shift::Type::SHIFT_LSL, 3);
+                        ->AddShift
+						(
+							disxx::disasm::operand::Shift
+							{
+								disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+								static_cast<unsigned short int>(3)
+							}
+						);
                 return std::make_pair(insn, std::move(this->m_Operands));
             }
         }

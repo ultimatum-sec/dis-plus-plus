@@ -2,6 +2,7 @@ module;
 
 #include <disconf.hpp>
 
+#include <type_traits>
 #include <functional>
 #include <utility>
 #include <cstdint>
@@ -49,9 +50,9 @@ namespace disxx::disasm::decoder::PseudoInstruction
 		: disxx::disasm::decoder::abstract::Decoder{other.m_Insn, other.m_ProgramCounter}
 	{
 		if (this->m_pSubDecoder)
-			this->m_pSubDecoder.Get().reset();
+			this->m_pSubDecoder.Delete();
 		auto cloned{other.m_pSubDecoder->Clone()};
-		this->m_pSubDecoder.Get()= std::move(cloned);
+		this->m_pSubDecoder = cloned.get();
 	}
 
 	Decoder &Decoder::operator=(const Decoder &other) noexcept(false)
@@ -59,9 +60,9 @@ namespace disxx::disasm::decoder::PseudoInstruction
 		if (this != &other) [[likely]]
 		{
 			if (this->m_pSubDecoder)
-				this->m_pSubDecoder.Get().reset();
+				this->m_pSubDecoder.Delete();
 			auto cloned{other.m_pSubDecoder->Clone()};
-			this->m_pSubDecoder.Get() = std::move(cloned);
+			this->m_pSubDecoder = cloned.get();
 		
 			this->m_ProgramCounter = other.m_ProgramCounter;
 			this->m_Insn = other.m_Insn;

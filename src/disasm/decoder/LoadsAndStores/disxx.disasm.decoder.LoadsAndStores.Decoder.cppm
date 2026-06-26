@@ -25,8 +25,8 @@ export namespace disxx::disasm::decoder::LoadsAndStores
 		explicit Decoder(void) noexcept;
 		explicit Decoder(std::uint32_t, std::uint64_t) noexcept;
 	
-		explicit Decoder(const Decoder &other) noexcept(false);
-		Decoder &operator=(const Decoder &other) noexcept(false);
+		explicit Decoder(const Decoder &other) noexcept;
+		Decoder &operator=(const Decoder &other) noexcept;
 
 		explicit Decoder(Decoder &&other) noexcept;
 		Decoder &operator=(Decoder &&other) noexcept;

@@ -117,7 +117,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterUnsignedImmediate
                 )
             );
 
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true));
+			disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
             if (imm12)
                 static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())
                     ->AddImmediatePreIndexedOffset(static_cast<signed short int>(imm12) * dataSize, false);
@@ -128,7 +129,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterUnsignedImmediate
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
             
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::PrefetchOperand>(Rt));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true));
+		disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
         if (imm12)
             static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())
                 ->AddImmediatePreIndexedOffset(static_cast<signed short int>(imm12) * 8, false);

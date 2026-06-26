@@ -2,7 +2,15 @@ module;
 
 #include <disconf.hpp>
 
-export module disxx.utility.pointer.NonNull.cppm;
+#define DANGLING(T) \
+	[] -> T * \
+	{ \
+		const auto __ptr{new char}; \
+		delete __ptr; \
+		return reinterpret_cast<T *>(__ptr); \
+	}()
+
+export module disxx.utility.pointer.NonNull;
 
 export import <cstdint>;
 
@@ -22,7 +30,7 @@ export namespace disxx::utility::pointer
 	 * guarantees it won't be constructed
 	 * if the pointer is null
 	 */
-	template <typename T, typename D = DefaultDeleter<T>> requires Deleter<T, D>
+	template <typename T, typename D = DefaultDeleter<T *>> requires Deleter<T *, D>
 	class __DISXX_EXPORT__ [[nodiscard]] NonNull
 	{
 	  private:
@@ -32,7 +40,6 @@ export namespace disxx::utility::pointer
 	  public:
 		explicit NonNull(void) noexcept;
 		explicit NonNull(T) noexcept(false);
-		
 		explicit NonNull(std::nullptr_t) noexcept = delete;
 
 		NonNull(const NonNull &) noexcept;
@@ -41,7 +48,8 @@ export namespace disxx::utility::pointer
 		NonNull(NonNull &&) noexcept;
 		NonNull &operator=(NonNull &&) noexcept;
 
-		NonNull &operator=(T *) noexcept;
+		NonNull &operator=(T *) noexcept(false);
+		NonNull &operator=(std::nullptr_t) noexcept = delete;
 
 		operator bool(void) const noexcept;
 	
@@ -63,21 +71,22 @@ export namespace disxx::utility::pointer
 		NonNull &operator+=(const std::size_t) noexcept;
 		NonNull &operator-=(const std::size_t) noexcept;
 		
-		std::decay<T>::type &operator[](std::size_t) const noexcept requires std::is_array<T>::value;
+		typename std::decay<T>::type &operator[](std::size_t) const noexcept
+			requires std::is_array<T>::value;
 	
 		void Delete(void) noexcept;
 	};
 
 	// WARNING: m_pPointer will be dangling!
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D>::NonNull(void) noexcept
-		: m_pPointer{[] -> T * { T var; return &var; }()}
+		: m_pPointer{DANGLING(T)}
 		, m_Deleter{}
 	{}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D>::NonNull(T ptr) noexcept(false)
-		: m_pPointer{[] -> T * { T var; return &var; }()}
+		: m_pPointer{DANGLING(T)}
 		, m_Deleter{}
 	{
 		if (!ptr) [[unlikely]]
@@ -85,13 +94,13 @@ export namespace disxx::utility::pointer
 		this->m_pPointer = ptr;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D>::NonNull(const NonNull &other) noexcept
 		: m_pPointer{other.m_pPointer}
 		, m_Deleter{other.m_Deleter}
 	{}
-
-	template <typename T, typename D> requires Deleter<T, D>
+	
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> &NonNull<T, D>::operator=(const NonNull &other) noexcept
 	{
 		if (this != &other) [[likely]]
@@ -103,13 +112,13 @@ export namespace disxx::utility::pointer
 		return *this;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D>::NonNull(NonNull &&other) noexcept
 		: m_pPointer{std::move(other.m_pPointer)}
 		, m_Deleter{std::move(other.m_Deleter)}
 	{}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> &NonNull<T, D>::operator=(NonNull &&other) noexcept
 	{
 		if (this != &other) [[likely]]
@@ -121,8 +130,8 @@ export namespace disxx::utility::pointer
 		return *this;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
-	NonNull<T, D> &NonNull<T, D>::operator=(T *ptr) noexcept
+	template <typename T, typename D> requires Deleter<T *, D>
+	NonNull<T, D> &NonNull<T, D>::operator=(T *ptr) noexcept(false)
 	{
 		if (!ptr) [[unlikely]]
 			throw disxx::utility::error::NullPointerError{"NonNull"};
@@ -132,25 +141,41 @@ export namespace disxx::utility::pointer
 	}
 
 	// This method should always return true, I hope...
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D>::operator bool(void) const noexcept
 	{ return this->m_pPointer == nullptr; }
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
+	T *NonNull<T, D>::operator->(void) noexcept
+	{ return this->m_pPointer; }
+	
+	template <typename T, typename D> requires Deleter<T *, D>	
+	const T *NonNull<T, D>::operator->(void) const noexcept
+	{ return this->m_pPointer; }
+
+	template <typename T, typename D> requires Deleter<T *, D>
+	T &NonNull<T, D>::operator*(void) noexcept
+	{ return *this->m_pPointer; }
+
+	template <typename T, typename D> requires Deleter<T *, D>
+	const T &NonNull<T, D>::operator*(void) const noexcept
+	{ return *this->m_pPointer; }
+
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> &NonNull<T, D>::operator++(void) noexcept
 	{
 		++this->m_pPointer;
 		return *this;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> &NonNull<T, D>::operator--(void) noexcept
 	{
 		--this->m_pPointer;
 		return *this;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> NonNull<T, D>::operator++(int) noexcept
 	{
 		const auto old{*this};
@@ -158,7 +183,7 @@ export namespace disxx::utility::pointer
 		return old;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> NonNull<T, D>::operator--(int) noexcept
 	{
 		const auto old{*this};
@@ -166,7 +191,7 @@ export namespace disxx::utility::pointer
 		return old;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> NonNull<T, D>::operator+(const std::size_t value) const noexcept
 	{
 		auto copy{*this};
@@ -175,7 +200,7 @@ export namespace disxx::utility::pointer
 		return copy;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> NonNull<T, D>::operator-(const std::size_t value) const noexcept
 	{
 		auto copy{*this};
@@ -184,26 +209,26 @@ export namespace disxx::utility::pointer
 		return copy;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> &NonNull<T, D>::operator+=(const std::size_t value) noexcept
 	{
 		this->m_pPointer += value;
 		return *this;
 	}
-
-	template <typename T, typename D> requires Deleter<T, D>
+	
+	template <typename T, typename D> requires Deleter<T *, D>
 	NonNull<T, D> &NonNull<T, D>::operator-=(const std::size_t value) noexcept
 	{
 		this->m_pPointer -= value;
 		return *this;
 	}
 
-	template <typename T, typename D> requires Deleter<T, D>
-	std::decay<T>::type &NonNull<T, D>::operator[](const std::size_t index) const noexcept
+	template <typename T, typename D> requires Deleter<T *, D>
+	typename std::decay<T>::type &NonNull<T, D>::operator[](const std::size_t index) const noexcept
 		requires std::is_array<T>::value
 	{ return *(*this + index); }
 
-	template <typename T, typename D> requires Deleter<T, D>
+	template <typename T, typename D> requires Deleter<T *, D>
 	void NonNull<T, D>::Delete(void) noexcept
 	{ this->m_Deleter(this->m_pPointer); }
 } /* disxx::utility::pointer */

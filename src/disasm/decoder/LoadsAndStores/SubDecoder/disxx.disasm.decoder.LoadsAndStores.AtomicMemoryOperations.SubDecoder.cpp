@@ -385,7 +385,8 @@ namespace disxx::disasm::decoder::LoadsAndStores::AtomicMemoryOperations
             const auto &[insn, alias]{it->second};
             unsigned short int regSize = size == 0b11 ? 64 : 32;
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rs, regSize));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, regSize));
+            disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, regSize};
+			this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
 
             return std::make_pair(alias ? alias.value() : insn, std::move(this->m_Operands));
         }
@@ -393,21 +394,23 @@ namespace disxx::disasm::decoder::LoadsAndStores::AtomicMemoryOperations
         {
             constexpr std::array<unsigned short int, 4> sizeTable{16, 16, 32, 64};
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rs, sizeTable.at(size)));
-               this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rt, sizeTable.at(size)));
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rt, sizeTable.at(size)));
            
             return std::make_pair(it2->second, std::move(this->m_Operands));
         }
         else if (const auto it3{insnTable3.find(encoding)}; it3 != insnTable3.end())
         {
-              this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rs, 64));
-              this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, 64));
+        	this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rs, 64));
+            disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, 64};
+			this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
           
             return std::make_pair(it3->second, std::move(this->m_Operands));
         }
         else if (const auto it4{insnTable4.find((encoding << 5) | 0b11111)}; it4 != insnTable4.end())
         {
-               constexpr std::array<unsigned short int, 4> sizeTable{16, 16, 32, 64};
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rs, sizeTable.at(size)));
+            constexpr std::array<unsigned short int, 4> sizeTable{16, 16, 32, 64};
+            disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_NEON, Rs, sizeTable.at(size)};
+			this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
 
             return std::make_pair(it4->second, std::move(this->m_Operands));
         }
@@ -415,8 +418,9 @@ namespace disxx::disasm::decoder::LoadsAndStores::AtomicMemoryOperations
         auto it5{insnTable5.find((size << 12) | (VR << 11) | (A << 10) | (R << 9) | (Rs << 4) | (o3 << 3) | opc)};
         if (it5 == insnTable5.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-            
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, 64));
+           
+		disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, 64}; 
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
 
         return std::make_pair(it5->second, std::move(this->m_Operands)); 
 	}

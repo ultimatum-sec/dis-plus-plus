@@ -5,7 +5,7 @@ module;
 export module disxx.disasm.decoder.abstract.Decoder;
 
 export import disxx.utility.error.DisassemblyError;
-import disxx.utility.wrapper.Pointer;
+import disxx.utility.pointer.NonNull;
 
 export import <expected>;
 
@@ -20,7 +20,7 @@ export namespace disxx::disasm::decoder::abstract
 	{
       protected:
 		// Subdecoder (in some cases may become nullptr)
-		disxx::utility::wrapper::Pointer<std::unique_ptr<SubDecoder>> m_pSubDecoder{};
+		disxx::utility::pointer::NonNull<SubDecoder> m_pSubDecoder{};
 		
 		// Instruction's address
 		std::uint64_t m_ProgramCounter{};
@@ -43,13 +43,10 @@ export namespace disxx::disasm::decoder::abstract
 		explicit Decoder(std::uint32_t, std::uint64_t) noexcept;
 		explicit Decoder(std::unique_ptr<SubDecoder> &&) noexcept;
 
-		virtual ~Decoder(void) noexcept = default;
-
-		//explicit Decoder(const Decoder &) noexcept(false);
-		//Decoder &operator=(const Decoder &) noexcept(false);
-	
 		explicit Decoder(Decoder &&) noexcept;
 		Decoder &operator=(Decoder &&) noexcept;
+
+		virtual ~Decoder(void) noexcept;
 
 		bool IsProgramCounterRelevant(void) const noexcept(false);
 

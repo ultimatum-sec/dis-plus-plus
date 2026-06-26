@@ -50,24 +50,21 @@ namespace disxx::disasm::decoder::LoadsAndStores
 		: disxx::disasm::decoder::abstract::Decoder{insn, addr}
 	{}
 
-	Decoder::Decoder(const Decoder &other) noexcept(false)
+	Decoder::Decoder(const Decoder &other) noexcept
 		: disxx::disasm::decoder::abstract::Decoder{other.m_Insn, other.m_ProgramCounter}
 	{
-		if (this->m_pSubDecoder)
-			this->m_pSubDecoder.Get().reset();
 		auto cloned{other.m_pSubDecoder->Clone()};
-		this->m_pSubDecoder.Get()= std::move(cloned);
+		this->m_pSubDecoder = cloned.release();
 	}
 
-	Decoder &Decoder::operator=(const Decoder &other) noexcept(false)
+	Decoder &Decoder::operator=(const Decoder &other) noexcept
 	{
 		if (this != &other) [[likely]]
 		{
-			if (this->m_pSubDecoder)
-				this->m_pSubDecoder.Get().reset();
+			if (this->m_pSubDecoder) [[likely]]
+				this->m_pSubDecoder.Delete();
 			auto cloned{other.m_pSubDecoder->Clone()};
-			this->m_pSubDecoder.Get() = std::move(cloned);
-		
+			this->m_pSubDecoder = cloned.release();
 			this->m_ProgramCounter = other.m_ProgramCounter;
 			this->m_Insn = other.m_Insn;
 		}
@@ -76,13 +73,12 @@ namespace disxx::disasm::decoder::LoadsAndStores
 	}
 
 	Decoder::Decoder(Decoder &&other) noexcept
-		: disxx::disasm::decoder::abstract::Decoder{std::move(other)}
+		: disxx::disasm::decoder::abstract::Decoder{std::forward<Decoder &&>(other)}
 	{}
 
 	Decoder &Decoder::operator=(Decoder &&other) noexcept
 	{
-		disxx::disasm::decoder::abstract::Decoder::operator=(std::move(other));
-		
+		disxx::disasm::decoder::abstract::Decoder::operator=(std::forward<Decoder &&>(other));
 		return *this;
 	}
 

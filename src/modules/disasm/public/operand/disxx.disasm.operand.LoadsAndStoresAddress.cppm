@@ -2,6 +2,9 @@ module;
 
 #include <disconf.hpp>
 
+#include <optional>
+#include <variant>
+
 export module disxx.disasm.operand.LoadsAndStoresAddress;
 
 import disxx.disasm.operand.AbstractOperand;
@@ -15,23 +18,45 @@ export namespace disxx::disasm::operand
 	class __DISXX_EXPORT__ LoadsAndStoresAddress final : public AbstractOperand
 	{
 	  private:
-		class __DISXX_PRIVATE__ [[nodiscard]] Impl;
+		std::optional
+		<
+			std::variant
+			<
+				disxx::disasm::operand::Extension,
+				disxx::disasm::operand::Shift
+			>
+		> m_Modifier{};
+		std::optional
+		<
+			std::variant
+			<
+				disxx::disasm::operand::Register,
+				std::pair
+				<
+					signed short int,
+					bool
+				>
+			>
+		> m_ExtraValue{};
+		Register m_BaseRegister{};
 
 	  public:
-		explicit LoadsAndStoresAddress(operand::Register::Type, unsigned short int, unsigned short int, bool = false) noexcept;
+		explicit LoadsAndStoresAddress(void) noexcept;
+		explicit LoadsAndStoresAddress(Register &&) noexcept;
 		
-		explicit LoadsAndStoresAddress(const LoadsAndStoresAddress &) noexcept(false);
-		LoadsAndStoresAddress &operator=(const LoadsAndStoresAddress &) noexcept(false);
+		explicit LoadsAndStoresAddress(const LoadsAndStoresAddress &) noexcept;
+		LoadsAndStoresAddress &operator=(const LoadsAndStoresAddress &) noexcept;
 
 		explicit LoadsAndStoresAddress(LoadsAndStoresAddress &&) noexcept;
 		LoadsAndStoresAddress &operator=(LoadsAndStoresAddress &&) noexcept;
 
+		virtual std::string GetMnemonic(void) const noexcept(false) override;
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
 
-		void AddImmediatePreIndexedOffset(const signed short int, bool) noexcept(false);
-		void AddRegisterOffset(disxx::disasm::operand::Register &&) noexcept(false);
+		void AddImmediatePreIndexedOffset(const signed short int, bool) noexcept;
+		void AddRegisterOffset(disxx::disasm::operand::Register &&) noexcept;
 
-		void AddExtension(unsigned short int, unsigned short int) noexcept(false);
-		void AddShift(Shift::Type, unsigned short int) noexcept(false);
+		void AddExtension(Extension &&) noexcept;
+		void AddShift(Shift &&) noexcept;
 	};
 } /* operand */

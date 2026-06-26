@@ -8,68 +8,25 @@ module disxx.disasm.operand.MemoryBarrier;
 
 namespace disxx::disasm::operand
 {
-	/* Impl */
-	
-	class MemoryBarrier::Impl final : public AbstractImpl
-	{
-	  private:
-		enum class Type : unsigned short int
-		{
-			TYPE_OSHLD	= 0b0001,
-			TYPE_OSHST	= 0b0010,
-			TYPE_OSH	= 0b0011,
-			TYPE_NSHLD	= 0b0101,
-			TYPE_NSHST	= 0b0110,
-			TYPE_NSH	= 0b0111,
-			TYPE_ISHLD	= 0b1001,
-			TYPE_ISHST	= 0b1010,
-			TYPE_ISH	= 0b1011,
-			TYPE_LD		= 0b1101,
-			TYPE_ST		= 0b1110,
-			TYPE_SY		= 0b1111
-		};
-
-	  private:
-		static const std::unordered_map<Type, const char *> s_BarrierTable;
-
-	  private:
-		Type m_Barrier{};
-		bool m_NXS{};
-
-	  public:
-		explicit Impl(void) noexcept;
-		explicit Impl(unsigned short int, bool) noexcept;
-
-		explicit Impl(const Impl &other) noexcept;
-		Impl &operator=(const Impl &) noexcept;
-
-		explicit Impl(const Impl &&) noexcept;
-		Impl &operator=(const Impl &&) noexcept;
-
-		virtual ~Impl(void) noexcept override = default;
-
-		virtual std::string GetMnemonic(void) const noexcept(false) override;
-	};
-
-	MemoryBarrier::Impl::Impl(void) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_MEMORYBARRIER}
+	MemoryBarrier::MemoryBarrier(void) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_MEMORYBARRIER}
 		, m_Barrier{}
 		, m_NXS{}
 	{}
 
-	MemoryBarrier::Impl::Impl(unsigned short int bits, bool nXS) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_MEMORYBARRIER}
+	MemoryBarrier::MemoryBarrier(unsigned short int bits, bool nXS) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_MEMORYBARRIER}
 		, m_Barrier{static_cast<Type>(bits)}
 		, m_NXS{nXS}
 	{}
 
-	MemoryBarrier::Impl::Impl(const Impl &other) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_MEMORYBARRIER}
+	MemoryBarrier::MemoryBarrier(const MemoryBarrier &other) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_MEMORYBARRIER}
 		, m_Barrier{other.m_Barrier}
 		, m_NXS{other.m_NXS}
 	{}
 
-	MemoryBarrier::Impl &MemoryBarrier::Impl::operator=(const Impl &other) noexcept
+	MemoryBarrier &MemoryBarrier::MemoryBarrier::operator=(const MemoryBarrier &other) noexcept
 	{
 		if (this != &other) [[likely]]
 		{
@@ -80,21 +37,21 @@ namespace disxx::disasm::operand
 		return *this;
 	}
 
-	MemoryBarrier::Impl::Impl(const Impl &&other) noexcept
-		: AbstractImpl{AbstractOperand::Type::TYPE_MEMORYBARRIER}
-		, m_Barrier{other.m_Barrier}
-		, m_NXS{other.m_NXS}
+	MemoryBarrier::MemoryBarrier(MemoryBarrier &&other) noexcept
+		: AbstractOperand{AbstractOperand::Type::TYPE_MEMORYBARRIER}
+		, m_Barrier{std::move(other.m_Barrier)}
+		, m_NXS{std::move(other.m_NXS)}
 	{}
 
-	MemoryBarrier::Impl &MemoryBarrier::Impl::operator=(const Impl &&other) noexcept
+	MemoryBarrier &MemoryBarrier::MemoryBarrier::operator=(MemoryBarrier &&other) noexcept
 	{
-		this->m_Barrier = other.m_Barrier;
-		this->m_NXS = other.m_NXS;
+		this->m_Barrier = std::move(other.m_Barrier);
+		this->m_NXS = std::move(other.m_NXS);
 
 		return *this;
 	}
 
-	std::string MemoryBarrier::Impl::GetMnemonic(void) const noexcept(false)
+	std::string MemoryBarrier::MemoryBarrier::GetMnemonic(void) const noexcept(false)
 	{
 		return std::string
 		{
@@ -103,7 +60,7 @@ namespace disxx::disasm::operand
 		} + (this->m_NXS ? "nXS" : "");
 	}
 
-	const std::unordered_map<MemoryBarrier::Impl::Type, const char *> MemoryBarrier::Impl::s_BarrierTable = {
+	const std::unordered_map<MemoryBarrier::MemoryBarrier::Type, const char *> MemoryBarrier::MemoryBarrier::s_BarrierTable = {
 		{Type::TYPE_OSHLD,	"oshld"},
         {Type::TYPE_OSHST,	"oshst"},
         {Type::TYPE_OSH,	"osh"},
@@ -118,48 +75,6 @@ namespace disxx::disasm::operand
         {Type::TYPE_SY,		"sy"}
 	};
 
-	/* MemoryBarrier */
-
-	MemoryBarrier::MemoryBarrier(void) noexcept
-		: AbstractOperand{}
-	{}
-
-	MemoryBarrier::MemoryBarrier(unsigned short int bits, bool nXS) noexcept
-		: AbstractOperand{std::make_unique<Impl>(bits, nXS)}
-	{}
-
-	MemoryBarrier::MemoryBarrier(const MemoryBarrier &other) noexcept(false)
-		: AbstractOperand{std::make_unique<Impl>(*dynamic_cast<const Impl *>(&(*other.m_pImpl)))}
-	{}
-
-	MemoryBarrier &MemoryBarrier::operator=(const MemoryBarrier &other) noexcept(false)
-	{
-		if (this != &other)
-		{
-			if (this->m_pImpl)
-				this->m_pImpl.Get().reset();
-			this->m_pImpl.Get() = std::make_unique<Impl>(*dynamic_cast<const Impl *>(&(*other.m_pImpl)));
-		}
-
-		return *this;
-	}
-
-	MemoryBarrier::MemoryBarrier(MemoryBarrier &&other) noexcept
-		: AbstractOperand{std::move(other.m_pImpl.Get())}
-	{}
-
-	MemoryBarrier &MemoryBarrier::operator=(MemoryBarrier &&other) noexcept
-	{
-		if (this->m_pImpl)
-			this->m_pImpl.Get().reset();
-		this->m_pImpl.Get() = std::move(other.m_pImpl.Get());
-
-		return *this;
-	}
-
 	std::unique_ptr<AbstractOperand> MemoryBarrier::Clone(void) const noexcept
 	{ return std::make_unique<MemoryBarrier>(*this); }
-} /* operand */
-
-
-
+} /* disxx::disasm::operand */
