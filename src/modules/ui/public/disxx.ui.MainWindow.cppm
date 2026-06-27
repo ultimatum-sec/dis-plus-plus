@@ -8,7 +8,6 @@ export module disxx.ui.MainWindow;
 
 export import disxx.ui.utility.Vec;
 
-import disxx.utility.wrapper.Pointer;
 import disxx.ui.backend.GLUTContext;
 import disxx.ui.backend.IContext;
 import disxx.ui.Widget;

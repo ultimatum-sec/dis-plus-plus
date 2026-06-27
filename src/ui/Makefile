@@ -31,8 +31,8 @@ endif
 
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cppm \
-	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.AbstractWrapper.cppm \
-	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)wrapper$(PATHSEP)disxx.utility.wrapper.Pointer.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.DefaultDeleter.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.NonNull.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Image.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ImageLoader.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ColorTag.cppm \

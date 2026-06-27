@@ -9,7 +9,7 @@ module;
 
 export module disxx.ui.Widget;
 
-import disxx.utility.wrapper.Pointer;
+import disxx.utility.pointer.NonNull;
 import disxx.ui.backend.IRenderer;
 import disxx.ui.backend.GLRenderer;
 
@@ -20,7 +20,7 @@ export namespace disxx::ui
 	class __DISXX_EXPORT__ [[nodiscard]] Widget
 	{
 	  protected:
-		static disxx::utility::wrapper::Pointer<std::shared_ptr<backend::IRenderer>> s_pRenderer;
+		static disxx::utility::pointer::NonNull<backend::IRenderer> s_pRenderer;
 
 	  protected:
 		utility::Vec2<float> m_Position{};

@@ -39,7 +39,7 @@ export namespace disxx::utility::pointer
 
 	  public:
 		explicit NonNull(void) noexcept;
-		explicit NonNull(T) noexcept(false);
+		explicit NonNull(T *) noexcept(false);
 		explicit NonNull(std::nullptr_t) noexcept = delete;
 
 		NonNull(const NonNull &) noexcept;
@@ -85,7 +85,7 @@ export namespace disxx::utility::pointer
 	{}
 
 	template <typename T, typename D> requires Deleter<T *, D>
-	NonNull<T, D>::NonNull(T ptr) noexcept(false)
+	NonNull<T, D>::NonNull(T *ptr) noexcept(false)
 		: m_pPointer{DANGLING(T)}
 		, m_Deleter{}
 	{
