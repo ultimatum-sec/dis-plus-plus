@@ -68,7 +68,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 
         const auto getAmountInTheRange0
         {
-            [=, this](short int border = -1, bool shouldExtract = false) -> std::expected<short int, disxx::utility::error::DisassemblyError>
+            [=](short int border = -1, bool shouldExtract = false) -> signed short int
             {
                 const auto index
                 {
@@ -81,14 +81,14 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 };
 
                 if (index == border) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-                return ((immh << 3) | immb) - (8 << index);
+                	return std::numeric_limits<signed short int>::min();
+				return ((immh << 3) | immb) - (8 << index);
             }
         };
 
         const auto getAmountInTheRange1
         {
-            [=, this](short int border = -1, bool shouldExtract = false) -> std::expected<short int, disxx::utility::error::DisassemblyError>
+            [=](short int border = -1, bool shouldExtract = false) -> signed short int
             {
                 const auto index
                 {
@@ -101,12 +101,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 };
 
                 if (index == border) [[unlikely]]
-                     return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-                return ((8 << index) * 2) - ((immh << 3) | immb);
+                	return std::numeric_limits<signed short int>::min();
+				return ((8 << index) * 2) - ((immh << 3) | immb);
             }
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::expected<short int, disxx::utility::error::DisassemblyError>(void)>>> insnTable = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<signed short int(void)>>> insnTable = {
             {0b000000, {InstructionID::INSN_SSHR, getAmountInTheRange1}},
             {0b000010, {InstructionID::INSN_SSRA, getAmountInTheRange1}},
             {0b000100, {InstructionID::INSN_SRSRA, getAmountInTheRange1}},
@@ -145,15 +145,18 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
         // Imm must be signed, so it's better to put it in the Immediate class to decode it with correct sign
-        if (const auto amount{amountFunc()})
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<signed short int, 16>>(amount.value()));
+        if (const auto amount{amountFunc()}; amount != std::numeric_limits<signed short int>::min())
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<signed short int, 16>>(amount));
         else
-            return std::unexpected{amount.error()};
-    
+   			return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+ 
         auto size{bits::HighestSetBitNZ<unsigned short int, 4>(immh)};
-        if (size <= 0b10)    size >>= 1;
-        else if (size == 3) size &= 1;
-        else                size = 0b11;
+        if (size <= 0b10)
+			size >>= 1;
+        else if (size == 3)
+			size &= 1;
+        else
+			size = 0b11;
 
         //if (bits::HighestSetBitNZ<unsigned short int, 4>(immh))
         if (opcode >= 0b10000 && opcode <= 0b10100)

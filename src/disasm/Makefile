@@ -16,7 +16,7 @@ CXXFLAGS=\
 	-Wno-weak-vtables -Wno-c++98-compat -Wno-implicit-int-conversion -Wno-reserved-macro-identifier \
 	-Wno-padded -Wno-c++98-c++11-compat-binary-literal -Wno-sign-conversion -Wno-reserved-identifier \
 	-Wno-c++98-compat-pedantic -Wno-global-constructors -Wno-exit-time-destructors -Wno-switch-enum \
-	-Wno-undefined-func-template -Wno-shift-count-overflow -Wno-integer-overflow \
+	-Wno-nrvo -Wno-undefined-func-template -Wno-shift-count-overflow -Wno-integer-overflow \
 	-ftrapv -fwrapv -fmodules -fcxx-modules -fvisibility=hidden -fprebuilt-module-path=$(PRECOMPILEDDIR) \
 	-Xclang -fmodules-local-submodule-visibility -I..$(PATHSEP)include -fstack-protector-all -DNDEBUG
 

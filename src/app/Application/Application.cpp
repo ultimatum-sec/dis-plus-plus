@@ -270,11 +270,11 @@ void Application::__InitFunc(void) noexcept(false)
 						| std::ranges::to<std::vector<disxx::disasm::Bytes>>()
 				};
 
-	   		    for (const disxx::disasm::Disassembler disasm{}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}))
+	   		    for (disxx::disasm::Disassembler disasm{}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}).value())
     		    {
-					if (insn)
-					{
-						const auto &value{insn.value()};
+					//if (insn)
+					//{
+						const auto &value{insn};
 						
 						auto mnemonic
 						{
@@ -356,9 +356,9 @@ void Application::__InitFunc(void) noexcept(false)
 
 						pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", mnemonic);
 						continue;
-					}
+					//}
 		
-					pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
+					//pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
 				}
     		}
 		}

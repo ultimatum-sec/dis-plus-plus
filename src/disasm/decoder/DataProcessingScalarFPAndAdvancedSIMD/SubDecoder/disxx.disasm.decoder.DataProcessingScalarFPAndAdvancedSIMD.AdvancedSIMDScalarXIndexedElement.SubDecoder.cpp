@@ -67,7 +67,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         // Lambda to calculate index for instructions in insnTable
         const auto calcIndexInsnTable
         {
-            [=, this](void) -> std::expected<unsigned short int, disxx::utility::error::DisassemblyError>
+            [=] -> signed short int
             {
                 switch (size)
                 {
@@ -78,7 +78,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     return (H << 1) | L;
     
                   default:
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return std::numeric_limits<signed short int>::min();
                 }
             }
         };
@@ -86,7 +86,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         // Lambda to calculate index for some instructions in insnTableWithSize
         const auto calcIndexInsnTableWithSize
         {
-            [=, this](void) -> std::expected<unsigned short int, disxx::utility::error::DisassemblyError>
+            [=] -> signed short int
             {
                 switch (((size & 0b01) << 1) | L)
                 {
@@ -97,12 +97,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     return H;
     
                   default:
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return std::numeric_limits<signed short int>::min();
                 }
             }
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::expected<unsigned short int, disxx::utility::error::DisassemblyError>>> insnTable = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, signed short int>> insnTable = {
             {0b00011, {InstructionID::INSN_SQDMLAL, calcIndexInsnTable()}},
             {0b00111, {InstructionID::INSN_SQDMLSL, calcIndexInsnTable()}},
             {0b01011, {InstructionID::INSN_SQDMULL, calcIndexInsnTable()}},
@@ -112,7 +112,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b11111, {InstructionID::INSN_SQRDMLSH, calcIndexInsnTable()}}
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::expected<unsigned short int, disxx::utility::error::DisassemblyError>>> insnTableWithSize = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, signed short int>> insnTableWithSize = {
             {0b0000001, {InstructionID::INSN_FMLA, (H << 2) | (L << 1) | M}},
             {0b0000101, {InstructionID::INSN_FMLS, (H << 2) | (L << 1) | M}},
             {0b0001001, {InstructionID::INSN_FMUL, (H << 2) | (L << 1) | M}},
@@ -157,10 +157,10 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         }
 
         const auto &[insn, index]{it->second};
-        if (!index) [[unlikely]]
-            return std::unexpected{index.error()};
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
-            ->SetArrangementSpecifier(std::format("{:c}[{}]", Ts, index.value()));
+        if (index == std::numeric_limits<signed short int>::min()) [[unlikely]]
+        	return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+		static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
+            ->SetArrangementSpecifier(std::format("{:c}[{}]", Ts, index));
         
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

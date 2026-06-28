@@ -201,7 +201,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     )
                 );
 
-                return std::make_pair(it->second, std::move(this->m_Operands));;
+                return std::make_pair(it->second, std::move(this->m_Operands));
 
               case 0b0000:
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "4s" : "2s");
@@ -214,7 +214,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     )
                 );
 
-                return std::make_pair(it->second, std::move(this->m_Operands));;
+                return std::make_pair(it->second, std::move(this->m_Operands));
 
               default:
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "4s" : "2s");
@@ -227,7 +227,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     )
                 );
 
-                return std::make_pair(it->second, std::move(this->m_Operands));;
+                return std::make_pair(it->second, std::move(this->m_Operands));
             }
         }
             

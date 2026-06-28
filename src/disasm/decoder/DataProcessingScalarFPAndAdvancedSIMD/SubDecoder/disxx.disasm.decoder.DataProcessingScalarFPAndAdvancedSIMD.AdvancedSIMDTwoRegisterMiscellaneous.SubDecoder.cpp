@@ -22,22 +22,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         std::tuple
         <
             InstructionID,
-            std::function
-            <
-                std::expected
-                <
-                    std::string_view,
-                    disxx::utility::error::DisassemblyError
-                >(void)
-            >,
-            std::function
-            <
-                std::expected
-                <
-                    std::string_view,
-                    disxx::utility::error::DisassemblyError
-                >(void)
-            >
+            std::function<std::string_view(void)>,
+            std::function<std::string_view(void)>
         >
     >;
 
@@ -97,50 +83,47 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 
         const auto getAllArrangementSpecifiers
         {
-            [=, this](unsigned short int shift = 0, unsigned short int border = 0b11)
-                -> std::expected<std::string_view, disxx::utility::error::DisassemblyError>
+            [=](unsigned short int shift = 0, unsigned short int border = 0b11) -> std::string_view
             {
                 if (size >= border) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return "";
                 
                 const auto it{fullArrangementSpecifiersTable.find(((size + shift) << 1) | Q)};
                 if (it == fullArrangementSpecifiersTable.end()) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return "";
                 return it->second;
             }
         };
 
         const auto getSizeBasedArrangementSpecifier
         {
-            [=, this](unsigned short int shift = 0, unsigned short int border = 0b11)
-                -> std::expected<std::string_view, disxx::utility::error::DisassemblyError>
+            [=](unsigned short int shift = 0, unsigned short int border = 0b11) -> std::string_view
             {
                 if (size >= border) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return "";
                 
                 const auto it{fullArrangementSpecifiersTable.find(((size + shift) << 1) | 0b1)};
                 if (it == fullArrangementSpecifiersTable.end()) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return "";
                 return it->second;
             }
         };
 
         const auto getSzQBasedArrangementSpecifier
         {
-            [=, this](unsigned short int shift = 0, short int border = -1)
-                -> std::expected<std::string_view, disxx::utility::error::DisassemblyError>
+            [=](unsigned short int shift = 0, short int border = -1) -> std::string_view
             {
                 // Specifier between 4s and 2d is reserved!
                 if (shift >= 2 && Q == 0b0) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return "";
     
                 if (const auto sz{size & 0b01}; sz >= border && border != -1) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return "";
     
                 // NOTE: To get arrangement specifier correctly, shift must be multiplied by two
                 auto it{fullArrangementSpecifiersTable.find(((size << 1) | Q) + shift * 2)};
                 if (it == fullArrangementSpecifiersTable.end()) [[unlikely]]
-                    return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+                    return "";
                 return it->second;
             }
         };
@@ -160,15 +143,15 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b000001,
 				{
 					InstructionID::INSN_REV16,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(0, 0b01); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(0, 0b01); }
+					[&] -> std::string_view { return getAllArrangementSpecifiers(0, 0b01); },
+					[&] -> std::string_view { return getAllArrangementSpecifiers(0, 0b01); }
 				}
 			},
             {
 				0b000010,
 				{
 					InstructionID::INSN_SADDLP,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(1); },
+					[&] -> std::string_view { return getAllArrangementSpecifiers(1); },
 					getAllArrangementSpecifiers
 				}
 			},
@@ -176,8 +159,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b000011,
 				{
 					InstructionID::INSN_SUQADD,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
@@ -192,15 +175,15 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b000101,
 				{
 					InstructionID::INSN_CNT,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(0, 0b01); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(0, 0b01); }
+					[&] -> std::string_view { return getAllArrangementSpecifiers(0, 0b01); },
+					[&] -> std::string_view { return getAllArrangementSpecifiers(0, 0b01); }
 				}
 			},
             {
 				0b000110,
 				{
 					InstructionID::INSN_SADALP,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(1); },
+					[&] -> std::string_view { return getAllArrangementSpecifiers(1); },
 					getAllArrangementSpecifiers
 				}
 			},
@@ -208,40 +191,40 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b000111,
 				{
 					InstructionID::INSN_SQABS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
 				0b001000,
 				{
 					InstructionID::INSN_CMGT,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
 				0b001001,
 				{
 					InstructionID::INSN_CMEQ,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
 				0b001010,
 				{
 					InstructionID::INSN_CMLT,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
 				0b001011,
 				{
 					InstructionID::INSN_ABS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
@@ -249,7 +232,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				{
 					Q == 0b1 ? InstructionID::INSN_XTN2 : InstructionID::INSN_XTN,
 					getAllArrangementSpecifiers,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSizeBasedArrangementSpecifier(1); }
+					[&] -> std::string_view { return getSizeBasedArrangementSpecifier(1); }
 				}
 			},
             {
@@ -257,22 +240,22 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				{
 					Q == 0b1 ? InstructionID::INSN_SQXTN2 : InstructionID::INSN_SQXTN,
 					getAllArrangementSpecifiers,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSizeBasedArrangementSpecifier(1); }
+					[&] -> std::string_view { return getSizeBasedArrangementSpecifier(1); }
 				}
 			},
             {
 				0b100000,
 				{
 					InstructionID::INSN_REV32,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(0, 0b10); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(0, 0b10); }
+					[&] -> std::string_view { return getAllArrangementSpecifiers(0, 0b10); },
+					[&] -> std::string_view { return getAllArrangementSpecifiers(0, 0b10); }
 				}
 			},
             {
 				0b100010,
 				{
 					InstructionID::INSN_UADDLP,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(1); },
+					[&] -> std::string_view { return getAllArrangementSpecifiers(1); },
 					getAllArrangementSpecifiers
 				}
 			},
@@ -280,8 +263,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b100011,
 				{
 					InstructionID::INSN_USQADD,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
@@ -296,7 +279,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b100110,
 				{
 					InstructionID::INSN_UADALP,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getAllArrangementSpecifiers(1); },
+					[&] -> std::string_view { return getAllArrangementSpecifiers(1); },
 					getAllArrangementSpecifiers
 				}
 			},
@@ -304,32 +287,32 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b100111,
 				{
 					InstructionID::INSN_SQNEG,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
 				0b101000,
 				{
 					InstructionID::INSN_CMGE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
 				0b101001,
 				{
 					InstructionID::INSN_CMLE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
 				0b101011,
 				{
 					InstructionID::INSN_NEG,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); },
+					[&] -> std::string_view { return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q); }
 				}
 			},
             {
@@ -337,7 +320,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				{
 					Q == 0b1 ? InstructionID::INSN_SQXTUN2 : InstructionID::INSN_SQXTUN,
 					getAllArrangementSpecifiers,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSizeBasedArrangementSpecifier(1); }
+					[&] -> std::string_view { return getSizeBasedArrangementSpecifier(1); }
 				}
 			},
             // Shit! Oops, I meant shift! I have to process the shift for this insn
@@ -345,7 +328,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b110011,
 				{
 					Q == 0b1 ? InstructionID::INSN_SHLL2 : InstructionID::INSN_SHLL,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSizeBasedArrangementSpecifier(1); },
+					[&] -> std::string_view { return getSizeBasedArrangementSpecifier(1); },
 					getAllArrangementSpecifiers
 				}
 			},
@@ -354,7 +337,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				{
 					Q == 0b1 ? InstructionID::INSN_UQXTN2 : InstructionID::INSN_UQXTN,
 					getAllArrangementSpecifiers,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSizeBasedArrangementSpecifier(1); }
+					[&] -> std::string_view { return getSizeBasedArrangementSpecifier(1); }
 				}
 			}
         };
@@ -365,388 +348,387 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b00010110,
 				{
 					Q == 0b1 ? InstructionID::INSN_FCVTN2 : InstructionID::INSN_FCVTN,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(1); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "2d" : "4s"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(1); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "2d" : "4s"; }
 				}
 			},
             {
 				0b00010111,
 				{
 					Q == 0b1 ? InstructionID::INSN_FCVTL2 : InstructionID::INSN_FCVTL,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(1); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "2d" : "4s"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(1); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "2d" : "4s"; }
 				}
 			},
             {
 				0b00011000,
 				{
 					InstructionID::INSN_FRINTN,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b00011001,
 				{
 					InstructionID::INSN_FRINTM,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b00011010,
 				{
 					InstructionID::INSN_FCVTNS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b00011011,
 				{
 					InstructionID::INSN_FCVTMS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b00011100,
 				{
 					InstructionID::INSN_FCVTAS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b00011101,
 				{
 					InstructionID::INSN_SCVTF,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b00011110,
 				{
 					InstructionID::INSN_FRINT32Z,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b00011111,
 				{
 					InstructionID::INSN_FRINT64Z,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b01001100,
 				{
 					InstructionID::INSN_FCMGT,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01001101,
 				{
 					InstructionID::INSN_FCMEQ,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01001110,
 				{
 					InstructionID::INSN_FCMLT,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01001111,
 				{
 					InstructionID::INSN_FABS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01011000,
 				{
 					InstructionID::INSN_FRINTP,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01011001,
 				{
 					InstructionID::INSN_FRINTZ,	
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01011010,
 				{
 					InstructionID::INSN_FCVTPS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01011011,
 				{
 					InstructionID::INSN_FCVTZS,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01011100,
 				{
 					InstructionID::INSN_URECPE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2, 1); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2, 1); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2, 1); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2, 1); }
 				}
 			},
             {
 				0b01011101,
 				{
 					InstructionID::INSN_FRECPE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b01010110,
 				{
 					Q == 0b1 ? InstructionID::INSN_BFCVTN2 : InstructionID::INSN_BFCVTN,
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; },
-					[&](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return "4s"; }
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; },
+					[&] -> std::string_view { return "4s"; }
 				}
 			},
             {
 				0b10011000,
 				{
 					InstructionID::INSN_FRINTA,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b10011001,
 				{
 					InstructionID::INSN_FRINTX,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b10011010,
 				{
 					InstructionID::INSN_FCVTNU,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b10011011,
 				{
 					InstructionID::INSN_FCVTMU,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b10011100,
 				{
 					InstructionID::INSN_FCVTAU,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b10011101,
 				{
 					InstructionID::INSN_UCVTF,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[size](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[size] -> std::string_view { return (size & 0b01) == 0b1 ? "8h" : "4h"; }
 				}
 			},
             {
 				0b10011110,
 				{
 					InstructionID::INSN_FRINT32X,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b10011111,
 				{
 					InstructionID::INSN_FRINT64X,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b10000101,
 				{
 					InstructionID::INSN_NOT,
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; },
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; }
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; },
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }
 				}
 			},
             {
 				0b10010111,
 				{
 					Q == 0b1 ? InstructionID::INSN_F1CVTL2 : InstructionID::INSN_F1CVTL,
-					[&](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return "8h"; },
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; }
+					[&] -> std::string_view { return "8h"; },
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }
 				}
 			},
             {
 				0b10100101,
 				{
 					InstructionID::INSN_RBIT,
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; },
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; }
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; },
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }
 				}
 			},
             {
 				0b10110110,
 				{
 					Q == 0b1 ? InstructionID::INSN_FCVTXN2 : InstructionID::INSN_FCVTXN,
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "4s" : "2s"; },
-					[&](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return "2d"; }
+					[Q] -> std::string_view { return Q == 0b1 ? "4s" : "2s"; },
+					[&] -> std::string_view { return "2d"; }
 				}
 			},
 			{
 				0b10110111,
 				{
 					Q == 0b1 ? InstructionID::INSN_F2CVTL2 : InstructionID::INSN_F2CVTL,
-					[&](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return "8h"; },
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; }
+					[&] -> std::string_view { return "8h"; },
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }
 				}
 			},
             {
 				0b11001100,
 				{
 					InstructionID::INSN_FCMGE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11001101,
 				{
 					InstructionID::INSN_FCMLE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11001111,
 				{
 					InstructionID::INSN_FNEG,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11011001,
 				{
 					InstructionID::INSN_FRINTI,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11011010,
 				{
 					InstructionID::INSN_FCVTPU,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11011011,
 				{
 					InstructionID::INSN_FCVTZU,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11011100,
 				{
 					InstructionID::INSN_URSQRTE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2, 1); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2, 1); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2, 1); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2, 1); }
 				}
 			},
             {
 				0b11011101,
 				{
 					InstructionID::INSN_FRSQRTE,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11011111,
 				{
 					InstructionID::INSN_FSQRT,
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); },
-					[&] -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return getSzQBasedArrangementSpecifier(2); }
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); },
+					[&] -> std::string_view { return getSzQBasedArrangementSpecifier(2); }
 				}
 			},
             {
 				0b11010111,
 				{
 					Q == 0b1 ? InstructionID::INSN_BF1CVTL2 : InstructionID::INSN_BF1CVTL,
-					[&](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return "8h"; },
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; }
+					[&] -> std::string_view { return "8h"; },
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }
 				}
 			},
             {
 				0b11110111,
 				{
 					Q == 0b1 ? InstructionID::INSN_BF2CVTL2 : InstructionID::INSN_BF2CVTL,
-					[&](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return "8h"; },
-					[Q](void) -> std::expected<std::string_view, disxx::utility::error::DisassemblyError> { return Q == 0b1 ? "16b" : "8b"; }
+					[&] -> std::string_view { return "8h"; },
+					[Q] -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }
 				}
 			}
         };
 
 		unsigned short int encoding = (U << 5) | opcode;
 		auto it{insnTable.find(encoding)};
-
 		if (it == insnTable.end())
 		{
             encoding = (U << 7) | (size << 5) | opcode;
             if (!((U == 0b1 && (opcode == 0b10111 || opcode == 0b00101 || opcode == 0b10110)) || encoding == 0b01010110))
                 // Turn off the first bit in the size field
                 encoding &= ~(0b1 << 5);
-    
-            it = insnTableWithSize.find(encoding);
-            if (it == insnTableWithSize.end()) [[unlikely]]
+			it = insnTableWithSize.find(encoding); 
+			
+			if (it == insnTableWithSize.end()) [[unlikely]]
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 		}
 
 		const auto &[insn, func1, func2]{it->second};
         const auto &[spec1, spec2]{std::make_tuple(func1(), func2())};
-        if (!spec1 || !spec2) [[unlikely]]
+        if (spec1 == "" || spec2 == "") [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(spec1.value().data());
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(spec1.data());
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(spec2.value().data());
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(spec2.data());
         
         if ((opcode >= 0b01100 && opcode <= 0b01110) || (opcode >= 0b01000 && opcode <= 0b01010) || opcode == 0b01100 || opcode == 0b01101)
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<float, 1>>(0.f));

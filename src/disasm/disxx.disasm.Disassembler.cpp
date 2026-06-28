@@ -16,7 +16,7 @@ import disxx.disasm.Address;
 
 namespace disxx::disasm
 {
-	Disassembler::DisassemblyResult Disassembler::DisassembleSingle(Bytes word, Address addr) const noexcept(false)
+	Disassembler::SingleResult Disassembler::DisassembleSingle(Bytes word, Address addr) const noexcept(false)
 	{
 		const auto &obj
 		{
@@ -66,7 +66,7 @@ namespace disxx::disasm
 			}()
 		};
 
-		return DisassemblyResult
+		return SingleResult
 		{	
 			Instruction{}
 				.SetBytes(std::move(word))
