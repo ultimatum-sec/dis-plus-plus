@@ -8,11 +8,14 @@ extern "C"
 {
 #endif
 
-struct mapfile_t
+static struct mapfile_t
 {
 	void *mptr;
 	off_t msize;
 } mapped = {.mptr = MAP_FAILED, .msize = -1};
+
+struct mapfile_t *mopen(char *path);
+int mclose(void);
 
 struct mapfile_t *mopen(char *path)
 {

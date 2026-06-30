@@ -8,7 +8,8 @@ module;
 #define INIT_GL_RENDERER(ptr) \
 	static bool first{true}; \
 	if (first) \
-		ptr = new backend::GLRenderer{};
+		ptr = new backend::GLRenderer{}; \
+	first = false
 
 module disxx.ui.Widget;
 

@@ -12,8 +12,8 @@ OBJECTSDIR=.$(PATHSEP)build$(PATHSEP)objects
 
 ASMFLAGS=-c -arch arm64
 
-CFLAGS=-c -std=c99 -arch $(ARCH) -Wall -Wextra -Wpedantic -Werror -O3 -DNDEBUG \
-	-isysroot $(shell xcrun --show-sdk-path)
+CFLAGS=-c -std=c99 -arch $(ARCH) -Weverything -Werror -Wno-misleading-indentation \
+	-Wno-sign-conversion -O3 -DNDEBUG -isysroot $(shell xcrun --show-sdk-path)
 
 CXXFLAGS=-std=c++26 -Weverything -Werror -O3 -arch $(ARCH) \
 	-isysroot $(shell xcrun --show-sdk-path) -I..$(PATHSEP)include \

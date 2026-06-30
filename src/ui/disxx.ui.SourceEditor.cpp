@@ -1,7 +1,5 @@
 module;
 
-#include <GLUT/glut.h>
-
 #include <string_view>
 #include <functional>
 #include <algorithm>
@@ -12,6 +10,7 @@ module;
 
 module disxx.ui.SourceEditor;
 
+import disxx.ui.backend.GLUTContext;
 import disxx.ui.backend.GLRenderer;
 import disxx.ui.utility.ColorTag;
 import disxx.ui.utility.Shape;
@@ -111,7 +110,7 @@ namespace disxx::ui
 		this->m_MaxScrollX = 0.f;
 		for (const auto &line : this->m_Lines)
 			if (auto realText{utility::ColorTag{}.RemoveTags(line)}; realText.size() * CHAR_HEIGHT + 5 > this->m_MaxScrollX)
-					this->m_MaxScrollX = std::max(0.f, realText.size() * CHAR_HEIGHT + 5 - (this->m_Size.x - CORNER_WIDTH));
+				this->m_MaxScrollX = std::max(0.f, realText.size() * CHAR_HEIGHT + 5 - (this->m_Size.x - CORNER_WIDTH));
 
 		this->m_VerticalSliderHeight = (this->m_Size.y - CORNER_HEIGHT) * ((this->m_Size.y - CORNER_HEIGHT)
 			/ static_cast<float>(this->m_Lines.size() * CHAR_WIDTH));
@@ -129,8 +128,12 @@ namespace disxx::ui
 
 	void SourceEditor::HandleMouse(int button, int state, int x, int y) noexcept
 	{
+		#ifdef BACKEND_CTX_GLUT
+			y = backend::GLUTContext::GetWindowSize().y - y;
+		#endif
+
 		// Mouse clicked	
-		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+		if (button == 0 && state == 0)
 		{
 			// The verticall scrollbar has been dragged
 			if (x >= this->m_Size.x - CORNER_WIDTH && x < this->m_Size.x && y > CORNER_HEIGHT && y < this->m_Size.y)
@@ -146,7 +149,7 @@ namespace disxx::ui
 			}
 		}
 		// Mouse released
-		else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+		else if (button == 0 && state == 1)
 		{
 			this->m_IsActiveVertical = false;
 			this->m_IsActiveHorizontal = false;
@@ -161,6 +164,10 @@ namespace disxx::ui
 
 	void SourceEditor::HandleMotion(int x, int y) noexcept
 	{
+		//#ifdef BACKEND_CTX_GLUT
+		//	y = backend::GLUTContext::GetWindowSize().y - y;
+		//#endif
+
 		if (this->m_IsActiveVertical)
 		{
 			float delta{y - this->m_LastMouseY};
@@ -168,8 +175,6 @@ namespace disxx::ui
 
 			this->m_ScrollY += delta * (this->m_MaxScrollY / (this->m_Size.y - CORNER_HEIGHT));
 			this->m_ScrollY = std::max(0.f, std::min(this->m_ScrollY, this->m_MaxScrollY));
-	
-			backend::GLRenderer::Redisplay();	
 		}
 		else if (this->m_IsActiveHorizontal)
 		{
@@ -178,8 +183,6 @@ namespace disxx::ui
 
   	        this->m_ScrollX += delta * (this->m_MaxScrollX / (this->m_Size.x - CORNER_WIDTH));
 			this->m_ScrollX = std::max(0.f, std::min(this->m_ScrollX, this->m_MaxScrollX));
-
-			backend::GLRenderer::Redisplay();	
 		}
 	}
 	
@@ -214,7 +217,7 @@ namespace disxx::ui
 				utility::Text txt{};
 				txt.Replace
 				(
-					utility::Vec2<GLfloat>
+					utility::Vec2<float>
 					{
 						std::max(1.f, 5.f - this->m_ScrollX + static_cast<float>(renderStart) * CHAR_HEIGHT),
 						this->m_Position.y + this->m_Size.y - i * CHAR_WIDTH + this->m_ScrollY
@@ -238,7 +241,7 @@ namespace disxx::ui
                 s_pRenderer->PushText(std::move(txt));
 
 				pos += text.size();
-             }
+        	}
         }
 	
 		// Render the vertical scrollbar
@@ -280,7 +283,6 @@ namespace disxx::ui
 			hScrollbar.Replace(utility::Vec2<float>{this->m_Position.x + pos, this->m_Position.y});
 			hScrollbar.Resize(utility::Vec2<float>{this->m_HorizontalSliderWidth, CORNER_HEIGHT});
 			hScrollbar.SetColor(utility::Vec3<float>{0.3f, 0.3f, 0.3f});
-
 			s_pRenderer->PushShape(std::move(hScrollbar));
 		}
 

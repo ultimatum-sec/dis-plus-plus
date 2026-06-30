@@ -14,6 +14,7 @@ export import <string_view>;
 export import <utility>;
 
 import disxx.ui.backend.IContext;
+import disxx.ui.utility.Vec;
 
 export namespace disxx::ui::backend
 {
@@ -25,6 +26,7 @@ export namespace disxx::ui::backend
 	  public:
 		template <typename ...Args>
 		static void Init(Args &&...) noexcept;
+		static inline utility::Vec2<float> GetWindowSize(void) noexcept;
 
 	  public:
 		explicit GLUTContext(void) noexcept;
@@ -72,5 +74,14 @@ export namespace disxx::ui::backend
 		else
 			static_assert(false, "Incorrect arguments for disxx::ui::backend::GLUTContext::Init");
 		glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	}
+
+	inline utility::Vec2<float> GLUTContext::GetWindowSize(void) noexcept
+	{
+		return utility::Vec2<float>
+		{
+			glutGet(GLUT_WINDOW_WIDTH) * 1.f,
+			glutGet(GLUT_WINDOW_HEIGHT) * 1.f
+		};
 	}
 } /* disxx::ui::backend */

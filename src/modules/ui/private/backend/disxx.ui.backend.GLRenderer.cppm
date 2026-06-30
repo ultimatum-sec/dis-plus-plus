@@ -44,10 +44,6 @@ export namespace disxx::ui::backend
 		GLuint m_Program{};
 
 	  public:
-		static void SwapBuffers(void) noexcept;
-		static void Redisplay(void) noexcept;
-
-	  public:
 		explicit GLRenderer(void) noexcept;
 
 		~GLRenderer(void) noexcept;

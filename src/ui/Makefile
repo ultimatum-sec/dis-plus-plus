@@ -17,6 +17,7 @@ CXXFLAGS=-c -std=c++26 -arch $(ARCH) -O3 -Weverything -Werror -DGL_SILENCE_DEPRE
 	-Wno-c99-extensions -Wno-global-constructors -Wno-exit-time-destructors -Wno-reserved-identifier -Wno-non-virtual-dtor \
 	-Wno-switch-enum -Wno-reserved-macro-identifier -Wno-writable-strings -Wno-weak-vtables -Wno-undefined-func-template \
 	-Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-covered-switch-default -Wno-padded -Wno-sign-conversion \
+	-Wno-float-conversion -Wno-implicit-int-float-conversion \
 	-Xclang -fmodules-local-submodule-visibility -fstack-protector-all \
 	-Wno-writable-strings -Wno-unused-command-line-argument -fprebuilt-module-path=$(PRECOMPILEDDIR)
 
@@ -47,6 +48,7 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Widget.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Button.cppm \
+	$(MODULESPATH)public$(PATHSEP)disxx.ui.Menu.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.TextInput.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.SourceEditor.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.MainWindow.cppm
@@ -62,6 +64,7 @@ SOURCES=\
 	.$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cpp \
 	.$(PATHSEP)disxx.ui.Widget.cpp \
 	.$(PATHSEP)disxx.ui.Button.cpp \
+	.$(PATHSEP)disxx.ui.Menu.cpp \
 	.$(PATHSEP)disxx.ui.TextInput.cpp \
 	.$(PATHSEP)disxx.ui.SourceEditor.cpp \
 	.$(PATHSEP)disxx.ui.MainWindow.cpp

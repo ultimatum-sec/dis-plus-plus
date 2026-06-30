@@ -10,13 +10,13 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-   	-c -std=c++26 -Weverything -Werror -Og -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+   	-c -std=c++26 -Weverything -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
 	-fstrict-aliasing -ftrapv -fwrapv -Wno-unused-command-line-argument -Wno-c99-extensions -Wno-global-constructors -Wno-exit-time-destructors \
 	-Wno-reserved-identifier -Wno-switch-enum -Wno-reserved-macro-identifier -Wno-writable-strings -Wno-weak-vtables \
 	-Wno-non-virtual-dtor -Wno-covered-switch-default -Wno-padded -Wno-sign-conversion -Wno-c++98-compat -Wno-c++98-compat-pedantic \
 	-Wno-implicit-int-float-conversion \
 	-fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
-	-DGL_SILENCE_DEPRECATION -DBACKEND_CTX_GLUT -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden -g -DDEBUG
+	-DGL_SILENCE_DEPRECATION -DBACKEND_CTX_GLUT -DNDEBUG -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden
 
 LDFLAGS=\
 	-O2 $(LTOFLAGS) -S -demangle -arch $(ARCH) -pie -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
@@ -62,6 +62,7 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.Widget.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.Button.cppm \
+	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.Menu.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.SourceEditor.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.TextInput.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.MainWindow.cppm \

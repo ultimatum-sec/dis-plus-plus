@@ -1,5 +1,7 @@
 module;
 
+#include <GLUT/glut.h>
+
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -7,6 +9,7 @@ module;
 
 module disxx.ui.Button;
 
+import disxx.ui.backend.GLUTContext;
 import disxx.ui.backend.GLRenderer;
 import disxx.ui.utility.Shape;
 import disxx.ui.utility.Text;
@@ -107,6 +110,10 @@ namespace disxx::ui
 
 	void Button::HandleMouse(int button, int state, int x, int y) noexcept
 	{
+		#ifdef BACKEND_CTX_GLUT
+			y = backend::GLUTContext::GetWindowSize().y - y;
+		#endif
+
 		if (!(x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y))
 			return;
 

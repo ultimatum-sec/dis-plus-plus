@@ -11,20 +11,6 @@ module;
 #include <tuple>
 #include <bit>
 
-/*
-#define CHECKSH(sh) \
-{ \
-	GLint success; \
-	GLchar infoLog[512]; \
-	glGetShaderiv(sh, GL_COMPILE_STATUS, &success); \
-	if (!success) \
-	{ \
-	    glGetShaderInfoLog(sh, sizeof(infoLog), nullptr, infoLog); \
-	    std::cerr << infoLog << std::endl; \
-	} \
-}
-*/
-
 module disxx.ui.backend.GLRenderer;
 
 import disxx.ui.utility.Vertex;
@@ -32,12 +18,6 @@ import disxx.ui.utility.Vec;
 
 namespace disxx::ui::backend
 {
-	void GLRenderer::SwapBuffers(void) noexcept
-	{ glutSwapBuffers(); }
-
-	void GLRenderer::Redisplay(void) noexcept
-	{ glutPostRedisplay(); }
-
 	GLRenderer::GLRenderer(void) noexcept
 		: m_ShapeBuffer{}
 		, m_TextBuffer{}
@@ -120,8 +100,8 @@ namespace disxx::ui::backend
 
 	void GLRenderer::Render(void) noexcept
 	{
-		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Get actual window size and set up a projection
 		GLfloat projection[] = {
@@ -130,7 +110,7 @@ namespace disxx::ui::backend
 			0.f, 0.f, -1.f, 0.f,
 			-1.f, -1.f, 0.f, 1.f
 		};
-		
+
 		glUseProgram(this->m_Program);
 		GLint loc{glGetUniformLocation(this->m_Program, "projection")};
 		glUniformMatrix4fv(loc, 1, GL_FALSE, projection);

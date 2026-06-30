@@ -21,6 +21,7 @@ ifeq ($(OS), Windows_NT)
 	RUBY=$(shell where ruby 2>NUL)
 	ASM=$(shell where armasm64 2>NUL)
 	LD=$(shell where link 2>NUL)
+	CC=$(shell where clang 2>NUL)
 	CXX=$(shell where clang++ 2>NUL)
 
 	# Check if they haven't just been found
@@ -50,6 +51,7 @@ else
 		RUBY=$(shell xcrun --find ruby 2>/dev/null)
 		ASM=$(shell xcrun --find as 2>/dev/null)
 		LD=$(shell xcrun --find ld 2>/dev/null)
+		CC=$(shell xcrun --find clang 2>/dev/null)
 		CXX=$(shell xcrun --find clang++ 2>/dev/null)
 	else
 		# File extensions
@@ -58,6 +60,7 @@ else
 		RUBY=$(shell command -v ruby)
 		ASM=$(shell command -v as)
 		LD=$(shell command -v ld)
+		CC=$(shell command -v clang)
 		CXX=$(shell command -v clang++)
 	endif
 
@@ -67,6 +70,9 @@ else
 	endif
 	ifeq ($(LD),)
 		$(error Unable to find a linker)
+	endif
+	ifeq ($(CC),)
+		$(error Unable to find a C compiler)
 	endif
 	ifeq ($(CXX),)
 		$(error Unable to find a C++ compiler)

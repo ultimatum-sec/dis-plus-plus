@@ -30,6 +30,7 @@ import disxx.disasm.Disassembler;
 import disxx.ui.SourceEditor;
 import disxx.ui.MainWindow;
 import disxx.ui.Button;
+import disxx.ui.Menu;
 import disxx.ui.Widget;
 import FileInput;
 import DisLog;
@@ -150,11 +151,30 @@ void Application::__InitFunc(void) noexcept(false)
 			0.f,
 			height * 0.75f,
 			width * 1.f,
-			height * 0.25f
+			height * 0.20f
 		};
-		
 		labels.SetColor(0.2f, 0.2f, 0.2f);
+		
 		s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::SourceEditor>(labels));
+	}
+
+	{
+		disxx::ui::Menu menu
+		{
+			0.f,
+			height * 0.95f,
+			width * 0.25f,
+			height * 0.05f
+		};
+		menu.SetColor(0.3f, 0.3f, 0.3f);
+		menu.SetText("Menu :3");
+
+		disxx::ui::Button btn{};
+		btn.SetText("Menu entry :b");
+
+		menu.PushEntry(std::move(btn));
+
+		s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Menu>(menu));
 	}
 	
 	{
@@ -180,7 +200,7 @@ void Application::__InitFunc(void) noexcept(false)
 	}
 
 	// Just take the ptrs, so I shouldn't cast it every time
-	auto *pLabels{reinterpret_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().begin()->get())};
+	//auto *pLabels{reinterpret_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().begin()->get())};
 	auto *pEditor{reinterpret_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().rbegin()->get())};
 
 	// Load the executable
@@ -234,7 +254,7 @@ void Application::__InitFunc(void) noexcept(false)
 		sdkMinor
 	);
 
-	for (auto &section : ldr.LoadData().GetSections())
+	/*for (auto &section : ldr.LoadData().GetSections())
 	{
 		const auto name{section.GetName()};
 		pEditor->AddLine("");
@@ -270,11 +290,11 @@ void Application::__InitFunc(void) noexcept(false)
 						| std::ranges::to<std::vector<disxx::disasm::Bytes>>()
 				};
 
-	   		    for (disxx::disasm::Disassembler disasm{}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}).value())
+	   		    for (disxx::disasm::Disassembler disasm{}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}))
     		    {
-					//if (insn)
-					//{
-						const auto &value{insn};
+					if (insn.is_ok()) [[likely]]
+					{
+						const auto &value{insn.value()};
 						
 						auto mnemonic
 						{
@@ -356,9 +376,9 @@ void Application::__InitFunc(void) noexcept(false)
 
 						pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", mnemonic);
 						continue;
-					//}
+					}
 		
-					//pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
+					pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
 				}
     		}
 		}
@@ -366,7 +386,6 @@ void Application::__InitFunc(void) noexcept(false)
 		{
 			for (const auto &label : section.GetLabels())
 			{
-				/*
 				pLabels->AddLine
 				(
 					"<color value=\"0.7 0.6 0.2 1.0\">{}</color>:"
@@ -376,7 +395,6 @@ void Application::__InitFunc(void) noexcept(false)
 					label.GetAddress(),
 					label.GetName()
 				);
-		       	*/ 
 				pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", label.GetName());
 
 				for (const auto &byte : label.GetData<std::uint8_t>())
@@ -394,7 +412,7 @@ void Application::__InitFunc(void) noexcept(false)
 				}
 			}
 		}
-	}
+	}*/
 
     s_pInstance
 		->m_pWindow
