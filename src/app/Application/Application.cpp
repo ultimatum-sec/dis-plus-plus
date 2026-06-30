@@ -254,7 +254,7 @@ void Application::__InitFunc(void) noexcept(false)
 		sdkMinor
 	);
 
-	/*for (auto &section : ldr.LoadData().GetSections())
+	for (auto &section : ldr.LoadData().GetSections())
 	{
 		const auto name{section.GetName()};
 		pEditor->AddLine("");
@@ -412,7 +412,7 @@ void Application::__InitFunc(void) noexcept(false)
 				}
 			}
 		}
-	}*/
+	}
 
     s_pInstance
 		->m_pWindow
