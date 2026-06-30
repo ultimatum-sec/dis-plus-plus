@@ -20,17 +20,17 @@ export import disxx.disasm.Instruction;
 export import disxx.disasm.Address;
 export import disxx.disasm.Bytes;
 
-template <typename T>
-concept BytesRange = std::ranges::range<T> && std::same_as
-<
-	typename T::value_type,
-	typename disxx::disasm::Bytes
->;
-
 export namespace disxx::disasm
 {
 	class [[nodiscard]] __DISXX_EXPORT__ Disassembler
 	{
+	  public:
+		using Result = std::expected
+		<
+			Instruction,
+			disxx::utility::error::DisassemblyError
+		>;
+
 	  public:
 		explicit Disassembler(void) noexcept = default;
 
@@ -39,17 +39,6 @@ export namespace disxx::disasm
 
 		~Disassembler(void) noexcept = default;
 
-		Instruction DisassembleSingle(const Bytes, const Address) const noexcept(false);
-		template <BytesRange T>
-		std::vector<Instruction> DisassembleAll(std::ranges::ref_view<T>, Address) const noexcept(false);
+		Result Disassemble(const Bytes, const Address) const noexcept(false);
 	};
-
-	template <BytesRange T>
-	std::vector<Instruction> Disassembler::DisassembleAll(std::ranges::ref_view<T> ref, Address addr) const noexcept(false)
-	{
-		std::vector<Instruction> vec{};
-		for (const auto &insn : ref)
-			vec.emplace_back(this->DisassembleSingle(insn, addr++));
-		return vec;
-	}
 } /* disxx::disasm */

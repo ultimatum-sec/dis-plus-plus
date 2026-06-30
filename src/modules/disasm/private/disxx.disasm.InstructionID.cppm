@@ -2,7 +2,7 @@ export module disxx.disasm.InstructionID;
 
 export enum class InstructionID
 {
-	INSN_ERR, // Invalid instruction
+	INSN_NONE, // Not a valid instruction, meaning absence of ID
 	INSN_UDF,
 	INSN_EXT,
 	INSN_SXTW,

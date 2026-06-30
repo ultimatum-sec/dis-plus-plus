@@ -16,7 +16,7 @@ import disxx.disasm.Address;
 
 namespace disxx::disasm
 {
-	Instruction Disassembler::DisassembleSingle(Bytes word, Address addr) const noexcept(false)
+	Disassembler::Result Disassembler::Disassemble(Bytes word, Address addr) const noexcept(false)
 	{
 		const auto &obj
 		{
@@ -29,7 +29,7 @@ namespace disxx::disasm
 
 		auto &&result{obj->Decode()};
 		if (!result) [[unlikely]]
-			return Instruction{};
+			return std::unexpected{result.error()};
 		auto &[id, oprs]{result.value()};
 
 		auto programCounterRelevantAddress

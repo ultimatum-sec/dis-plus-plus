@@ -21,7 +21,7 @@ namespace disxx::disasm
 		, m_ProgramCounterRelevantAddress{std::nullopt}
 		, m_Address{std::numeric_limits<Address>::min()}
 		, m_Bytes{std::numeric_limits<Bytes>::min()}
-		, m_InstructionID{InstructionID::INSN_ERR}
+		, m_InstructionID{InstructionID::INSN_NONE}
 	{}
 
 	Instruction::Instruction(const Instruction &other) noexcept

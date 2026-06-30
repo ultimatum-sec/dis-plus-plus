@@ -1531,23 +1531,6 @@ auto std::formatter<disxx::disasm::Instruction>::format(const disxx::disasm::Ins
 {
 	using namespace disxx::disasm;
 
-	if (insn.GetInstructionID() == InstructionID::INSN_ERR) [[unlikely]]
-	{	
-		return std::format_to
-		(
-			ctx.out(),
-			"{}",
-			disxx::utility::error::DisassemblyError
-			{
-				static_cast<std::uint32_t>
-				(
-					insn
-						.GetBytes()
-				)
-			}.what()
-		);
-	}
-
 	const auto &id{insn.GetInstructionID()};
 	const auto &oprs{insn.GetOperands()};
 

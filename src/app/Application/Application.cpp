@@ -283,6 +283,7 @@ void Application::__InitFunc(void) noexcept(false)
 
 		        pEditor->AddLine("<color value=\"0.6 0.6 0.2 1.0\">{}</color>:", label.GetName());
 
+				disxx::disasm::Disassembler disasm{};
 				const auto &vec
 				{
 					label.GetData<std::uint32_t>()
@@ -290,18 +291,15 @@ void Application::__InitFunc(void) noexcept(false)
 						| std::views::transform([](const auto &bytes) -> auto { return disxx::disasm::Bytes{bytes}; })
 						| std::ranges::to<std::vector<disxx::disasm::Bytes>>()
 				};
-
-	   		    for (disxx::disasm::Disassembler disasm{}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}))
+	   		    for (disxx::disasm::Address addr{label.GetAddress()}; const auto &bytes : vec)
     		    {
-					//if (insn.is_ok()) [[likely]]
-					//{
-						//const auto &value{insn.value()};
-						
+					if (const auto &insn{disasm.Disassemble(bytes, addr++)}) [[likely]]
+					{
 						auto mnemonic
 						{
 							[insn](void) -> std::string
 							{
-								auto str{std::format("{}", insn)};
+								auto str{std::format("{}", *insn)};
 								
 								static const std::regex regs{R"(((b|h|s|d|q|v|w|x)\d{1,2})|(sp)|((w|x)zr))"};
 								for (std::sregex_iterator it{str.begin(), str.end(), regs}, end{}; it != end; ++it)
@@ -326,7 +324,7 @@ void Application::__InitFunc(void) noexcept(false)
 								for (std::sregex_iterator it{str.begin(), str.end(), imms}, end{}; it != end; ++it)
 								{
 									// Check if it's a pc-relevant address (using .value_or(0) instead of .value() method)
-									if (auto addr{insn.GetProgramCounterRelevantAddress()}; addr && std::string{"#"} + MKHEX(addr.value_or(0)) == it->str())
+									if (auto insnAddr{insn->GetProgramCounterRelevantAddress()}; insnAddr && std::string{"#"} + MKHEX(insnAddr.value_or(0)) == it->str())
 									{
 										str = std::regex_replace
 										(
@@ -350,9 +348,9 @@ void Application::__InitFunc(void) noexcept(false)
 							}()
 						};
 						
-						if (auto addr{insn.GetProgramCounterRelevantAddress()})
+						if (auto insnAddr{insn->GetProgramCounterRelevantAddress()})
     		        	{
-    		            	if (auto it{names.find(*addr)}; it != names.end())
+    		            	if (auto it{names.find(*insnAddr)}; it != names.end())
     		            	{
     		            	    pEditor->AddLine
     		            	    (
@@ -364,7 +362,7 @@ void Application::__InitFunc(void) noexcept(false)
 										std::regex
 										{
 											std::string{"#"}
-												+ MKHEX(*addr)
+												+ MKHEX(*insnAddr)
 										},
 										it->second
 									),
@@ -376,10 +374,9 @@ void Application::__InitFunc(void) noexcept(false)
 	   		        	}
 
 						pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", mnemonic);
-						continue;
-					//}
-		
-					//pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
+					}
+					else	
+						pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
 				}
     		}
 		}
