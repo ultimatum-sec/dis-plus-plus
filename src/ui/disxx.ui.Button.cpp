@@ -20,7 +20,7 @@ namespace disxx::ui
 	Button::Button(void) noexcept
 		: Widget{}
 		, m_Callback{[](const Widget *const) -> void {}}
-		, m_Trigger{ButtonTrigger::BTN_NONE}
+		, m_Trigger{Trigger::BTN_NONE}
 		, m_Image{}
 		, m_Text{}	
 	{}
@@ -28,7 +28,7 @@ namespace disxx::ui
 	Button::Button(float x, float y, float width, float height) noexcept
 		: Widget{x, y, width, height}
 		, m_Callback{[](const Widget *const) -> void {}}
-		, m_Trigger{ButtonTrigger::BTN_NONE}
+		, m_Trigger{Trigger::BTN_NONE}
 		, m_Image{}
 		, m_Text{}
 	{}
@@ -55,9 +55,9 @@ namespace disxx::ui
 		return *this;
 	}
 
-	void Button::SetCallback(const ButtonTrigger trigger, const std::function<void(const Widget *const)> callback) noexcept
+	void Button::SetCallback(const Trigger trigger, const std::function<void(const Widget *const)> callback) noexcept
 	{
-		if (trigger != ButtonTrigger::BTN_NONE)
+		if (trigger != Trigger::BTN_NONE)
 		{
 			this->m_Callback = callback;
 			this->m_Trigger = trigger;
@@ -66,7 +66,7 @@ namespace disxx::ui
 		{
 			// Don't touch the callback here!
 			// It won't be used anyway...
-			this->m_Trigger = ButtonTrigger::BTN_NONE;
+			this->m_Trigger = Trigger::BTN_NONE;
 		}
 	}
 
@@ -122,14 +122,14 @@ namespace disxx::ui
 		else if (button == 0 && state == 1)
 			this->m_IsClicked = false;
 
-		if (this->m_IsClicked && this->m_Trigger == ButtonTrigger::BTN_CLICKED)
+		if (this->m_IsClicked && this->m_Trigger == Trigger::BTN_CLICKED)
 			this->m_Callback(this);
 	}
 
 	void Button::HandleMotion(int x, int y) noexcept
 	{
 		this->m_IsHovered = (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y);
-		if (this->m_IsHovered && this->m_Trigger == ButtonTrigger::BTN_HOVERED)
+		if (this->m_IsHovered && this->m_Trigger == Trigger::BTN_HOVERED)
 			this->m_Callback(this);
 	}
 } /* disxx::ui */

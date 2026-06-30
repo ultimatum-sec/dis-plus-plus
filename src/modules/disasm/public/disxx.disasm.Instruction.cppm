@@ -44,27 +44,55 @@ export namespace disxx::disasm
 	  public:
 		explicit Instruction(void) noexcept;
 
-		explicit Instruction(const Instruction &) noexcept;
+		Instruction(const Instruction &) noexcept;
 		Instruction &operator=(const Instruction &) noexcept;
 
-		explicit Instruction(Instruction &&) noexcept;
+		Instruction(Instruction &&) noexcept;
 		Instruction &operator=(Instruction &&) noexcept;
 
 		bool operator==(const Instruction &) noexcept;
 		bool operator!=(const Instruction &) noexcept;
 
-		~Instruction(void) noexcept;
+		~Instruction(void) noexcept = default;
 
-		Instruction &&SetInstructionID(InstructionID &&) noexcept;
-		Instruction &&SetOperands(std::vector<std::unique_ptr<operand::AbstractOperand>> &&) noexcept;
-		Instruction &&SetProgramCounterRelevantAddress(std::optional<signed long long int> &&) noexcept;
-		Instruction &&SetAddress(Address &&) noexcept;
-		Instruction &&SetBytes(Bytes &&) noexcept;
+		inline void SetInstructionID(InstructionID &&) noexcept;
+		inline void SetOperands(std::vector<std::unique_ptr<operand::AbstractOperand>> &&) noexcept;
+		inline void SetProgramCounterRelevantAddress(std::optional<signed long long int> &&) noexcept;
+		inline void SetAddress(Address &&) noexcept;
+		inline void SetBytes(Bytes &&) noexcept;
 
-		std::optional<signed long long int> GetProgramCounterRelevantAddress(void) const noexcept;
-		const InstructionID &GetInstructionID(void) const noexcept;
-		const std::vector<std::unique_ptr<operand::AbstractOperand>> &GetOperands(void) const noexcept;
+		inline const std::vector<std::unique_ptr<operand::AbstractOperand>> &GetOperands(void) const noexcept;
+		inline std::optional<signed long long int> GetProgramCounterRelevantAddress(void) const noexcept;
+		inline Bytes GetBytes(void) const noexcept;
+		inline InstructionID GetInstructionID(void) const noexcept;
 	};
+
+	inline void Instruction::SetInstructionID(InstructionID &&insn) noexcept
+	{ this->m_InstructionID = std::move(insn); }
+
+	inline void Instruction::SetOperands(std::vector<std::unique_ptr<operand::AbstractOperand>> &&oprs) noexcept
+	{ this->m_Operands = std::move(oprs); }
+
+	inline void Instruction::SetProgramCounterRelevantAddress(std::optional<signed long long int> &&pc) noexcept
+	{ this->m_ProgramCounterRelevantAddress = std::move(pc); }
+
+	inline void Instruction::SetAddress(Address &&addr) noexcept
+	{ this->m_Address = std::move(addr); }
+
+	inline void Instruction::SetBytes(Bytes &&bytes) noexcept
+	{ this->m_Bytes = std::move(bytes); }
+	
+	inline const std::vector<std::unique_ptr<operand::AbstractOperand>> &Instruction::GetOperands(void) const noexcept
+	{ return this->m_Operands; }
+	
+	inline std::optional<signed long long int> Instruction::GetProgramCounterRelevantAddress(void) const noexcept
+	{ return this->m_ProgramCounterRelevantAddress; }
+
+	inline Bytes Instruction::GetBytes(void) const noexcept
+	{ return this->m_Bytes; }
+	
+	inline InstructionID Instruction::GetInstructionID(void) const noexcept
+ 	{ return this->m_InstructionID; }
 } /* disxx::disasm */
 
 export template <> struct std::formatter<disxx::disasm::Instruction> : public std::formatter<std::string>
@@ -1502,6 +1530,23 @@ const std::unordered_map<InstructionID, std::string_view> std::formatter<disxx::
 auto std::formatter<disxx::disasm::Instruction>::format(const disxx::disasm::Instruction &insn, std::format_context &ctx) const
 {
 	using namespace disxx::disasm;
+
+	if (insn.GetInstructionID() == InstructionID::INSN_ERR) [[unlikely]]
+	{	
+		return std::format_to
+		(
+			ctx.out(),
+			"{}",
+			disxx::utility::error::DisassemblyError
+			{
+				static_cast<std::uint32_t>
+				(
+					insn
+						.GetBytes()
+				)
+			}.what()
+		);
+	}
 
 	const auto &id{insn.GetInstructionID()};
 	const auto &oprs{insn.GetOperands()};

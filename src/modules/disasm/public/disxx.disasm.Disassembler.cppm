@@ -32,14 +32,6 @@ export namespace disxx::disasm
 	class [[nodiscard]] __DISXX_EXPORT__ Disassembler
 	{
 	  public:
-		template <typename T>
-		using DisassemblyResult = std::expected
-		<
-			T,
-			disxx::utility::error::DisassemblyError
-		>;
-
-	  public:
 		explicit Disassembler(void) noexcept = default;
 
 		explicit Disassembler(const Disassembler &) noexcept = default;
@@ -47,15 +39,15 @@ export namespace disxx::disasm
 
 		~Disassembler(void) noexcept = default;
 
-		DisassemblyResult<Instruction> DisassembleSingle(const Bytes, const Address) const noexcept(false);
+		Instruction DisassembleSingle(const Bytes, const Address) const noexcept(false);
 		template <BytesRange T>
-		std::vector<DisassemblyResult<Instruction>> DisassembleAll(std::ranges::ref_view<T>, Address) const noexcept(false);
+		std::vector<Instruction> DisassembleAll(std::ranges::ref_view<T>, Address) const noexcept(false);
 	};
 
 	template <BytesRange T>
-	std::vector<Disassembler::DisassemblyResult<Instruction>> Disassembler::DisassembleAll(std::ranges::ref_view<T> ref, Address addr) const noexcept(false)
+	std::vector<Instruction> Disassembler::DisassembleAll(std::ranges::ref_view<T> ref, Address addr) const noexcept(false)
 	{
-		std::vector<DisassemblyResult<Instruction>> vec{};
+		std::vector<Instruction> vec{};
 		for (const auto &insn : ref)
 			vec.emplace_back(this->DisassembleSingle(insn, addr++));
 		return vec;

@@ -79,7 +79,7 @@ void FileInput::SetCallback(std::function<void(void)> func) noexcept
 			->get()
 	)->SetCallback
 	(
-		disxx::ui::Button::ButtonTrigger::BTN_CLICKED,
+		disxx::ui::Button::Trigger::BTN_CLICKED,
 		std::bind
 		(
 			[](FileInput *const obj, std::function<void(void)> function) mutable -> void

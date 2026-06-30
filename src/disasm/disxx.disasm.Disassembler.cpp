@@ -16,7 +16,7 @@ import disxx.disasm.Address;
 
 namespace disxx::disasm
 {
-	Disassembler::DisassemblyResult<Instruction> Disassembler::DisassembleSingle(Bytes word, Address addr) const noexcept(false)
+	Instruction Disassembler::DisassembleSingle(Bytes word, Address addr) const noexcept(false)
 	{
 		const auto &obj
 		{
@@ -29,7 +29,7 @@ namespace disxx::disasm
 
 		auto &&result{obj->Decode()};
 		if (!result) [[unlikely]]
-			return std::unexpected{result.error()};
+			return Instruction{};
 		auto &[id, oprs]{result.value()};
 
 		auto programCounterRelevantAddress
@@ -66,14 +66,13 @@ namespace disxx::disasm
 			}()
 		};
 
-		return DisassemblyResult<Instruction>
-		{	
-			Instruction{}
-				.SetBytes(std::move(word))
-				.SetAddress(std::move(addr))
-				.SetInstructionID(std::move(id))
-				.SetOperands(std::move(oprs))
-				.SetProgramCounterRelevantAddress(std::move(programCounterRelevantAddress))
-		};
+		Instruction insn{};
+		insn.SetBytes(std::move(word));
+		insn.SetAddress(std::move(addr));
+		insn.SetInstructionID(std::move(id));
+		insn.SetOperands(std::move(oprs));
+		insn.SetProgramCounterRelevantAddress(std::move(programCounterRelevantAddress));
+	
+		return insn;
 	}
 } /* disxx::disasm */

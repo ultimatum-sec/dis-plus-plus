@@ -14,7 +14,7 @@ export namespace disxx::ui
 	class Button final : public Widget
 	{
 	  public:
-		enum class ButtonTrigger
+		enum class Trigger
 		{
 			BTN_NONE,
 			BTN_CLICKED,
@@ -23,7 +23,7 @@ export namespace disxx::ui
 
 	  private:
 		std::function<void(const Widget *const)> m_Callback{};
-		ButtonTrigger m_Trigger{};
+		Trigger m_Trigger{};
 		utility::Image m_Image{};
 		std::string m_Text{};
 
@@ -35,7 +35,7 @@ export namespace disxx::ui
 
 		virtual ~Button(void) noexcept override = default;
 
-		void SetCallback(const enum ButtonTrigger, std::function<void(const Widget *const)>) noexcept;
+		void SetCallback(const Trigger, std::function<void(const Widget *const)>) noexcept;
 		void SetImage(const std::filesystem::path &) noexcept(false);
 		void SetText(std::string) noexcept(false);	
 

@@ -170,6 +170,7 @@ void Application::__InitFunc(void) noexcept(false)
 		menu.SetText("Menu :3");
 
 		disxx::ui::Button btn{};
+		btn.SetColor(0.3f, 0.3f, 0.3f);
 		btn.SetText("Menu entry :b");
 
 		menu.PushEntry(std::move(btn));
@@ -200,7 +201,7 @@ void Application::__InitFunc(void) noexcept(false)
 	}
 
 	// Just take the ptrs, so I shouldn't cast it every time
-	//auto *pLabels{reinterpret_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().begin()->get())};
+	auto *pLabels{reinterpret_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().begin()->get())};
 	auto *pEditor{reinterpret_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().rbegin()->get())};
 
 	// Load the executable
@@ -292,15 +293,15 @@ void Application::__InitFunc(void) noexcept(false)
 
 	   		    for (disxx::disasm::Disassembler disasm{}; const auto &insn : disasm.DisassembleAll(vec | std::views::all, disxx::disasm::Address{label.GetAddress()}))
     		    {
-					if (insn.is_ok()) [[likely]]
-					{
-						const auto &value{insn.value()};
+					//if (insn.is_ok()) [[likely]]
+					//{
+						//const auto &value{insn.value()};
 						
 						auto mnemonic
 						{
-							[value](void) -> std::string
+							[insn](void) -> std::string
 							{
-								auto str{std::format("{}", value)};
+								auto str{std::format("{}", insn)};
 								
 								static const std::regex regs{R"(((b|h|s|d|q|v|w|x)\d{1,2})|(sp)|((w|x)zr))"};
 								for (std::sregex_iterator it{str.begin(), str.end(), regs}, end{}; it != end; ++it)
@@ -325,7 +326,7 @@ void Application::__InitFunc(void) noexcept(false)
 								for (std::sregex_iterator it{str.begin(), str.end(), imms}, end{}; it != end; ++it)
 								{
 									// Check if it's a pc-relevant address (using .value_or(0) instead of .value() method)
-									if (auto addr{value.GetProgramCounterRelevantAddress()}; addr && std::string{"#"} + MKHEX(addr.value_or(0)) == it->str())
+									if (auto addr{insn.GetProgramCounterRelevantAddress()}; addr && std::string{"#"} + MKHEX(addr.value_or(0)) == it->str())
 									{
 										str = std::regex_replace
 										(
@@ -349,7 +350,7 @@ void Application::__InitFunc(void) noexcept(false)
 							}()
 						};
 						
-						if (auto addr{value.GetProgramCounterRelevantAddress()})
+						if (auto addr{insn.GetProgramCounterRelevantAddress()})
     		        	{
     		            	if (auto it{names.find(*addr)}; it != names.end())
     		            	{
@@ -376,9 +377,9 @@ void Application::__InitFunc(void) noexcept(false)
 
 						pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", mnemonic);
 						continue;
-					}
+					//}
 		
-					pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
+					//pEditor->AddLine("<color value=\"0.7 0.7 0.7 1.0\">|</color>\t{}", insn.error().what());
 				}
     		}
 		}

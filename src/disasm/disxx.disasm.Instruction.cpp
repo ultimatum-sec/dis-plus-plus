@@ -21,7 +21,7 @@ namespace disxx::disasm
 		, m_ProgramCounterRelevantAddress{std::nullopt}
 		, m_Address{std::numeric_limits<Address>::min()}
 		, m_Bytes{std::numeric_limits<Bytes>::min()}
-		, m_InstructionID{}
+		, m_InstructionID{InstructionID::INSN_ERR}
 	{}
 
 	Instruction::Instruction(const Instruction &other) noexcept
@@ -71,45 +71,4 @@ namespace disxx::disasm
 
 	bool Instruction::operator!=(const Instruction &other) noexcept
 	{ return this->m_Bytes != other.m_Bytes; }
-
-	Instruction::~Instruction(void) noexcept = default;
-	
-	Instruction &&Instruction::SetInstructionID(InstructionID &&insn) noexcept
-	{
-		this->m_InstructionID = std::move(insn);
-		return std::move(*this);
-	}
-
-	Instruction &&Instruction::SetOperands(std::vector<std::unique_ptr<operand::AbstractOperand>> &&oprs) noexcept
-	{
-		this->m_Operands = std::move(oprs);
-		return std::move(*this);
-	}
-
-	Instruction &&Instruction::SetProgramCounterRelevantAddress(std::optional<signed long long int> &&pc) noexcept
-	{
-		this->m_ProgramCounterRelevantAddress = std::move(pc);
-		return std::move(*this);
-	}
-
-	Instruction &&Instruction::SetAddress(Address &&addr) noexcept
-	{
-		this->m_Address = std::move(addr);
-		return std::move(*this);
-	}
-
-	Instruction &&Instruction::SetBytes(Bytes &&bytes) noexcept
-	{
-		this->m_Bytes = std::move(bytes);
-		return std::move(*this);
-	}
-	
-	std::optional<signed long long int> Instruction::GetProgramCounterRelevantAddress(void) const noexcept
-	{ return this->m_ProgramCounterRelevantAddress; }
-	
-	const InstructionID &Instruction::GetInstructionID(void) const noexcept
- 	{ return this->m_InstructionID; }
-  
-	const std::vector<std::unique_ptr<operand::AbstractOperand>> &Instruction::GetOperands(void) const noexcept
-	{ return this->m_Operands; }
 } /* disxx::disasm */
