@@ -10,12 +10,12 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-	-c -std=c++26 -Wall -Wpedantic -Wextra -Wdeprecated -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
-	-fno-omit-frame-pointer -Wshadow -Wdouble-promotion -Wfloat-equal -Wundef -Wswitch-default -Wimplicit-fallthrough \
-	-Wmissing-declarations -Wuninitialized -Wconditional-uninitialized -Wcast-qual -Wcast-align -Wformat -Wformat-security -Wnull-dereference \
-	-Wno-non-virtual-dtor -Woverloaded-virtual -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wold-style-cast -Wthread-safety -fstrict-aliasing \
-	-Wstrict-aliasing=2 -ftrapv -fwrapv -Wno-\#warnings -fsanitize-address-use-after-scope -Wno-unused-command-line-argument -Wno-c99-extensions \
-	-Wno-writable-strings -fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
+	-c -std=c++26 -Weverything -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+	-Wno-non-virtual-dtor -Wno-c99-extensions -Wno-unused-command-line-argument -Wno-writable-strings \
+	-Wno-reserved-macro-identifier -Wno-c++98-compat -Wno-weak-vtables -Wno-reserved-identifier \
+	-Wno-padded -Wno-implicit-int-float-conversion \
+	-ftrapv -fwrapv -fsanitize-address-use-after-scope \
+	-fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
 	-DGL_SILENCE_DEPRECATION -DNDEBUG -DBACKEND_CTX_GLUT -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden
 
 LDFLAGS=\
@@ -44,6 +44,9 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.Widget.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.Button.cppm \
+	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.Label.cppm \
+	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)private$(PATHSEP)disxx.ui.MenuEntry.cppm \
+	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.Menu.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.SourceEditor.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)public$(PATHSEP)disxx.ui.MainWindow.cppm \
 	.$(PATHSEP)FailHandler$(PATHSEP)FailHandler.cppm

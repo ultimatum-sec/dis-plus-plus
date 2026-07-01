@@ -43,17 +43,41 @@ export namespace disxx::ui
 
 		virtual ~Widget(void) noexcept = default;
 
-		utility::Vec2<float> GetPosition(void) const noexcept;
-		utility::Vec2<float> GetSize(void) const noexcept;
+		inline utility::Vec2<float> GetPosition(void) const noexcept;
+		inline utility::Vec2<float> GetSize(void) const noexcept;
 	
 		virtual void Replace(utility::Vec2<float>) noexcept;
 		virtual void Resize(utility::Vec2<float>) noexcept;
 		
-		void SetColor(float, float, float) noexcept;
+		inline void SetColor(float, float, float) noexcept;
 
+		inline bool Clicked(void) const noexcept;
+
+		virtual void Render(void) const noexcept = 0;
 		virtual void HandleKeyboard(unsigned char, int, int);
 		virtual void HandleMouse(int, int, int, int);
 		virtual void HandleMotion(int, int);
-		virtual void Render(void) const noexcept = 0;
 	};
+
+	inline void Widget::SetColor(float r, float g, float b) noexcept
+	{
+		this->m_pColor[0] = r;
+		this->m_pColor[1] = g;
+		this->m_pColor[2] = b;
+	}
+
+	inline utility::Vec2<float> Widget::GetPosition(void) const noexcept
+	{ return utility::Vec2<float>{this->m_Position}; }
+
+	inline utility::Vec2<float> Widget::GetSize(void) const noexcept
+	{ return utility::Vec2<float>{this->m_Size}; }
+
+	inline void Widget::Replace(utility::Vec2<float> position) noexcept
+	{ this->m_Position = position; }
+
+	inline void Widget::Resize(utility::Vec2<float> size) noexcept
+	{ this->m_Size = size; }
+
+	inline bool Widget::Clicked(void) const noexcept
+	{ return this->m_IsClicked; }
 } /* disxx::ui */

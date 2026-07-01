@@ -81,12 +81,19 @@ namespace disxx::ui
 
 	void Button::Render(void) const noexcept
 	{
-		// Add a shape
-		utility::Shape s{utility::Shape::Type::RECTANGLE};
-		s.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
-		s.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
-		s.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
-		s_pRenderer->PushShape(std::move(s));
+		// Add a frame
+		utility::Shape frame{utility::Shape::Type::RECTANGLE};
+		frame.Replace(utility::Vec2<float>{this->m_Position.x - 1.f, this->m_Position.y - 1.f});
+		frame.Resize(utility::Vec2<float>{this->m_Size.x + 2.f, this->m_Size.y + 2.f});
+		frame.SetColor(utility::Vec3<float>{0.f, 0.f, 0.f});
+		s_pRenderer->PushShape(std::move(frame));
+
+		// Add the button itself
+		utility::Shape btn{utility::Shape::Type::RECTANGLE};
+		btn.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
+		btn.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
+		btn.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
+		s_pRenderer->PushShape(std::move(btn));
 		
 		// Add a text
         if (!this->m_Text.empty())

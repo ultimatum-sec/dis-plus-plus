@@ -169,8 +169,8 @@ namespace disxx::loader::macho
 						continue;
 	
 					auto start{0ull};
-					if (pSymbols[j].n_value >= it->GetAddress() && pSymbols[j].n_value < it->GetAddress() + it->GetSize())
-						start = it->GetOffset() + (pSymbols[j].n_value - it->GetAddress());
+					if (const auto addr{it->GetAddress()}; pSymbols[j].n_value >= addr && pSymbols[j].n_value < addr + it->GetSize())
+						start = it->GetOffset() + (pSymbols[j].n_value - addr);
 					
 					disxx::loader::executable::Label label{};
 					label.SetName(&pStrtab[pSymbols[j].n_un.n_strx]);

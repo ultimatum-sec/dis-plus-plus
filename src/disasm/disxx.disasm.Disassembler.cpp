@@ -36,7 +36,7 @@ namespace disxx::disasm
 		{
 			[&obj, &oprs](void) -> std::optional<signed long long int>
 			{
-				if (!obj->IsProgramCounterRelevant())
+				if (!obj->HasProgramCounterRelevantAddress())
 					return std::nullopt;
 
 				const auto &it

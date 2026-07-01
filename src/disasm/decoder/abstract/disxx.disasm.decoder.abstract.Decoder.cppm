@@ -48,7 +48,7 @@ export namespace disxx::disasm::decoder::abstract
 
 		virtual ~Decoder(void) noexcept;
 
-		bool IsProgramCounterRelevant(void) const noexcept(false);
+		bool HasProgramCounterRelevantAddress(void) const noexcept;
 
 		DisassemblyResult Decode(void) noexcept(false);
 	};

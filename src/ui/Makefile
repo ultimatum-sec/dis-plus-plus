@@ -47,7 +47,10 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.IContext.cppm \
 	$(MODULESPATH)private$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Widget.cppm \
+	$(MODULESPATH)private$(PATHSEP)disxx.ui.MenuEntry.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Button.cppm \
+	$(MODULESPATH)public$(PATHSEP)disxx.ui.Label.cppm \
+	$(MODULESPATH)public$(PATHSEP)disxx.ui.MenuEntry.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Menu.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.TextInput.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.SourceEditor.cppm \
@@ -64,6 +67,8 @@ SOURCES=\
 	.$(PATHSEP)backend$(PATHSEP)disxx.ui.backend.GLUTContext.cpp \
 	.$(PATHSEP)disxx.ui.Widget.cpp \
 	.$(PATHSEP)disxx.ui.Button.cpp \
+	.$(PATHSEP)disxx.ui.Label.cpp \
+	.$(PATHSEP)disxx.ui.MenuEntry.cpp \
 	.$(PATHSEP)disxx.ui.Menu.cpp \
 	.$(PATHSEP)disxx.ui.TextInput.cpp \
 	.$(PATHSEP)disxx.ui.SourceEditor.cpp \

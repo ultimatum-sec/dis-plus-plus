@@ -151,7 +151,7 @@ void Application::__InitFunc(void) noexcept(false)
 			0.f,
 			height * 0.75f,
 			width * 1.f,
-			height * 0.20f
+			height * 0.23f
 		};
 		labels.SetColor(0.2f, 0.2f, 0.2f);
 		
@@ -162,19 +162,31 @@ void Application::__InitFunc(void) noexcept(false)
 		disxx::ui::Menu menu
 		{
 			0.f,
-			height * 0.95f,
-			width * 0.25f,
-			height * 0.05f
+			height * 0.97f,
+			width * 0.05f,
+			height * 0.03f
 		};
-		menu.SetColor(0.3f, 0.3f, 0.3f);
-		menu.SetText("Menu :3");
+		menu.SetColor(0.213f, 0.213f, 0.214f);
+		menu.SetText("File");
 
-		disxx::ui::Button btn{};
-		btn.SetColor(0.3f, 0.3f, 0.3f);
-		btn.SetText("Menu entry :b");
+		disxx::ui::MenuEntry entry
+		{
+			"Open",
+			[] -> void { return; }
+		};
+		entry.SetColor(0.213f, 0.213f, 0.214f);
 
-		menu.PushEntry(std::move(btn));
+		menu.PushEntry(std::move(entry));
 
+		disxx::ui::MenuEntry line
+		{
+			"Save",
+			[] -> void { return; }
+		};
+		line.SetColor(0.213f, 0.213f, 0.214f);
+
+		menu.PushEntry(std::move(line));
+	
 		s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Menu>(menu));
 	}
 	

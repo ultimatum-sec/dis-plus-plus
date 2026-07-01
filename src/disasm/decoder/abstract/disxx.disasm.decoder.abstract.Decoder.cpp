@@ -52,7 +52,7 @@ namespace disxx::disasm::decoder::abstract
 			this->m_pSubDecoder.Delete();
 	}
 
-	bool Decoder::IsProgramCounterRelevant(void) const noexcept(false)
+	bool Decoder::HasProgramCounterRelevantAddress(void) const noexcept
 	{
 		return this
 			->m_pSubDecoder

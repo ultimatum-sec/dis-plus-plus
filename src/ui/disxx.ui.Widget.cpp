@@ -61,25 +61,6 @@ namespace disxx::ui
 		return *this;
 	}
 
-	void Widget::SetColor(float r, float g, float b) noexcept
-	{
-		this->m_pColor[0] = r;
-		this->m_pColor[1] = g;
-		this->m_pColor[2] = b;
-	}
-
-	utility::Vec2<float> Widget::GetPosition(void) const noexcept
-	{ return utility::Vec2<float>{this->m_Position}; }
-
-	utility::Vec2<float> Widget::GetSize(void) const noexcept
-	{ return utility::Vec2<float>{this->m_Size}; }
-
-	void Widget::Replace(utility::Vec2<float> position) noexcept
-	{ this->m_Position = position; }
-
-	void Widget::Resize(utility::Vec2<float> size) noexcept
-	{ this->m_Size = size; }
-
 	/*
 	 * Handle Nothing.
 	 */

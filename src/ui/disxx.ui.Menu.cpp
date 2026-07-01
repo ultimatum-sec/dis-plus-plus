@@ -67,8 +67,14 @@ namespace disxx::ui
 		#endif
 
 		if (this->m_IsClicked)
+		{
 			for (auto &entry : this->m_Entries)
+			{
 				entry.HandleMouse(button, state, x, y);
+				if (entry.Clicked())
+					entry();
+			}
+		}
 		else if (!(x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y))
 			return;
 
@@ -80,12 +86,27 @@ namespace disxx::ui
 
 	void Menu::Render(void) const noexcept
 	{
-		// Add a shape
-		utility::Shape s{utility::Shape::Type::RECTANGLE};
-		s.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
-		s.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
-		s.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
-		s_pRenderer->PushShape(std::move(s));
+		// Add a frame
+		if (this->m_IsClicked && !this->m_Entries.empty())
+		{
+			const auto [x, y]{this->m_Entries.rbegin()->GetPosition()};
+			const auto [width, height]{this->m_Entries.begin()->GetSize()};
+			utility::Shape frame{utility::Shape::Type::RECTANGLE};
+			frame.Replace(utility::Vec2<float>{x - 1.f, y - 1.f});
+			frame.Resize(utility::Vec2<float>{width + 2.f, height * this->m_Entries.size() + 2.f});
+			frame.SetColor(utility::Vec3<float>{0.f, 0.f, 0.f});
+			s_pRenderer->PushShape(std::move(frame));
+		}
+
+		// Add a menu button
+		utility::Shape btn{utility::Shape::Type::RECTANGLE};
+		btn.Replace(utility::Vec2<float>{this->m_Position});
+		btn.Resize(utility::Vec2<float>{this->m_Size});
+		if (this->m_IsClicked && this->m_pColor[0] <= 0.9f && this->m_pColor[1] <= 0.9f && this->m_pColor[2] <= 0.9f)
+			btn.SetColor(utility::Vec3<float>{this->m_pColor[0] + 0.1f, this->m_pColor[1] + 0.1f, this->m_pColor[2] + 0.1f});
+		else
+			btn.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
+		s_pRenderer->PushShape(std::move(btn));
 	
 		// Add a text
         if (!this->m_Text.empty())
