@@ -3,8 +3,10 @@ module;
 #include <OpenGL/gl3.h>
 #include <GLUT/glut.h>
 
+#include <algorithm>
 #include <utility>
 #include <memory>
+#include <ranges>
 #include <vector>
 #include <string>
 #include <array>
@@ -14,13 +16,14 @@ module;
 module disxx.ui.backend.GLRenderer;
 
 import disxx.ui.utility.Vertex;
+import disxx.ui.utility.Shape;
+import disxx.ui.utility.Text;
 import disxx.ui.utility.Vec;
 
 namespace disxx::ui::backend
 {
 	GLRenderer::GLRenderer(void) noexcept
-		: m_ShapeBuffer{}
-		, m_TextBuffer{}
+		: m_Buffer{}
 		, m_Vao{}
 		, m_Vbo{}
 		, m_VertexShader{}
@@ -66,42 +69,35 @@ namespace disxx::ui::backend
 		glDeleteProgram(this->m_Program);
 	}
 
-	void GLRenderer::PushShape(utility::Shape &&shape) noexcept
+	void GLRenderer::Push(std::unique_ptr<utility::Renderable> &&ptr) noexcept
 	{
-		if (this->m_ShapeBuffer.size() < 1024 * 1024) [[likely]]
-			this->m_ShapeBuffer.emplace_back(std::move(shape));
+		if (this->m_Buffer.size() < 1024 * 1024) [[likely]]
+			this->m_Buffer.emplace_back(std::forward<std::unique_ptr<utility::Renderable> &&>(ptr));
 	}
 
-	void GLRenderer::PopShape(void) noexcept
+	void GLRenderer::Pop(void) noexcept
 	{
-		if (this->m_ShapeBuffer.size() > 0) [[likely]]
-			this->m_ShapeBuffer.pop_back();
+		if (this->m_Buffer.size() > 0) [[likely]]
+			this->m_Buffer.pop_back();
 	}
 
-	void GLRenderer::PushText(utility::Text &&text) noexcept
+	void GLRenderer::ClearBuffer(void) noexcept
 	{
-		// Text buffer hasn't got any size limit
-		this->m_TextBuffer.emplace_back(std::move(text));
-	}
-
-	void GLRenderer::PopText(void) noexcept
-	{
-		if (this->m_TextBuffer.size() > 0) [[likely]]
-			this->m_TextBuffer.pop_back();
-	}
-
-	void GLRenderer::ClearBuffers(void) noexcept
-	{
-		if (this->m_ShapeBuffer.size() > 0) [[likely]]
-			this->m_ShapeBuffer.clear();
-		if (this->m_TextBuffer.size() > 0) [[likely]]
-			this->m_TextBuffer.clear();
+		if (this->m_Buffer.size() > 0) [[likely]]
+			this->m_Buffer.clear();
 	}
 
 	void GLRenderer::Render(void) noexcept
 	{
 		glClearColor(0.2f, 0.2f, 0.2f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		std::ranges::sort
+		(
+			this->m_Buffer,
+        	[](const auto &a, const auto &b)
+			{ return a->GetPosition().y < b->GetPosition().y; }
+		);
 
 		// Get actual window size and set up a projection
 		GLfloat projection[] = {
@@ -116,54 +112,78 @@ namespace disxx::ui::backend
 		glUniformMatrix4fv(loc, 1, GL_FALSE, projection);
 
 		std::vector<utility::Vertex<GLfloat>> vertices{};
-		for (const auto &shape : this->m_ShapeBuffer)
+		for (const auto &ptr : this->m_Buffer)
 		{
-			switch (shape.GetType())
+			switch (ptr->GetType())
 			{
-			  case utility::Shape::Type::RECTANGLE:
+			  case utility::Renderable::Type::TYPE_SHAPE:
 			  {
-				const auto &[x, y]{shape.GetPosition()};
-				const auto &[width, height]{shape.GetSize()};
-				const auto &[r, g, b]{shape.GetColor()};
+				switch (static_cast<utility::Shape *>(ptr.get())->GetShapeType())
+				{
+				  case utility::Shape::Type::TYPE_RECTANGLE:
+				  {
+					glUseProgram(this->m_Program);
 
-				// First triangle
-				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y}, utility::Vec3<GLfloat>{r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y + height}, utility::Vec3<GLfloat>{r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y + height}, utility::Vec3<GLfloat>{r, g, b}});
+					const auto [x, y]{ptr->GetPosition()};
+					const auto [width, height]{ptr->GetSize()};
+					const auto [r, g, b]{ptr->GetColor()};
 
-				// Second triangle
-				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y + height}, utility::Vec3<GLfloat>{r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y}, utility::Vec3<GLfloat>{r, g, b}});
-				vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y}, utility::Vec3<GLfloat>{r, g, b}});
+					// First triangle
+					vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y}, utility::Vec3<GLfloat>{r, g, b}});
+					vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y + height}, utility::Vec3<GLfloat>{r, g, b}});
+					vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y + height}, utility::Vec3<GLfloat>{r, g, b}});
+
+					// Second triangle
+					vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y + height}, utility::Vec3<GLfloat>{r, g, b}});
+					vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x + width, y}, utility::Vec3<GLfloat>{r, g, b}});
+					vertices.emplace_back(utility::Vertex<GLfloat>{utility::Vec2<GLfloat>{x, y}, utility::Vec3<GLfloat>{r, g, b}});
 			 	
+					break;
+				  }
+
+				  default:
+					break;
+			  	}
+			
 				break;
 			  }
 			  
+			  case utility::Renderable::Type::TYPE_TEXT:
+			  {
+				if (!vertices.empty())
+            	{
+            	    glBindVertexArray(this->m_Vao);
+            	    glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
+            	    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(utility::Vertex<GLfloat>), vertices.data());
+            	    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLuint>(vertices.size()));
+            	    vertices.clear();
+            	}
+				glUseProgram(0);
+
+				const auto [r, g, b]{ptr->GetColor()};
+				const auto [x, y]{ptr->GetPosition()};
+
+				// Using an old OpenGL with GLUT is the simplest way to render a text
+				glColor3f(r, g, b);
+				glWindowPos2f(x, y);
+				for (const auto ch : static_cast<utility::Text *>(ptr.get())->GetText())
+					glutBitmapCharacter(GLUT_BITMAP_9_BY_15, ch);
+				break;
+			  }
+
 			  default:
 				break;
 			}
 		}
 
-		glBindVertexArray(this->m_Vao);
-		glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
-
-		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(utility::Vertex<GLfloat>), vertices.data());
-
-		glUseProgram(this->m_Program);
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size() & std::numeric_limits<GLuint>::max());
-	
-		glUseProgram(0);
-	
-		for (const auto &text : this->m_TextBuffer)
+		if (!vertices.empty())
 		{
-			const auto &[r, g, b]{text.GetColor()};
-			const auto &[x, y]{text.GetPosition()};
-
-			// Using an old OpenGL with GLUT is the simplest way to render a text
-			glColor3f(r, g, b);
-			glWindowPos2f(x, y);
-			for (const auto ch : text.GetText())
-				glutBitmapCharacter(GLUT_BITMAP_9_BY_15, ch);
+			glBindVertexArray(this->m_Vao);
+			glBindBuffer(GL_ARRAY_BUFFER, this->m_Vbo);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(utility::Vertex<GLfloat>), vertices.data());
+			glUseProgram(this->m_Program);
+			glDrawArrays(GL_TRIANGLES, 0, vertices.size() & std::numeric_limits<GLuint>::max());
+			glUseProgram(0);
 		}
 	}
 } /* disxx::ui::backend */

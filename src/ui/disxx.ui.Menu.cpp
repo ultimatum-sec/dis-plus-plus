@@ -2,6 +2,7 @@ module;
 
 #include <string_view>
 #include <algorithm>
+#include <memory>
 #include <ranges>
 #include <vector>
 #include <string>
@@ -91,22 +92,22 @@ namespace disxx::ui
 		{
 			const auto [x, y]{this->m_Entries.rbegin()->GetPosition()};
 			const auto [width, height]{this->m_Entries.begin()->GetSize()};
-			utility::Shape frame{utility::Shape::Type::RECTANGLE};
+			utility::Shape frame{utility::Shape::Type::TYPE_RECTANGLE};
 			frame.Replace(utility::Vec2<float>{x - 1.f, y - 1.f});
 			frame.Resize(utility::Vec2<float>{width + 2.f, height * this->m_Entries.size() + 2.f});
 			frame.SetColor(utility::Vec3<float>{0.f, 0.f, 0.f});
-			s_pRenderer->PushShape(std::move(frame));
+			s_pRenderer->Push(std::make_unique<utility::Shape>(frame));
 		}
 
 		// Add a menu button
-		utility::Shape btn{utility::Shape::Type::RECTANGLE};
+		utility::Shape btn{utility::Shape::Type::TYPE_RECTANGLE};
 		btn.Replace(utility::Vec2<float>{this->m_Position});
 		btn.Resize(utility::Vec2<float>{this->m_Size});
 		if (this->m_IsClicked && this->m_pColor[0] <= 0.9f && this->m_pColor[1] <= 0.9f && this->m_pColor[2] <= 0.9f)
 			btn.SetColor(utility::Vec3<float>{this->m_pColor[0] + 0.1f, this->m_pColor[1] + 0.1f, this->m_pColor[2] + 0.1f});
 		else
 			btn.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
-		s_pRenderer->PushShape(std::move(btn));
+		s_pRenderer->Push(std::make_unique<utility::Shape>(btn));
 	
 		// Add a text
         if (!this->m_Text.empty())
@@ -122,7 +123,7 @@ namespace disxx::ui
 			);
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
 			txt.SetText(this->m_Text);
-			s_pRenderer->PushText(std::move(txt));
+			s_pRenderer->Push(std::make_unique<utility::Text>(txt));
         }
 
 		// Render all the entries

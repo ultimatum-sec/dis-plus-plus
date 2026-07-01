@@ -38,7 +38,7 @@ namespace disxx::ui
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->Render();
 		m_Context.SwapBuffers();
-		Widget::ClearBuffers();
+		Widget::ClearBuffer();
 	}
 
 	void MainWindow::__ReshapeCallback(int width, int height) noexcept(false)

@@ -1,6 +1,7 @@
 module;
 
 #include <utility>
+#include <memory>
 
 module disxx.ui.Label;
 
@@ -63,7 +64,7 @@ namespace disxx::ui
 			);
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
 			txt.SetText(this->m_Text);
-			s_pRenderer->PushText(std::move(txt));
+			s_pRenderer->Push(std::make_unique<utility::Text>(txt));
         }
 
 		s_pRenderer->Render();

@@ -9,12 +9,12 @@ module disxx.ui.utility.Text;
 namespace disxx::ui::utility
 {
 	Text::Text(void) noexcept
-		: Renderable{}
+		: Renderable{Renderable::Type::TYPE_TEXT}
 		, m_Text{}
 	{}
 
 	Text::Text(std::string_view str) noexcept
-		: Renderable{}
+		: Renderable{Renderable::Type::TYPE_TEXT}
 		, m_Text{str}
 	{}
 
@@ -46,10 +46,4 @@ namespace disxx::ui::utility
 
 		return *this;
 	}
-
-	void Text::SetText(std::string_view str) noexcept
-	{ this->m_Text = str; }
-
-	std::string_view Text::GetText(void) const noexcept
-	{ return this->m_Text; }
 } /* disxx::ui::utility */

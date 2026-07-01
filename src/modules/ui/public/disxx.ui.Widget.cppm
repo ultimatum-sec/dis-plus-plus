@@ -31,7 +31,7 @@ export namespace disxx::ui
 			m_IsHovered{};
 
 	  public:
-		static void ClearBuffers(void) noexcept;
+		static void ClearBuffer(void) noexcept;
 		static void SwapBuffers(void) noexcept;
 		static void Redisplay(void) noexcept;
 	

@@ -9,18 +9,18 @@ module disxx.ui.utility.Shape;
 namespace disxx::ui::utility
 {
 	Shape::Shape(void) noexcept
-		: Renderable{}
-		, m_Type{Type::TRIANGLE}
+		: Renderable{Renderable::Type::TYPE_SHAPE}
+		, m_ShapeType{Type::TYPE_TRIANGLE}
 	{}
 
 	Shape::Shape(Type type) noexcept
-		: Renderable{}
-		, m_Type{type}
+		: Renderable{Renderable::Type::TYPE_SHAPE}
+		, m_ShapeType{type}
 	{}
 
 	Shape::Shape(const Shape &other) noexcept
 		: Renderable{other}
-		, m_Type{other.m_Type}
+		, m_ShapeType{other.m_ShapeType}
 	{}
 
 	Shape &Shape::operator=(const Shape &other) noexcept
@@ -28,7 +28,7 @@ namespace disxx::ui::utility
 		if (this != &other) [[likely]]
 		{
 			Renderable::operator=(other);
-			this->m_Type = other.m_Type;
+			this->m_ShapeType = other.m_ShapeType;
 		}
 	
 		return *this;
@@ -36,17 +36,14 @@ namespace disxx::ui::utility
 
 	Shape::Shape(Shape &&other) noexcept
 		: Renderable{std::move(other)}
-		, m_Type{std::move(other.m_Type)}
+		, m_ShapeType{std::move(other.m_ShapeType)}
 	{}
 
 	Shape &Shape::operator=(Shape &&other) noexcept
 	{
 		Renderable::operator=(other);
-		this->m_Type = std::move(other.m_Type);
+		this->m_ShapeType = std::move(other.m_ShapeType);
 
 		return *this;
 	}
-
-	Shape::Type Shape::GetType(void) const noexcept
-	{ return this->m_Type; }
 } /* disxx::ui::utility */

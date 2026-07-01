@@ -1,6 +1,7 @@
 module;
 
 #include <utility>
+#include <memory>
 
 module disxx.ui.MenuEntry;
 
@@ -73,11 +74,11 @@ namespace disxx::ui
 	void MenuEntry::Render(void) const noexcept
 	{
 		// Add a button
-		utility::Shape btn{utility::Shape::Type::RECTANGLE};
+		utility::Shape btn{utility::Shape::Type::TYPE_RECTANGLE};
 		btn.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
 		btn.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
 		btn.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
-		s_pRenderer->PushShape(std::move(btn));
+		s_pRenderer->Push(std::make_unique<utility::Shape>(btn));
 		
 		// Add a text
         if (!this->m_Text.empty())
@@ -93,7 +94,7 @@ namespace disxx::ui
 			);
 			txt.SetColor(utility::Vec3<float>{1.f, 1.f, 1.f});
 			txt.SetText(this->m_Text);
-			s_pRenderer->PushText(std::move(txt));
+			s_pRenderer->Push(std::make_unique<utility::Text>(txt));
         }
 
 		s_pRenderer->Render();

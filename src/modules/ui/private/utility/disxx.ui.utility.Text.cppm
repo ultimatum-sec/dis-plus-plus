@@ -27,7 +27,13 @@ export namespace disxx::ui::utility
 		explicit Text(Text &&) noexcept;
 		Text &operator=(Text &&) noexcept;
 
-		void SetText(std::string_view) noexcept;
-		std::string_view GetText(void) const noexcept;
+		inline void SetText(std::string_view) noexcept;
+		inline std::string_view GetText(void) const noexcept;
 	};
+
+	inline void Text::SetText(std::string_view str) noexcept
+	{ this->m_Text = str; }
+
+	inline std::string_view Text::GetText(void) const noexcept
+	{ return this->m_Text; }
 } /* disxx::ui::utility */

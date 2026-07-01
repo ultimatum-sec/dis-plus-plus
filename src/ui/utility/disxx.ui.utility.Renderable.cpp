@@ -10,12 +10,21 @@ namespace disxx::ui::utility
 		: m_Color{}
 		, m_Position{}
 		, m_Size{}
+		, m_Type{}
+	{}
+
+	Renderable::Renderable(Renderable::Type type) noexcept
+		: m_Color{}
+		, m_Position{}
+		, m_Size{}
+		, m_Type{type}
 	{}
 
 	Renderable::Renderable(const Renderable &other) noexcept
 		: m_Color{other.m_Color}
 		, m_Position{other.m_Position}
 		, m_Size{other.m_Size}
+		, m_Type{other.m_Type}
 	{}
 
 	Renderable &Renderable::operator=(const Renderable &other) noexcept
@@ -25,6 +34,7 @@ namespace disxx::ui::utility
 			this->m_Color = other.m_Color;
 			this->m_Position = other.m_Position;
 			this->m_Size = other.m_Size;
+			this->m_Type = other.m_Type;
 		}
 
 		return *this;
@@ -34,17 +44,16 @@ namespace disxx::ui::utility
 		: m_Color{std::move(other.m_Color)}
 		, m_Position{std::move(other.m_Position)}
 		, m_Size{std::move(other.m_Size)}
+		, m_Type{std::move(other.m_Type)}
 	{}
 
 	Renderable &Renderable::operator=(Renderable &&other) noexcept
 	{
-		if (this != &other) [[likely]]
-		{
-			this->m_Color = std::move(other.m_Color);
-			this->m_Position = std::move(other.m_Position);
-			this->m_Size = std::move(other.m_Size);
-		}
-
+		this->m_Color = std::move(other.m_Color);
+		this->m_Position = std::move(other.m_Position);
+		this->m_Size = std::move(other.m_Size);
+		this->m_Type = std::move(other.m_Type);
+		
 		return *this;
 	}
 

@@ -17,12 +17,12 @@ export namespace disxx::ui::utility
 	  public:
 		enum class Type
 		{
-			TRIANGLE,
-			RECTANGLE
+			TYPE_TRIANGLE,
+			TYPE_RECTANGLE
 		};
  
 	  private:
-		Type m_Type;
+		Type m_ShapeType;
 
 	  public:
 		explicit Shape(void) noexcept;
@@ -34,6 +34,9 @@ export namespace disxx::ui::utility
 		explicit Shape(Shape &&) noexcept;
 		Shape &operator=(Shape &&) noexcept;
 
-		Type GetType(void) const noexcept;
+		inline Type GetShapeType(void) const noexcept;
 	};
+
+	inline Shape::Type Shape::GetShapeType(void) const noexcept
+	{ return this->m_ShapeType; }
 } /* disxx::ui::utility */

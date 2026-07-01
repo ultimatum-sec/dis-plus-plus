@@ -2,6 +2,7 @@ module;
 
 #include <functional>
 #include <algorithm>
+#include <memory>
 #include <ranges>
 #include <string>
 
@@ -81,7 +82,7 @@ namespace disxx::ui
 		frame.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
 		frame.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
 		frame.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
-		s_pRenderer->PushShape(std::move(frame));
+		s_pRenderer->Push(std::make_unique<utility::Shape>(frame));
 
 		unsigned long int start{0};
 		if (!this->m_Text.empty())
@@ -105,7 +106,7 @@ namespace disxx::ui
 				}
 			}
 			txt.SetText(this->m_Text.substr(start));
-			s_pRenderer->PushText(std::move(txt));
+			s_pRenderer->Push(std::make_unique<utility::Text>(txt));
 		}
 
 		s_pRenderer->Render();

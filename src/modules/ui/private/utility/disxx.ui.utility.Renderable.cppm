@@ -10,18 +10,27 @@ export namespace disxx::ui::utility
 {
 	class __DISXX_PRIVATE__ [[nodiscard]] Renderable
 	{
+	  public:
+		enum class Type
+		{
+			TYPE_SHAPE,
+			TYPE_TEXT
+		};
+
 	  protected:
-		Vec3<float> m_Color;
-		Vec2<float> m_Position;
-		Vec2<float> m_Size;
+		Vec3<float> m_Color{};
+		Vec2<float> m_Position{};
+		Vec2<float> m_Size{};
+		Type m_Type{};
 
 	  public:
 		explicit Renderable(void) noexcept;
+		explicit Renderable(Type) noexcept;
 
-		explicit Renderable(const Renderable &) noexcept;
+		Renderable(const Renderable &) noexcept;
 		Renderable &operator=(const Renderable &) noexcept;
 
-		explicit Renderable(Renderable &&) noexcept;
+		Renderable(Renderable &&) noexcept;
 		Renderable &operator=(Renderable &&) noexcept;
 
 		void Replace(Vec2<float>) noexcept;
@@ -32,5 +41,10 @@ export namespace disxx::ui::utility
 
 		void SetColor(Vec3<float>) noexcept;
 		Vec3<float> GetColor(void) const noexcept;
+	
+		inline Type GetType(void) const noexcept;
 	};
+
+	inline Renderable::Type Renderable::GetType(void) const noexcept
+	{ return this->m_Type; }
 } /* disxx::ui::utility */
