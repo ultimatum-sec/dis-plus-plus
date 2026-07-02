@@ -73,7 +73,10 @@ namespace disxx::ui
 			{
 				entry.HandleMouse(button, state, x, y);
 				if (entry.Clicked())
+				{
 					entry();
+					return;
+				}
 			}
 		}
 		else if (!(x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y))

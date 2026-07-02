@@ -39,6 +39,7 @@ export namespace disxx::ui
 
 		template <typename ...Args> inline void AddString(std::format_string<Args...>, Args &&...) noexcept(false);
 		template <typename ...Args> inline void AddLine(std::format_string<Args...>, Args &&...) noexcept(false);
+		inline void ClearText(void) noexcept;
 
 		virtual void HandleMouse(int, int, int, int) noexcept override;
 		virtual void HandleMotion(int, int) noexcept override;
@@ -71,4 +72,10 @@ export namespace disxx::ui
 			)
 		);
      }
+
+	inline void SourceEditor::ClearText(void) noexcept
+	{
+		if (!this->m_Lines.empty()) [[likely]]
+			this->m_Lines.clear();
+	}
 } /* disxx::ui */

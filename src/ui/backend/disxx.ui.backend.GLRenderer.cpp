@@ -3,10 +3,8 @@ module;
 #include <OpenGL/gl3.h>
 #include <GLUT/glut.h>
 
-#include <algorithm>
 #include <utility>
 #include <memory>
-#include <ranges>
 #include <vector>
 #include <string>
 #include <array>
@@ -91,13 +89,6 @@ namespace disxx::ui::backend
 	{
 		glClearColor(0.2f, 0.2f, 0.2f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		std::ranges::sort
-		(
-			this->m_Buffer,
-        	[](const auto &a, const auto &b)
-			{ return a->GetPosition().y < b->GetPosition().y; }
-		);
 
 		// Get actual window size and set up a projection
 		GLfloat projection[] = {

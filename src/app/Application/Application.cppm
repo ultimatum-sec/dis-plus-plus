@@ -8,7 +8,7 @@ module;
 
 export module Application;
 
-export import <span>;
+export import <filesystem>;
 
 import disxx.ui.MainWindow;
 import disxx.ui.Widget;
@@ -26,13 +26,15 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application
 	FileInput *m_pInput{};
 
   private:
-	static void __InitFunc(void) noexcept(false);
+	static void Init(void) noexcept(false);
 
   private:
 	explicit Application(void) noexcept(false);
 	
 	Application(const Application &) noexcept(false) = delete;
 	Application &operator=(const Application &) noexcept(false) = delete;
+
+	void Disassemble(const std::filesystem::path &) noexcept(false);
 
   public:
 	// THIS FUNCTION CALLS ONCE!

@@ -46,12 +46,6 @@ namespace disxx::ui
 		return *this;
 	}
 
-	void TextInput::SetText(std::string_view text) noexcept
-	{ this->m_Text = text; }
-
-	std::string_view TextInput::GetText(void) const noexcept
-	{ return this->m_Text; }
-
 	void TextInput::HandleKeyboard(unsigned char key, [[maybe_unused]] int x, [[maybe_unused]] int y)
 	{
 		if (this->m_IsClicked)

@@ -128,7 +128,7 @@ namespace disxx::loader::macho
 						)
 					);
 					section.SetAddress(nsect.addr);
-					section.SetOffset(nsect.offset);
+					section.SetOffset(this->m_Offset + nsect.offset);
 					section.SetSize(nsect.size);
 					section.SetIndex(sectionIndex++);
 					
