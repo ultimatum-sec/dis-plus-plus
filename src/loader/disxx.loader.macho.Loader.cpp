@@ -176,7 +176,6 @@ namespace disxx::loader::macho
 					label.SetName(&pStrtab[pSymbols[j].n_un.n_strx]);
 					label.SetAddress(pSymbols[j].n_value);
 					label.SetOffset(start);
-
 					it->AddLabel(std::move(label));
 				}
 

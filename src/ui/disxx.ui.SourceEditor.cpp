@@ -165,10 +165,6 @@ namespace disxx::ui
 
 	void SourceEditor::HandleMotion(int x, int y) noexcept
 	{
-		//#ifdef BACKEND_CTX_GLUT
-		//	y = backend::GLUTContext::GetWindowSize().y - y;
-		//#endif
-
 		if (this->m_IsActiveVertical)
 		{
 			float delta{y - this->m_LastMouseY};
@@ -235,7 +231,7 @@ namespace disxx::ui
 				);
        		
 				std::string str{};
-				if (renderStart < renderEnd)
+				if (renderStart < renderEnd) [[likely]]
 					for (const auto j : std::views::iota(renderStart, renderEnd))
            				str += realText.at(j);
 				txt.SetText(str);

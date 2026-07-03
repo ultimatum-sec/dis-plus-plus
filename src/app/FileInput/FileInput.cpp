@@ -29,7 +29,7 @@ FileInput::FileInput(void) noexcept
 	this->m_pWindow->SetVisible(true);
 
 	{
-		disxx::ui::TextInput txt{125, 150, 150, 40};
+		disxx::ui::TextInput txt{75, 150, 250, 40};
 		txt.SetColor(0.3f, 0.3f, 0.3f);
 		this->m_pWindow->AddWidget(std::make_unique<disxx::ui::TextInput>(txt));
 	}

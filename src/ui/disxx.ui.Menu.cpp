@@ -63,10 +63,6 @@ namespace disxx::ui
 
 	void Menu::HandleMouse(int button, int state, int x, int y) noexcept
 	{
-		#ifdef BACKEND_CTX_GLUT
-			y = backend::GLUTContext::GetWindowSize().y - y;
-		#endif
-
 		if (this->m_IsClicked)
 		{
 			for (auto &entry : this->m_Entries)

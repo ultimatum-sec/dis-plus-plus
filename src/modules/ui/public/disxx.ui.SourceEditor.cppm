@@ -37,6 +37,7 @@ export namespace disxx::ui
 
 		virtual void Resize(utility::Vec2<float>) noexcept override;
 
+		inline const std::vector<std::string> &GetLines(void) const noexcept;
 		template <typename ...Args> inline void AddString(std::format_string<Args...>, Args &&...) noexcept(false);
 		template <typename ...Args> inline void AddLine(std::format_string<Args...>, Args &&...) noexcept(false);
 		inline void ClearText(void) noexcept;
@@ -45,6 +46,9 @@ export namespace disxx::ui
 		virtual void HandleMotion(int, int) noexcept override;
 		virtual void Render(void) const noexcept override;
 	};
+
+	inline const std::vector<std::string> &SourceEditor::GetLines(void) const noexcept
+	{ return this->m_Lines; }
 
 	template <typename ...Args>
 	inline void SourceEditor::AddString(std::format_string<Args...> fmt, Args &&...args) noexcept(false)
@@ -56,6 +60,8 @@ export namespace disxx::ui
 			std::regex{R"(\t)"},
 			"    "
 		);
+
+		this->_CalcMaxScroll();
 	}
 
 	template <typename ...Args>
@@ -71,7 +77,7 @@ export namespace disxx::ui
 				"    "
 			)
 		);
-     }
+    }
 
 	inline void SourceEditor::ClearText(void) noexcept
 	{

@@ -61,10 +61,6 @@ namespace disxx::ui
 
 	void TextInput::HandleMouse(int button, int state, int x, int y)
 	{
-		#ifdef BACKEND_CTX_GLUT
-			y = backend::GLUTContext::GetWindowSize().y - y;
-		#endif
-
 		if (button == 0 && state == 0)
 			if (x >= this->m_Position.x && x <= this->m_Position.x + this->m_Size.x && y >= this->m_Position.y && y <= this->m_Position.y + this->m_Size.y)
 				this->m_IsClicked = true;
@@ -72,7 +68,13 @@ namespace disxx::ui
 
 	void TextInput::Render(void) const noexcept
 	{
-		utility::Shape frame{};
+		utility::Shape subframe{utility::Shape::Type::TYPE_RECTANGLE};
+		subframe.Replace(utility::Vec2<float>{this->m_Position.x - 1, this->m_Position.y - 1});
+		subframe.Resize(utility::Vec2<float>{this->m_Size.x + 2, this->m_Size.y + 2});
+		subframe.SetColor(utility::Vec3<float>{0.f, 0.f, 0.f});
+		s_pRenderer->Push(std::make_unique<utility::Shape>(subframe));
+
+		utility::Shape frame{utility::Shape::Type::TYPE_RECTANGLE};
 		frame.Replace(utility::Vec2<float>{this->m_Position.x, this->m_Position.y});
 		frame.Resize(utility::Vec2<float>{this->m_Size.x, this->m_Size.y});
 		frame.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});

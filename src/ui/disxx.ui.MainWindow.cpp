@@ -4,6 +4,11 @@ module;
 #include <vector>
 #include <bit>
 
+// Make y starts at left bottom corner
+#define translate(y) \
+	const auto [_, height]{backend::GLUTContext::GetWindowSize()}; \
+	y = height - y
+
 module disxx.ui.MainWindow;
 
 namespace disxx::ui
@@ -62,6 +67,10 @@ namespace disxx::ui
 
 	void MainWindow::__KeyboardCallback(unsigned char key, int x, int y) noexcept(false)
 	{
+		#ifdef BACKEND_CTX_GLUT
+			translate(y);
+		#endif
+
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->HandleKeyboard(key, x, y);
 		m_Context.Redisplay();
@@ -69,6 +78,10 @@ namespace disxx::ui
 
 	void MainWindow::__MouseButtonCallback(int button, int state, int x, int y) noexcept(false)
 	{
+		#ifdef BACKEND_CTX_GLUT
+			translate(y);
+		#endif
+
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->HandleMouse(button, state, x, y);
 		m_Context.Redisplay();
@@ -76,6 +89,10 @@ namespace disxx::ui
 
 	void MainWindow::__MouseMotionCallback(int x, int y) noexcept(false)
 	{
+		#ifdef BACKEND_CTX_GLUT
+			translate(y);
+		#endif
+
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->HandleMotion(x, y);
 		m_Context.Redisplay();

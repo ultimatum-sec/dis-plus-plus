@@ -35,13 +35,13 @@ namespace disxx::ui::utility
 	}
 
 	Shape::Shape(Shape &&other) noexcept
-		: Renderable{std::move(other)}
+		: Renderable{std::forward<Shape &&>(other)}
 		, m_ShapeType{std::move(other.m_ShapeType)}
 	{}
 
 	Shape &Shape::operator=(Shape &&other) noexcept
 	{
-		Renderable::operator=(other);
+		Renderable::operator=(std::forward<Shape &&>(other));
 		this->m_ShapeType = std::move(other.m_ShapeType);
 
 		return *this;
