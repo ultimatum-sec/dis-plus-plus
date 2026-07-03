@@ -17,12 +17,11 @@ export namespace disxx::ui
 	{
 	  private:
 		std::vector<std::string> m_Lines;
-		
 		float m_LastMouseX{}, m_LastMouseY{};
 		float m_ScrollX{}, m_ScrollY{};	
 		float m_MaxScrollX{}, m_MaxScrollY{};
 		float m_VerticalSliderHeight{}, m_HorizontalSliderWidth{};
-		mutable bool m_IsActiveVertical{false}, m_IsActiveHorizontal{false};
+		mutable bool m_IsActiveVertical{}, m_IsActiveHorizontal{};
 
 	  private:
 		void _CalcMaxScroll(void) noexcept;
@@ -60,8 +59,6 @@ export namespace disxx::ui
 			std::regex{R"(\t)"},
 			"    "
 		);
-
-		this->_CalcMaxScroll();
 	}
 
 	template <typename ...Args>

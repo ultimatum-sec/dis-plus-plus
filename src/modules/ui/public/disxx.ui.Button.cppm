@@ -23,24 +23,44 @@ export namespace disxx::ui
 
 	  private:
 		std::function<void(const Widget *const)> m_Callback{};
-		Trigger m_Trigger{};
-		utility::Image m_Image{};
 		std::string m_Text{};
+		Trigger m_Trigger{};
 
 	  public:
 		explicit Button(void) noexcept;
         explicit Button(float, float, float, float) noexcept;
-        Button(const Button &) noexcept;
+        
+		Button(const Button &) noexcept;
         Button &operator=(const Button &) noexcept;
+
+		Button(Button &&) noexcept;
+		Button &operator=(Button &&) noexcept;
 
 		virtual ~Button(void) noexcept override = default;
 
-		void SetCallback(const Trigger, std::function<void(const Widget *const)>) noexcept;
-		void SetImage(const std::filesystem::path &) noexcept(false);
-		void SetText(std::string) noexcept(false);	
+		inline void SetCallback(const Trigger, std::function<void(const Widget *const)>) noexcept;
+		inline void SetText(std::string_view) noexcept;	
 
 		virtual void HandleMouse(int, int, int, int) noexcept override;
 		virtual void HandleMotion(int, int) noexcept override;
 		virtual void Render(void) const noexcept override;
 	};
+
+	inline void Button::SetCallback(const Trigger trigger, std::function<void(const Widget *const)> callback) noexcept
+	{
+		if (trigger != Trigger::BTN_NONE)
+		{
+			this->m_Callback = callback;
+			this->m_Trigger = trigger;
+		}
+		else
+		{
+			// Don't touch the callback here!
+			// It won't be used anyway...
+			this->m_Trigger = Trigger::BTN_NONE;
+		}
+	}
+
+	inline void Button::SetText(std::string_view str) noexcept
+	{ this->m_Text = str.data(); }
 } /* disxx::ui */

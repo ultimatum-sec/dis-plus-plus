@@ -19,25 +19,22 @@ namespace disxx::ui
 	Button::Button(void) noexcept
 		: Widget{}
 		, m_Callback{[](const Widget *const) -> void {}}
+		, m_Text{}
 		, m_Trigger{Trigger::BTN_NONE}
-		, m_Image{}
-		, m_Text{}	
 	{}
 
 	Button::Button(float x, float y, float width, float height) noexcept
 		: Widget{x, y, width, height}
 		, m_Callback{[](const Widget *const) -> void {}}
-		, m_Trigger{Trigger::BTN_NONE}
-		, m_Image{}
 		, m_Text{}
+		, m_Trigger{Trigger::BTN_NONE}
 	{}
 
 	Button::Button(const Button &other) noexcept
 		: Widget{other}
 		, m_Callback{other.m_Callback}
-		, m_Trigger{other.m_Trigger}
-		, m_Image{other.m_Image}
 		, m_Text{other.m_Text}
+		, m_Trigger{other.m_Trigger}
 	{}
 
 	Button &Button::operator=(const Button &other) noexcept
@@ -46,37 +43,29 @@ namespace disxx::ui
 		{
 			Widget::operator=(other);
 			this->m_Callback = other.m_Callback;
-			this->m_Trigger = other.m_Trigger;
-			this->m_Image = other.m_Image;
 			this->m_Text = other.m_Text;
+			this->m_Trigger = other.m_Trigger;
 		}
 
 		return *this;
 	}
 
-	void Button::SetCallback(const Trigger trigger, const std::function<void(const Widget *const)> callback) noexcept
-	{
-		if (trigger != Trigger::BTN_NONE)
-		{
-			this->m_Callback = callback;
-			this->m_Trigger = trigger;
-		}
-		else
-		{
-			// Don't touch the callback here!
-			// It won't be used anyway...
-			this->m_Trigger = Trigger::BTN_NONE;
-		}
-	}
+	Button::Button(Button &&other) noexcept
+		: Widget{std::forward<Button &&>(other)}
+		, m_Callback{std::move(other.m_Callback)}
+		, m_Text{std::move(other.m_Text)}
+		, m_Trigger{std::move(other.m_Trigger)}
+	{}
 
-	void Button::SetImage(const std::filesystem::path &rPath) noexcept(false)
+	Button &Button::operator=(Button &&other) noexcept
 	{
-		utility::ImageLoader loader{};
-		this->m_Image = loader.Load(rPath);
+		Widget::operator=(std::forward<Button &&>(other));
+		this->m_Callback = std::move(other.m_Callback);
+		this->m_Text = std::move(other.m_Text);
+		this->m_Trigger = std::move(other.m_Trigger);
+
+		return *this;
 	}
-	
-	void Button::SetText(std::string str) noexcept(false)
-	{ this->m_Text = str; }
 
 	void Button::Render(void) const noexcept
 	{
