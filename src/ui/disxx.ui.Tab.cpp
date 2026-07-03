@@ -4,8 +4,6 @@ module;
 #include <memory>
 #include <string>
 
-#include <print>
-
 module disxx.ui.Tab;
 
 import disxx.ui.utility.Shape;
@@ -60,7 +58,6 @@ namespace disxx::ui
 
 	void Tab::Render(void) const noexcept
 	{
-		std::println("Tab::Render");
 		float heightModifier{this->m_IsClicked ? 5.f : 0.f};
 
 		// Add a frame

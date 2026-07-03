@@ -30,8 +30,8 @@ import disxx.loader.macho.Loader;
 import disxx.disasm.Disassembler;
 import disxx.ui.backend.GLUTContext;
 import disxx.ui.SourceEditor;
-import disxx.ui.MainWindow;
 import disxx.ui.TabbedPane;
+import disxx.ui.MainWindow;
 import disxx.ui.TextInput;
 import disxx.ui.Button;
 import disxx.ui.Frame;
@@ -80,9 +80,11 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 	if (std::error_code errc{}; !std::filesystem::exists(path, errc)) [[unlikely]]
 		throw std::filesystem::filesystem_error{"FileNotFoundError", errc};
 
-	disxx::ui::SourceEditor editor{}, *pLabels{static_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().at(1).get())};
-
+	// Just take the ptr, so I shouldn't cast it every time
+	auto *pLabels{static_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().at(1).get())};
 	pLabels->ClearText();
+
+	disxx::ui::SourceEditor editor{};
 
 	editor.SetColor(0.2f, 0.2f, 0.2f);
 	editor.AddLine(";{:*<64}", "");
@@ -108,14 +110,14 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 		.LoadImageBase()
 		.and_then
 		(
-			[editor](const auto &addr) mutable -> std::optional<long long int>
+			[&editor](const auto &addr) -> std::optional<long long int>
 			{ 
 				editor.AddLine(";\tImage base: {}", MKHEX(addr));
 				return addr;
 			}
 		).or_else
 		(
-			[editor](void) mutable -> std::optional<long long int>
+			[&editor](void) -> std::optional<long long int>
 			{
 				editor.AddLine("\tImage base: unknown");
 				return std::nullopt; 
@@ -309,7 +311,18 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 	tab.SetColor(0.2f, 0.2f, 0.2f);
 	tab.SetText(path.string());
 	tab.SetTextArea(std::move(editor));
-	static_cast<disxx::ui::TabbedPane *>(s_pInstance->m_pWindow.get()->GetWidgets().rbegin()->get())->Push(std::move(tab));
+
+	disxx::ui::TabbedPane pane
+	{
+		0.f,
+		0.f,
+		width * 1.f,
+		height * 0.7f
+	};
+	pane.SetColor(0.2f, 0.2f, 0.2f);
+	pane.Push(std::move(tab));
+
+	s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TabbedPane>(pane));
 }
 
 Application *Application::Init(int &argc, char **argv) noexcept(false)

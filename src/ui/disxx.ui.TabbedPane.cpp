@@ -4,8 +4,6 @@ module;
 #include <memory>
 #include <vector>
 
-#include <print>
-
 module disxx.ui.TabbedPane;
 
 import disxx.ui.utility.Shape;
@@ -68,7 +66,6 @@ namespace disxx::ui
 		frame.SetColor(utility::Vec3<float>{this->m_pColor[0], this->m_pColor[1], this->m_pColor[2]});
 		s_pRenderer->Push(std::make_unique<utility::Shape>(frame));
 
-		std::println("TabbedPane::Render");
 		for (const auto &tab : this->m_Tabs)
 		{
 			tab.Render();
@@ -86,9 +83,10 @@ namespace disxx::ui
 		{
 			const auto [tabX, tabY]{tab.GetPosition()};
 			const auto [tabWidth, tabHeight]{tab.GetSize()};
-			if (!(x >= tabX && x <= tabX + tabWidth && y >= tabY && y <= tabY + tabHeight))
+			const auto cond{x >= tabX && x <= tabX + tabWidth && y >= tabY && y <= tabY + tabHeight};
+			if (button == 0 && state == 0 && cond && tab.Clicked())
 				tab.SetPassive();
-			else
+			else if (cond || tab.Clicked())
 				tab.HandleMouse(button, state, x, y);
 		}
 	}
