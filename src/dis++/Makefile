@@ -53,6 +53,7 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ImageLoader.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Vec.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Vertex.cppm \
+	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.ColorTag.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Renderable.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Text.cppm \
 	..$(PATHSEP)modules$(PATHSEP)ui$(PATHSEP)utility$(PATHSEP)disxx.ui.utility.Shape.cppm \
@@ -80,14 +81,14 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)public$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)public$(PATHSEP)disxx.loader.macho.Loader.cppm \
-	.$(PATHSEP)DisLog$(PATHSEP)DisLog.cppm \
+	.$(PATHSEP)Core$(PATHSEP)DisLog.cppm \
 	.$(PATHSEP)FileInput$(PATHSEP)FileInput.cppm \
-	.$(PATHSEP)Application$(PATHSEP)Application.cppm
+	.$(PATHSEP)Core$(PATHSEP)Application.cppm
 
 SOURCES=\
-	.$(PATHSEP)DisLog$(PATHSEP)DisLog.cpp \
+	.$(PATHSEP)Core$(PATHSEP)DisLog.cpp \
 	.$(PATHSEP)FileInput$(PATHSEP)FileInput.cpp \
-	.$(PATHSEP)Application$(PATHSEP)Application.cpp \
+	.$(PATHSEP)Core$(PATHSEP)Application.cpp \
 	.$(PATHSEP)main.cpp
 
 PRECOMPILED=$(addprefix $(PRECOMPILEDDIR)$(PATHSEP), $(notdir $(MODULES:.cppm=.pcm)))

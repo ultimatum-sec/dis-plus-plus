@@ -31,6 +31,8 @@ export namespace disxx::ui
 		inline void Push(Tab &&) noexcept;
 		inline void Pop(void) noexcept;
 
+		inline const std::vector<Tab> &GetTabs(void) const noexcept;
+
 		virtual void Render(void) const noexcept override;
 		virtual void HandleMouse(int, int, int, int) noexcept(false) override;
 		virtual void HandleMotion(int, int) noexcept(false) override;
@@ -57,4 +59,7 @@ export namespace disxx::ui
 		if (this->m_Tabs.size() > 0) [[likely]]
 			this->m_Tabs.pop_back();
 	}
+
+	inline const std::vector<Tab> &TabbedPane::GetTabs(void) const noexcept
+	{ return this->m_Tabs; }
 } /* disxx::ui */

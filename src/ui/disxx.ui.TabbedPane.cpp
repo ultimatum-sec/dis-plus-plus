@@ -86,6 +86,12 @@ namespace disxx::ui
 			const auto cond{x >= tabX && x <= tabX + tabWidth && y >= tabY && y <= tabY + tabHeight};
 			if (button == 0 && state == 0 && cond && tab.Clicked())
 				tab.SetPassive();
+			else if (button == 0 && state == 0 && cond)
+			{
+				for (auto &other : this->m_Tabs)
+					other.SetPassive();
+				tab.HandleMouse(button, state, x, y);
+			}
 			else if (cond || tab.Clicked())
 				tab.HandleMouse(button, state, x, y);
 		}

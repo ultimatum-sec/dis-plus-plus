@@ -15,6 +15,6 @@ export extern "C"
      * these functions!
      */
 
-    extern mapfile_t *mopen(const char *);
-    extern signed long long int mclose(void);
+    extern mapfile_t mopen(const char *);
+    extern signed long long int mclose(mapfile_t);
 }

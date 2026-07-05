@@ -5,6 +5,7 @@ module;
 #include <stdexcept>
 #include <cstdint>
 #include <memory>
+#include <limits>
 #include <new>
 
 module disxx.loader.utility.MappedFile;
@@ -21,7 +22,7 @@ namespace disxx::loader::utility
 		{
 			// Just throw en exception if ptr won't be freed to
 			// avoid a HUGE MEMORY LEAK (depending on file size)!
-			if (mclose() == -1) [[unlikely]]
+			if (mclose(static_cast<mapfile_t>(*this)) == -1) [[unlikely]]
 				throw std::runtime_error{"FileUnmappingError"};
 		}
 	}
@@ -43,9 +44,9 @@ namespace disxx::loader::utility
 			throw std::filesystem::filesystem_error{"DirectoryError", errc};
 	
 		auto pMapfile{mopen(const_cast<char *>(rPath.c_str()))};
-		if (!pMapfile) [[unlikely]]
+		if (!pMapfile.mptr) [[unlikely]]
 			throw std::bad_alloc{};
-		this->mptr = pMapfile->mptr;
-		this->msize = pMapfile->msize;
+		this->mptr = pMapfile.mptr;
+		this->msize = pMapfile.msize;
 	}
 } /* disxx::loader::utility */

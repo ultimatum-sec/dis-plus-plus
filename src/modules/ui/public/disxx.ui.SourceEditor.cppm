@@ -2,6 +2,7 @@ module;
 
 #include <string_view>
 #include <utility>
+#include <ranges>
 #include <format>
 #include <string>
 #include <vector>
@@ -9,6 +10,7 @@ module;
 
 export module disxx.ui.SourceEditor;
 
+import disxx.ui.utility.ColorTag;
 import disxx.ui.Widget;
 
 export namespace disxx::ui
@@ -36,7 +38,7 @@ export namespace disxx::ui
 
 		virtual void Resize(utility::Vec2<float>) noexcept override;
 
-		inline const std::vector<std::string> &GetLines(void) const noexcept;
+		inline std::vector<std::string> GetLines(void) const noexcept;
 		template <typename ...Args> inline void AddString(std::format_string<Args...>, Args &&...) noexcept(false);
 		template <typename ...Args> inline void AddLine(std::format_string<Args...>, Args &&...) noexcept(false);
 		inline void ClearText(void) noexcept;
@@ -46,8 +48,18 @@ export namespace disxx::ui
 		virtual void Render(void) const noexcept override;
 	};
 
-	inline const std::vector<std::string> &SourceEditor::GetLines(void) const noexcept
-	{ return this->m_Lines; }
+	inline std::vector<std::string> SourceEditor::GetLines(void) const noexcept
+	{
+		return this->m_Lines
+			| std::views::transform
+			(
+				[](const auto &line) -> std::string
+				{
+					utility::ColorTag tag{};
+					return tag.RemoveTags(line);
+				}
+			) | std::ranges::to<std::vector<std::string>>();
+	}
 
 	template <typename ...Args>
 	inline void SourceEditor::AddString(std::format_string<Args...> fmt, Args &&...args) noexcept(false)

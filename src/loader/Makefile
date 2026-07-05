@@ -38,13 +38,13 @@ ifeq ($(OS), Darwin)
 		MAPIMPLC=$(ASM)
 		MAPIMPLFLAGS=$(ASMFLAGS)
 	else
-		MAPIMPL=..$(PATHSEP)utils$(PATHSEP)mapfile$(PATHSEP)mapfile.c
+		MAPIMPL=.$(PATHSEP)utility$(PATHSEP)mapfile.c
 		IMPLEXT=c
 		MAPIMPLC=$(CC)
 		MAPIMPLFLAGS=$(CFLAGS)
 	endif
 else
-	MAPIMPL=..$(PATHSEP)utils$(PATHSEP)mapfile$(PATHSEP)mapfile.c
+	MAPIMPL=.$(PATHSEP)utility$(PATHSEP)mapfile.c
 	IMPLEXT=c
 	MAPIMPLC=$(CC)
 	MAPIMPLFLAGS=$(CFLAGS)
@@ -88,12 +88,11 @@ $(MOBJECTS): $(PRECOMPILEDDIR)$(PATHSEP)%.o: $(PRECOMPILEDDIR)$(PATHSEP)%.pcm | 
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 $(OBJECTS): $(OBJECTSDIR)$(PATHSEP)%.o: %.cpp | $(OBJECTSDIR)
 	$(CXX) -c $(CXXFLAGS) $< -o $@
-OBJECTS+=$(MAPIMPL:.$(IMPLEXT)=.o)
-$(addprefix $(OBJECTSDIR)$(PATHSEP), $(notdir $(MAPIMPL:.$(IMPLEXT)=.o))): $(MAPFILE) | $(OBJECTSDIR)
-	$(MAPIMPLC) $(MAPIMPL) $(MAPIMPLFLAGS) $< -o $@
-
+$(OBJECTSDIR)$(PATHSEP)$(notdir $(MAPIMPL:.$(IMPLEXT)=.o)): $(MAPIMPL)
+	$(MAPIMPLC) $(MAPIMPLFLAGS) $< -o $@
+OBJECTS+=$(OBJECTSDIR)$(PATHSEP)$(notdir $(MAPIMPL:.$(IMPLEXT)=.o))
 $(BUILDDIR)$(PATHSEP)libdisxx-macho.$(DYLIB): $(MOBJECTS) $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:
-	$(RM) $(PRECOMPILED) $(MOBJECTS) $(OBJECTS) $(all)
+	$(RMDIR) $(BUILDDIR)
