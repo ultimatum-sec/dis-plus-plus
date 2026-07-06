@@ -333,7 +333,7 @@ SOURCES=\
 	.$(PATHSEP)disxx.disasm.Instruction.cpp \
 	.$(PATHSEP)disxx.disasm.Disassembler.cpp
 
-.PHONY: all analyse clean
+.PHONY: all clean
 all: $(BUILDDIR)$(PATHSEP)libdisxx-disasm.$(DYLIB)
 
 ..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Register-RegsTable.cppm: \

@@ -7,13 +7,9 @@ endif
 MODULESPATH=..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)
 
 BUILDDIR=.$(PATHSEP)build
+DEPENDENCIESDIR=$(BUILDDIR)$(PATHSEP)dependencies
 PRECOMPILEDDIR=.$(PATHSEP)build$(PATHSEP)precompiled
 OBJECTSDIR=.$(PATHSEP)build$(PATHSEP)objects
-
-ASMFLAGS=-c -arch arm64
-
-CFLAGS=-c -std=c99 -arch $(ARCH) -Weverything -Werror -Wno-misleading-indentation \
-	-Wno-sign-conversion -O3 -DNDEBUG -isysroot $(shell xcrun --show-sdk-path)
 
 CXXFLAGS=-std=c++26 -Weverything -Werror -O3 -arch $(ARCH) \
 	-isysroot $(shell xcrun --show-sdk-path) -I..$(PATHSEP)include \
@@ -23,7 +19,8 @@ CXXFLAGS=-std=c++26 -Weverything -Werror -O3 -arch $(ARCH) \
 	-Wno-unused-command-line-argument -fmodules -fcxx-modules -Xclang -fmodules-local-submodule-visibility \
 	-fprebuilt-module-path=$(PRECOMPILEDDIR) -fstack-protector-all -DNDEBUG
 
-LDFLAGS=-dylib -arch $(ARCH) -O2 $(LTOFLAGS) -S -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++
+LDFLAGS=-dylib -arch $(ARCH) -O2 $(LTOFLAGS) -S -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
+	-L$(DEPENDENCIESDIR) -ldisxx-util
 ifeq ($(OS),Darwin)
 	LDFLAGS+=-install_name @executable_path/../Frameworks/libdisxx-macho.$(DYLIB)
 else
@@ -31,30 +28,10 @@ else
 		LDFLAGS+=-install_name $$ORIGIN/libdisxx-macho.$(DYLIB)
 endif
 
-ifeq ($(OS), Darwin)
-	ifeq ($(ARCH), arm64)
-		MAPIMPL=.$(PATHSEP)utility$(PATHSEP)mapfile.s
-		IMPLEXT=s
-		MAPIMPLC=$(ASM)
-		MAPIMPLFLAGS=$(ASMFLAGS)
-	else
-		MAPIMPL=.$(PATHSEP)utility$(PATHSEP)mapfile.c
-		IMPLEXT=c
-		MAPIMPLC=$(CC)
-		MAPIMPLFLAGS=$(CFLAGS)
-	endif
-else
-	MAPIMPL=.$(PATHSEP)utility$(PATHSEP)mapfile.c
-	IMPLEXT=c
-	MAPIMPLC=$(CC)
-	MAPIMPLFLAGS=$(CFLAGS)
-endif
-
 MODULES=\
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)file$(PATHSEP)disxx.utility.file.MappedFile.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.BinaryInfo.cppm \
 	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Label.cppm \
-	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile-mapfile_t.cppm \
-	$(MODULESPATH)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile.cppm \
 	$(MODULESPATH)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Label.cppm \
 	$(MODULESPATH)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cppm \
 	$(MODULESPATH)public$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cppm \
@@ -62,13 +39,15 @@ MODULES=\
 
 SOURCES=\
 	.$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.BinaryInfo.cpp \
-	.$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile.cpp \
 	.$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Label.cpp \
 	.$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cpp \
 	.$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cpp \
 	.$(PATHSEP)disxx.loader.macho.Loader.cpp
 
 all: $(BUILDDIR)$(PATHSEP)libdisxx-macho.$(DYLIB)
+
+UTILITIES=$(DEPENDENCIESDIR)$(PATHSEP)libdisxx-util.$(DYLIB)
+DEPENDENCIES=$(UTILITIES)
 
 PRECOMPILED=$(addprefix $(PRECOMPILEDDIR)$(PATHSEP), $(notdir $(MODULES:.cppm=.pcm)))
 MOBJECTS=$(PRECOMPILED:.pcm=.o)
@@ -78,6 +57,8 @@ vpath %.cppm $(sort $(dir $(MODULES)))
 vpath %.cpp $(sort $(dir $(SOURCES)))
 vpath %.pcm $(sort $(dir $(PRECOMPILED)))
 
+$(DEPENDENCIESDIR):
+	$(MKDIR) $@
 $(PRECOMPILEDDIR):
 	$(MKDIR) $@
 $(OBJECTSDIR):
@@ -88,10 +69,10 @@ $(MOBJECTS): $(PRECOMPILEDDIR)$(PATHSEP)%.o: $(PRECOMPILEDDIR)$(PATHSEP)%.pcm | 
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 $(OBJECTS): $(OBJECTSDIR)$(PATHSEP)%.o: %.cpp | $(OBJECTSDIR)
 	$(CXX) -c $(CXXFLAGS) $< -o $@
-$(OBJECTSDIR)$(PATHSEP)$(notdir $(MAPIMPL:.$(IMPLEXT)=.o)): $(MAPIMPL)
-	$(MAPIMPLC) $(MAPIMPLFLAGS) $< -o $@
-OBJECTS+=$(OBJECTSDIR)$(PATHSEP)$(notdir $(MAPIMPL:.$(IMPLEXT)=.o))
-$(BUILDDIR)$(PATHSEP)libdisxx-macho.$(DYLIB): $(MOBJECTS) $(OBJECTS)
+$(UTILITIES): | $(DEPENDENCIESDIR)
+	make -C ..$(PATHSEP)utility
+	$(MOVE) ..$(PATHSEP)utility$(PATHSEP)build$(PATHSEP)libdisxx-util.$(DYLIB) $@
+$(BUILDDIR)$(PATHSEP)libdisxx-macho.$(DYLIB): $(MOBJECTS) $(OBJECTS) | $(DEPENDENCIES)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:

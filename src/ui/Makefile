@@ -83,8 +83,6 @@ SOURCES=\
 .PHONY: all
 all: $(BUILDDIR)$(PATHSEP)libdisxx-ui.$(DYLIB)
 
-DEPENDENCIES=build$(PATHSEP)libdisxx-util.dylib
-
 vpath %.cppm $(sort $(dir $(MODULES)))
 vpath %.cpp $(sort $(dir $(SOURCES)))
 vpath %.pcm $(sort $(dir $(PRECOMPILED)))

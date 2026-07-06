@@ -30,20 +30,54 @@ import disxx.loader.executable.ExecutableFile;
 
 namespace disxx::loader::macho
 {
-	Loader::Loader(void) noexcept(false)
-		: m_pHeader{new mach_header_64}
+	Loader::Loader(void) noexcept
+		: m_Mapper{}
+		, m_pHeader{new mach_header_64{}}
+		, m_Offset{0ull}
 	{}
 
-	Loader::~Loader(void) noexcept(false)
+	Loader::Loader(const Loader &other) noexcept
+		: m_Mapper{other.m_Mapper}
+		, m_pHeader{new mach_header_64{*other.m_pHeader}}
+		, m_Offset{other.m_Offset}
+	{}
+
+	Loader &Loader::operator=(const Loader &other) noexcept
 	{
-		std::destroy_at(&this->m_Mapper);
+		if (this != &other) [[likely]]
+		{
+			this->m_Mapper = other.m_Mapper;
+			*this->m_pHeader = *other.m_pHeader;
+			this->m_Offset = other.m_Offset;
+		}
+
+		return *this;
+	}
+
+	Loader::Loader(Loader &&other) noexcept
+		: m_Mapper{std::move(other.m_Mapper)}
+		, m_pHeader{std::move(other.m_pHeader)}
+		, m_Offset{std::move(other.m_Offset)}
+	{}
+
+	Loader &Loader::operator=(Loader &&other) noexcept
+	{
+		this->m_Mapper = std::move(other.m_Mapper);
+		this->m_pHeader = std::move(other.m_pHeader);
+		this->m_Offset = std::move(other.m_Offset);
+
+		return *this;
+	}
+
+	Loader::~Loader(void) noexcept
+	{
 		if (this->m_pHeader) [[likely]]
 			delete this->m_pHeader;
 	}
 
 	void Loader::LoadFile(const std::filesystem::path &rPath) noexcept(false)
 	{
-		this->m_Mapper.MapFile(rPath);
+		this->m_Mapper.Open(rPath);
 		// I really like that 0xCAFEBABE magic number :D
 		if (this->m_Mapper.Read<std::uint32_t>(0) == FAT_CIGAM)
 		{

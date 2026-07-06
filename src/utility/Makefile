@@ -8,6 +8,11 @@ BUILDDIR=.$(PATHSEP)build
 PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
+ASMFLAGS=-c -arch arm64
+
+CFLAGS=-c -std=c99 -arch $(ARCH) -Weverything -Werror -Wno-misleading-indentation \
+	-Wno-sign-conversion -O3 -DNDEBUG -isysroot $(shell xcrun --show-sdk-path)
+
 CXXFLAGS=\
 	-c -std=c++26 -O3 -Wall -Wextra -Wpedantic -Wshadow -Werror -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
 	-Xclang -fmodules-local-submodule-visibility -I..$(PATHSEP)include -fstack-protector-all -DNDEBUG \
@@ -28,6 +33,25 @@ else
 		LDFLAGS+=-install_name $$ORIGIN/libdisxx-util.$(DYLIB)
 endif
 
+ifeq ($(OS), Darwin)
+	ifeq ($(ARCH), arm64)
+		MAPIMPL=.$(PATHSEP)file$(PATHSEP)mapped.s
+		IMPLEXT=s
+		MAPIMPLC=$(ASM)
+		MAPIMPLFLAGS=$(ASMFLAGS)
+	else
+		MAPIMPL=.$(PATHSEP)file$(PATHSEP)mapped.c
+		IMPLEXT=c
+		MAPIMPLC=$(CC)
+		MAPIMPLFLAGS=$(CFLAGS)
+	endif
+else
+	MAPIMPL=.$(PATHSEP)file$(PATHSEP)mapped.c
+	IMPLEXT=c
+	MAPIMPLC=$(CC)
+	MAPIMPLFLAGS=$(CFLAGS)
+endif
+
 BASEPATH=..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)
 
 MODULES=\
@@ -39,7 +63,8 @@ MODULES=\
 	$(BASEPATH)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Reader.cppm \
 	$(BASEPATH)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Writer.cppm \
 	$(BASEPATH)public$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.NonNull.cppm \
-	$(BASEPATH)public$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cppm
+	$(BASEPATH)public$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cppm \
+	$(BASEPATH)public$(PATHSEP)file$(PATHSEP)disxx.utility.file.MappedFile.cppm
 
 SOURCES=\
 	.$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cpp \
@@ -48,7 +73,8 @@ SOURCES=\
 	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.BaseParser.cpp \
 	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Reader.cpp \
 	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Writer.cpp \
-	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cpp
+	.$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cpp \
+	.$(PATHSEP)file$(PATHSEP)disxx.utility.file.MappedFile.cpp
 
 PRECOMPILED=$(addprefix $(PRECOMPILEDDIR)$(PATHSEP), $(notdir $(MODULES:.cppm=.pcm)))
 MOBJECTS=$(PRECOMPILED:.pcm=.o)
@@ -71,6 +97,9 @@ $(MOBJECTS): $(PRECOMPILEDDIR)$(PATHSEP)%.o: $(PRECOMPILEDDIR)$(PATHSEP)%.pcm | 
 	$(CXX) $(CXXFLAGS) $< -o $@
 $(OBJECTS): $(OBJECTSDIR)$(PATHSEP)%.o: %.cpp | $(OBJECTSDIR)$(PATHSEP)
 	$(CXX) $(CXXFLAGS) $< -o $@
+$(OBJECTSDIR)$(PATHSEP)$(notdir $(MAPIMPL:.$(IMPLEXT)=.o)): $(MAPIMPL)
+	$(MAPIMPLC) $(MAPIMPLFLAGS) $< -o $@
+OBJECTS+=$(OBJECTSDIR)$(PATHSEP)$(notdir $(MAPIMPL:.$(IMPLEXT)=.o))
 $(BUILDDIR)$(PATHSEP)libdisxx-util.$(DYLIB): $(MOBJECTS) $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ -o $@
 

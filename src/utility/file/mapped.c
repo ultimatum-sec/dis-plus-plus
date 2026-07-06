@@ -8,29 +8,25 @@ extern "C"
 {
 #endif
 
-static struct mapfile_t
-{
-	void *mptr;
-	off_t msize;
-} mapped = {.mptr = MAP_FAILED, .msize = -1};
+struct mapfile_t mopen(const char *path);
+int mclose(mapfile_t);
 
-struct mapfile_t *mopen(char *path);
-int mclose(void);
-
-struct mapfile_t *mopen(char *path)
+struct mapfile_t mopen(const char *path)
 {
+	mapped_t mapped = { .mptr = NULL, .msize = 0 };
+
 	int fd = open(path, O_RDWR);
     if (fd == -1)
-        return NULL;
+        return mapped;
 
-   	mapped.msize = lseek(fd, 0, SEEK_END);
-	if (mapped.msize == -1)
-		return NULL;
+   	off_t size = lseek(fd, 0, SEEK_END);
+	if (size == -1)
+		return mapped;
 	
-    mapped.mptr = mmap
+    void *ptr = mmap
 	(
 		NULL,
-		mapped.msize,
+		size,
 		PROT_READ,
 		MAP_FILE | MAP_PRIVATE,
 		fd,
@@ -39,12 +35,15 @@ struct mapfile_t *mopen(char *path)
 	
 	close(fd);
 
-	if (mapped.mptr == MAP_FAILED)
+	if (ptr == MAP_FAILED)
 		return NULL;
-	return &mapped;
+
+	mapped.mptr = ptr;
+	mapped.msize = size;
+	return mapped;
 }
 
-int mclose(void)
+int mclose(mapped_t mapped)
 {
 	if ((mapped.mptr != MAP_FAILED && mapped.mptr != NULL) && mapped.msize != -1)
 		return munmap(mapped.mptr, mapped.msize);

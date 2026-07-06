@@ -14,25 +14,27 @@ export module disxx.loader.macho.Loader;
 
 export import disxx.loader.executable.ExecutableFile;
 export import disxx.loader.utility.BinaryInfo;
-import disxx.loader.utility.MappedFile;
+import disxx.utility.file.MappedFile;
 
 export namespace disxx::loader::macho
 {
 	class __DISXX_EXPORT__ [[nodiscard]] Loader
 	{
 	  private:
-		// This fields ALWAYS must be initialised, or UB will be occrued!
-		disxx::loader::utility::MappedFile m_Mapper{};
+		disxx::utility::file::MappedFile m_Mapper{};
 		mach_header_64 *m_pHeader{nullptr};
-		std::uint32_t m_Offset{0};
+		std::uint64_t m_Offset{0};
 
 	  public:
-		explicit Loader(void) noexcept(false);
+		explicit Loader(void) noexcept;
 		
-		explicit Loader(const Loader &) = delete;
-		Loader &operator=(const Loader &) = delete;
+		Loader(const Loader &) noexcept;
+		Loader &operator=(const Loader &) noexcept;
 
-		~Loader(void) noexcept(false);
+		Loader(Loader &&) noexcept;
+		Loader &operator=(Loader &&) noexcept;
+
+		~Loader(void) noexcept;
 		
 		void LoadFile(const std::filesystem::path &) noexcept(false);
 		disxx::loader::executable::ExecutableFile LoadData(void) const noexcept(false);
