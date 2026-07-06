@@ -17,7 +17,7 @@ export import disxx.loader.executable.Label;
 
 export namespace disxx::loader::executable
 {
-	class __DISXX_PRIVATE__ [[nodiscard]] Section
+	class __DISXX_EXPORT__ [[nodiscard]] Section
 	{
 	  private:
 		std::string m_Name{};

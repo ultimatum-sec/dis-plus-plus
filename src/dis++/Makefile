@@ -14,13 +14,14 @@ CXXFLAGS=\
 	-fstrict-aliasing -ftrapv -fwrapv -Wno-unused-command-line-argument -Wno-c99-extensions -Wno-global-constructors -Wno-exit-time-destructors \
 	-Wno-reserved-identifier -Wno-switch-enum -Wno-reserved-macro-identifier -Wno-writable-strings -Wno-weak-vtables \
 	-Wno-non-virtual-dtor -Wno-covered-switch-default -Wno-padded -Wno-sign-conversion -Wno-c++98-compat -Wno-c++98-compat-pedantic \
-	-Wno-implicit-int-float-conversion \
+	-Wno-implicit-int-float-conversion -Wno-disabled-macro-expansion -Wno-cast-function-type-strict -Wno-compound-token-split-by-macro \
+	-Wno-cast-function-type-mismatch \
 	-fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
 	-DGL_SILENCE_DEPRECATION -DBACKEND_CTX_GLUT -DNDEBUG -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden
 
 LDFLAGS=\
 	-O2 $(LTOFLAGS) -S -demangle -arch $(ARCH) -pie -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
-	-L$(DEPENDENCIESDIR) -framework GLUT -ldisxx-util -ldisxx-ui -ldisxx-disasm -ldisxx-macho
+	-L$(DEPENDENCIESDIR) -framework GLUT -framework Ruby -ldisxx-util -ldisxx-ui -ldisxx-disasm -ldisxx-macho
 
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.DisassemblyError.cppm \
@@ -32,6 +33,7 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Writer.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.NonNull.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)ini$(PATHSEP)disxx.utility.ini.Parser.cppm \
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)file$(PATHSEP)disxx.utility.file.MappedFile.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)private$(PATHSEP)disxx.disasm.InstructionID.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.AbstractOperand.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Register.cppm \
@@ -75,17 +77,17 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.BinaryInfo.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Label.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.Section.cppm \
-	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile-mapfile_t.cppm \
-	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)utility$(PATHSEP)disxx.loader.utility.MappedFile.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Label.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)private$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.Section.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)public$(PATHSEP)executable$(PATHSEP)disxx.loader.executable.ExecutableFile.cppm \
 	..$(PATHSEP)modules$(PATHSEP)loader$(PATHSEP)public$(PATHSEP)disxx.loader.macho.Loader.cppm \
+	.$(PATHSEP)ScriptEngine$(PATHSEP)ScriptEngine.cppm \
 	.$(PATHSEP)Core$(PATHSEP)DisLog.cppm \
 	.$(PATHSEP)FileInput$(PATHSEP)FileInput.cppm \
 	.$(PATHSEP)Core$(PATHSEP)Application.cppm
 
 SOURCES=\
+	.$(PATHSEP)ScriptEngine$(PATHSEP)ScriptEngine.cpp \
 	.$(PATHSEP)Core$(PATHSEP)DisLog.cpp \
 	.$(PATHSEP)FileInput$(PATHSEP)FileInput.cpp \
 	.$(PATHSEP)Core$(PATHSEP)Application.cpp \

@@ -16,7 +16,7 @@ export import <string>;
 
 export namespace disxx::loader::executable
 {
-	class __DISXX_PRIVATE__ [[nodiscard]] Label
+	class __DISXX_EXPORT__ [[nodiscard]] Label
 	{
 	  public:
 		using Bytes = std::vector<std::uint8_t>;

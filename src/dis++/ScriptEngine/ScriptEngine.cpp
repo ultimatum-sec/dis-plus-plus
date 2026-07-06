@@ -1,6 +1,10 @@
 module;
 
-#include <ruby.h>
+#include <Ruby/ruby.h>
+
+#include <utility>
+#include <format>
+#include <bit>
 
 module ScriptEngine;
 
@@ -15,7 +19,8 @@ namespace
 		{
 			nullptr,
 			[](void *) -> void {},
-			[](const void *) -> std::size_t { return sizeof(disxx::loader::macho::Loader *); }
+			[](const void *) -> std::size_t { return sizeof(disxx::loader::macho::Loader *); },
+			{nullptr, nullptr}
 		},
 		nullptr,
 		nullptr,
@@ -28,7 +33,8 @@ namespace
 		{
 			nullptr,
 			[](void *) -> void {},
-			[](const void *) -> std::size_t { return sizeof(disxx::loader::macho::ExecutableFile *); }
+			[](const void *) -> std::size_t { return sizeof(disxx::loader::executable::ExecutableFile *); },
+			{nullptr, nullptr}
 		},
 		nullptr,
 		nullptr,
@@ -41,7 +47,8 @@ namespace
 		{
 			nullptr,
 			[](void *) -> void {},
-			[](const void *) -> std::size_t { return sizeof(disxx::loader::executable::Section *); }
+			[](const void *) -> std::size_t { return sizeof(disxx::loader::executable::Section *); },
+			{nullptr, nullptr}
 		},
 		nullptr,
 		nullptr,
@@ -54,7 +61,8 @@ namespace
 		{
 			nullptr,
 			[](void *) -> void {},
-			[](const void *) -> std::size_t { return sizeof(disxx::loader::executable::Section *); }
+			[](const void *) -> std::size_t { return sizeof(disxx::loader::executable::Section *); },
+			{nullptr, nullptr}
 		},
 		nullptr,
 		nullptr,
@@ -62,11 +70,11 @@ namespace
 	};
 
 	template <typename T>
-	inline T *unwrap(VALUE)
+	inline T *unwrap(VALUE) noexcept
 	{ return nullptr; }
 
 	template <>
-	inline disxx::loader::macho::Loader unwrap(VALUE type) noexcept
+	inline disxx::loader::macho::Loader *unwrap<disxx::loader::macho::Loader>(VALUE val) noexcept
 	{
 		disxx::loader::macho::Loader *ptr{nullptr};
 		TypedData_Get_Struct(val, disxx::loader::macho::Loader, &loader, ptr);
@@ -74,15 +82,15 @@ namespace
 	}
 
 	template <>
-	inline disxx::loader::executable::ExecutableFile unwrap(VALUE type) noexcept
+	inline disxx::loader::executable::ExecutableFile *unwrap<disxx::loader::executable::ExecutableFile>(VALUE val) noexcept
 	{
 		disxx::loader::executable::ExecutableFile *ptr{nullptr};
-		TypedData_Get_Struct(val, disxx::loader::executable::Section, &executable, ptr);
+		TypedData_Get_Struct(val, disxx::loader::executable::ExecutableFile, &executable, ptr);
 		return ptr;
 	}
 
 	template <>
-	inline disxx::loader::executable::Section unwrap(VALUE type) noexcept
+	inline disxx::loader::executable::Section *unwrap<disxx::loader::executable::Section>(VALUE val) noexcept
 	{
 		disxx::loader::executable::Section *ptr{nullptr};
 		TypedData_Get_Struct(val, disxx::loader::executable::Section, &section, ptr);
@@ -90,13 +98,45 @@ namespace
 	}
 
 	template <>
-	inline disxx::loader::executable::Label unwrap(VALUE type) noexcept
+	inline disxx::loader::executable::Label *unwrap<disxx::loader::executable::Label>(VALUE val) noexcept
 	{
 		disxx::loader::executable::Label *ptr{nullptr};
-		TypedData_Get_Struct(val, disxx::loader::executable::Section, &label, ptr);
+		TypedData_Get_Struct(val, disxx::loader::executable::Label, &label, ptr);
 		return ptr;
 	}
 } /* */
+
+ScriptEngine::EngineError::EngineError(void) noexcept
+	: m_Err{}
+{}
+
+ScriptEngine::EngineError::EngineError(std::string_view err) noexcept
+	: m_Err{err.data()}
+{}
+
+ScriptEngine::EngineError::EngineError(const EngineError &other) noexcept
+	: m_Err{other.m_Err}
+{}
+
+ScriptEngine::EngineError &ScriptEngine::EngineError::operator=(const EngineError &other) noexcept
+{
+	if (this != &other) [[likely]]
+		this->m_Err = other.m_Err;
+	return *this;
+}
+
+ScriptEngine::EngineError::EngineError(EngineError &&other) noexcept
+	: m_Err{std::move(other.m_Err)}
+{}
+
+ScriptEngine::EngineError &ScriptEngine::EngineError::operator=(EngineError &&other) noexcept
+{
+	this->m_Err = std::move(other.m_Err);
+	return *this;
+}
+
+const char *ScriptEngine::EngineError::what(void) const noexcept
+{ return this->m_Err.c_str(); }
 
 ScriptEngine::ScriptEngine(void) noexcept
 	: m_Disxx{Qnil}
@@ -106,6 +146,17 @@ ScriptEngine::ScriptEngine(void) noexcept
 	, m_Label{Qnil}
 	, m_Disassembler{Qnil}
 {
+	int argc{0};
+	char **argv = {nullptr};
+	ruby_sysinit(&argc, &argv);
+	ruby_init();
+	ruby_init_loadpath();
+
+	// Variables for using inside lambdas
+	static VALUE ldr{Qnil};
+	static VALUE sect{Qnil};
+	static VALUE lbl{Qnil};
+	
 	this->m_Disxx = rb_define_module("Disxx");
 
 	this->m_Loader = rb_define_class_under
@@ -120,9 +171,9 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"loadFile",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self, VALUE path) -> VALUE
+			+[](VALUE self, VALUE path) -> VALUE
 			{
-				const std::filesystem::path &unwrapped{rb_string_value_cstr(path)};
+				const std::filesystem::path &unwrapped{rb_string_value_cstr(&path)};
 				unwrap<disxx::loader::macho::Loader>(self)->LoadFile(unwrapped);
 				return Qnil;
 			}
@@ -135,8 +186,11 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"loadData",
 		RUBY_METHOD_FUNC
 		(
-			const auto data{unwrap<disxx::loader::macho::Loader>(self)->LoadData(unwrapped)};
-			return TypedData_Wrap_Struct(this->m_Loader, &loader, &loader);
+			+[](VALUE self) -> VALUE
+			{
+				const auto data{unwrap<disxx::loader::macho::Loader>(self)->LoadData()};
+				return TypedData_Wrap_Struct(ldr, &loader, std::bit_cast<void *>(&data));
+			}
 		),
 		0
 	);
@@ -149,16 +203,16 @@ ScriptEngine::ScriptEngine(void) noexcept
 	);
 	rb_define_method
 	(
-		this->m_Executable,
+		this->m_ExecutableFile,
 		"getSections",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				auto arr{rb_ary_new()};
-				for (const auto sect : unwrap<disxx::loader::executable::ExecutableFile>(self)->GetSections())
+				for (auto var : unwrap<disxx::loader::executable::ExecutableFile>(self)->GetSections())
 				{
-					const auto rubyfied{TypedData_Wrap_Struct(this->m_Section, &section, &sect)};
+					const auto rubyfied{TypedData_Wrap_Struct(sect, &section, std::bit_cast<void *>(&var))};
 					rb_ary_push(arr, rubyfied);
 				}
 
@@ -169,11 +223,11 @@ ScriptEngine::ScriptEngine(void) noexcept
 	);
 	rb_define_method
 	(
-		this->m_Executable,
+		this->m_ExecutableFile,
 		"getMagic",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return UINT2NUM
 				(
@@ -197,13 +251,13 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"name",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return rb_str_new_cstr
 				(
 					unwrap<disxx::loader::executable::Section>(self)
 						->GetName()
-						.c_str()
+						.data()
 				);
 			}
 		),
@@ -215,12 +269,12 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"labels",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				auto arr{rb_ary_new()};
-				for (const auto lbl : *unwrap<disxx::loader::executable::Section>(self))
+				for (auto var : unwrap<disxx::loader::executable::Section>(self)->GetLabels())
 				{
-					const auto rubyfied{TypedData_Wrap_Struct(this->m_Label, &label, &lbl)};
+					const auto rubyfied{TypedData_Wrap_Struct(lbl, &label, std::bit_cast<void *>(&var))};
 					rb_ary_push(arr, rubyfied);
 				}
 
@@ -235,7 +289,7 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"address",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return ULL2NUM
 				(
@@ -252,7 +306,7 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"offset",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return ULL2NUM
 				(
@@ -269,7 +323,7 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"index",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return USHORT2NUM
 				(
@@ -281,7 +335,7 @@ ScriptEngine::ScriptEngine(void) noexcept
 		0
 	);
 
-	this->m_Label = rb_define_under
+	this->m_Label = rb_define_class_under
 	(
 		this->m_Disxx,
 		"Label",
@@ -293,13 +347,13 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"name",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return rb_str_new_cstr
 				(
 					unwrap<disxx::loader::executable::Label>(self)
 						->GetName()
-						.c_str()
+						.data()
 				);
 			}
 		),
@@ -311,7 +365,7 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"address",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return ULL2NUM
 				(
@@ -328,7 +382,7 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"offset",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return ULL2NUM
 				(
@@ -345,7 +399,7 @@ ScriptEngine::ScriptEngine(void) noexcept
 		"offset",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				return ULL2NUM
 				(
@@ -356,20 +410,64 @@ ScriptEngine::ScriptEngine(void) noexcept
 		),
 		0
 	);
-	rb_define_mathod
+	rb_define_method
 	(
 		this->m_Label,
 		"data",
 		RUBY_METHOD_FUNC
 		(
-			[](VALUE self) -> VALUE
+			+[](VALUE self) -> VALUE
 			{
 				auto arr{rb_ary_new()};
-				for (const auto byte : label.GetData<std::uint8_t>())
+				for (const auto byte : unwrap<disxx::loader::executable::Label>(self)->GetData<std::uint8_t>())
 					rb_ary_push(arr, USHORT2NUM(byte));
 				return arr;
 			}
 		),
 		0
 	);
+}
+
+ScriptEngine::~ScriptEngine() noexcept
+{ ruby_cleanup(0); }
+
+ScriptEngine::ExecResult ScriptEngine::ExecFile(const std::filesystem::path &path) noexcept
+{
+	auto state{0};
+	const char *ptr{path.c_str()};
+	rb_protect(reinterpret_cast<VALUE (*)(VALUE)>(rb_load_file_str), std::bit_cast<VALUE>(&ptr), &state);
+	if (state) [[unlikely]]
+	{
+		std::string error{};
+		if (const auto err{rb_errinfo()}; !NIL_P(err)) [[likely]]
+		{
+			auto name{rb_funcall(rb_obj_class(err), rb_intern("name"), 0)};
+			auto message{rb_funcall(rb_obj_class(err), rb_intern("message"), 0)};
+			error = std::format("{}: {}", StringValueCStr(name), StringValueCStr(message));
+	
+			/*	
+			if (auto bt{rb_funcall(err, rb_intern("backtrace"), 0)}; !NIL_P(bt) && TYPE(bt) == T_ARRAY)
+			{
+				const auto len{RARRAY_LEN(bt)};
+				for (auto i{0l}; i < len && i < 5; ++i)
+					error += std::format("at {}; ", StringValueCStr(RARRAY_AREF(bt, i)));
+			}
+			*/
+	
+			rb_set_errinfo(Qnil);
+		}
+
+		return std::unexpected{EngineError{std::format("EngineError: {}", error)}};
+	}
+
+	return std::monostate{};
+}
+
+ScriptEngine::ExecResult ScriptEngine::ExecString(std::string_view str) noexcept
+{
+	auto state{0};
+	rb_protect(reinterpret_cast<VALUE (*)(VALUE)>(rb_eval_string), std::bit_cast<VALUE>(str.data()), &state);
+	if (state) [[unlikely]]
+		return std::unexpected{EngineError{"ExecStringError"}};
+	return std::monostate{};
 }
