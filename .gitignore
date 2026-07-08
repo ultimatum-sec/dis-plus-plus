@@ -15,7 +15,7 @@ src/ui/build/*
 src/loader/build/*
 src/disasm/build/*
 src/reporter/build/*
-src/app/build/*
+src/dis++/build/*
 
 *.o
 *.obj
