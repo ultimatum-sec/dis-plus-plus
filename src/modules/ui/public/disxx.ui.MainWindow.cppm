@@ -41,11 +41,11 @@ export namespace disxx::ui
 	  private:
 		explicit MainWindow(utility::Vec2<int>, std::string_view) noexcept;
 
-		void __DisplayCallback(void) const noexcept;
-		void __ReshapeCallback(int, int) noexcept(false);
-		void __KeyboardCallback(unsigned char, int, int) noexcept(false);
-		void __MouseButtonCallback(int, int, int, int) noexcept(false);
-		void __MouseMotionCallback(int, int) noexcept(false);
+		void DisplayCallback(void) const noexcept;
+		void ReshapeCallback(int, int) noexcept(false);
+		void KeyboardCallback(unsigned char, int, int) noexcept(false);
+		void MouseButtonCallback(int, int, int, int) noexcept(false);
+		void MouseMotionCallback(int, int) noexcept(false);
 	  
 	  public:
 		template <typename ...Args>
@@ -83,9 +83,9 @@ export namespace disxx::ui
 	{
 		this->m_Context.SwitchWindow(this->m_hWin);
 		if (visible)
-			m_Context.ShowWindow();
+			this->m_Context.ShowWindow();
 		else
-			m_Context.HideWindow();
+			this->m_Context.HideWindow();
 	}
 
 	inline void MainWindow::AddWidget(std::unique_ptr<Widget> &&pWidget) noexcept
@@ -100,6 +100,6 @@ export namespace disxx::ui
 	inline void MainWindow::Exec(void) noexcept
 	{
 		//this->m_Context.SwitchWindow(this->m_hWin);
-		m_Context.Exec();
+		this->m_Context.Exec();
 	}
 } /* disxx::ui */

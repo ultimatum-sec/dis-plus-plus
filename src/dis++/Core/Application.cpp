@@ -34,9 +34,11 @@ import disxx.ui.TabbedPane;
 import disxx.ui.MainWindow;
 import disxx.ui.TextInput;
 import disxx.ui.Button;
+import disxx.ui.Label;
 import disxx.ui.Frame;
 import disxx.ui.Menu;
 import disxx.ui.Widget;
+import ScriptEngine;
 import FileInput;
 import DisLog;
 
@@ -47,7 +49,7 @@ namespace
 
 	inline std::tuple<std::string, std::string, std::string> splitver(const std::string &version) noexcept
 	{
-		std::smatch groups;
+		std::smatch groups{};
 		std::regex_match(version, groups, std::regex{R"(^(\d+)\.(\d+)\.(\d+)$)"});
 		// Return major minor and patchlevel strings
 		return std::make_tuple(groups[1], groups[2], groups[3]);
@@ -322,55 +324,6 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 	)->Push(std::move(tab));
 }
 
-Application *Application::Init(int &argc, char **argv) noexcept(false)
-{
-	if (argv == nullptr) [[unlikely]]
-		throw disxx::utility::error::NullPointerError{"NullPointerError"};
-	disxx::ui::MainWindow::InitContext(&argc, argv);
-    
-	if (!s_pInstance) [[likely]]
-        s_pInstance = new Application{};
-
-	static int sArgc{argc};
-	static char **sArgv{argv};
-	std::set_terminate
-	(
-		[] -> void
-		{
-			Application::s_pInstance->m_Logger.LogErr
-			(
-				sArgc && sArgv
-					? sArgv[0]
-					: "unknown"
-			);
-		
-			std::string path
-			{
-				std::filesystem::path
-				{
-					sArgc && sArgv
-						? sArgv[0]
-						:
-						#ifdef _WIN32
-							".\\dis++"
-						#else
-							"./dis++"
-						#endif
-				}
-				.parent_path()
-				.string()
-				+ std::filesystem::path::preferred_separator
-				+ "reporter"
-			};
-
-			std::system(path.c_str());
-			std::exit(EXIT_FAILURE);
-		}
-	);
-
-	return s_pInstance;
-}
-
 void Application::Init(void) noexcept(false)
 {
 	// Destroy the previous window
@@ -454,31 +407,43 @@ void Application::Init(void) noexcept(false)
 				frame.SetColor(0.2f, 0.2f, 0.2f);
 				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Frame>(frame));
 
-				disxx::ui::TextInput input
+				disxx::ui::Label upper
 				{
-					w / 2.f - 150.f,
-					h / 2.f + 25.f,
-					300.f,
-					40.f
+					w / 2.f,
+					h / 2.f + 100.f,
+					0.f,
+					0.f
 				};
-				input.SetColor(0.3f, 0.3f, 0.3f);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TextInput>(input));
-
-				disxx::ui::Button btn
+				upper.SetColor(1.f, 1.f, 1.f);
+				upper.SetText("Select an executable to disassemble");
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(upper));
+				
+				disxx::ui::Label label
 				{
-					w / 2.f - 50.f,
-					h / 2.f - 25.f,
+					w / 4.f + 70.f,
+					h / 2.f + 45.f,
+					0.f,
+					0.f
+				};
+				label.SetColor(0.3f, 0.3f, 0.3f);
+				label.SetText("Executable:");
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(label));
+
+				disxx::ui::Button ok
+				{
+					w / 2.f + w / 5.f - 100.f,
+					h / 2.f - h / 5.f,
 					100.f,
 					40.f
 				};
-				btn.SetColor(0.3f, 0.3f, 0.3f);
-				btn.SetText("OK");
-				btn.SetCallback
+				ok.SetColor(0.3f, 0.3f, 0.3f);
+				ok.SetText("OK");
+				ok.SetCallback
 				(
 					disxx::ui::Button::Trigger::BTN_CLICKED,
 					[](const disxx::ui::Widget *const) -> void
 					{
-						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 2) [[unlikely]]
+						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
 							return;
 
 						const auto path
@@ -491,34 +456,66 @@ void Application::Init(void) noexcept(false)
 										.get()
 										->GetWidgets()
 										.rbegin()
-										+ 1
 								)->get()
 							)->GetText()
 
 						};
 
-						for (const auto _ : std::views::iota(0, 2))
+						for (const auto _ : std::views::iota(0, 5))
 							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
-
-						if (!path.empty())
-							s_pInstance->Disassemble(std::filesystem::path{path});
+						
+						s_pInstance->Disassemble(std::filesystem::path{path});
 					
 						openActive = false;
 					}
 				);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(btn));
-	
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(ok));
+
+				disxx::ui::Button cancel
+				{
+					w / 2 - w / 5.f,
+					h / 2 - h / 5.f,
+					100.f,
+					40.f
+				};
+				cancel.SetColor(0.3f, 0.3f, 0.3f);
+				cancel.SetText("Cancel");
+				cancel.SetCallback
+				(
+					disxx::ui::Button::Trigger::BTN_CLICKED,
+					[](const disxx::ui::Widget *const) -> void
+					{
+						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
+							return;
+
+						for (const auto _ : std::views::iota(0, 5))
+							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
+
+						openActive = false;
+					}
+				);
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(cancel));
+
+				disxx::ui::TextInput input
+				{
+					w / 3.f + 50.f,
+					h / 2.f + 25.f,
+					250.f,
+					40.f
+				};
+				input.SetColor(0.3f, 0.3f, 0.3f);
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TextInput>(input));
+
 				openActive = true;
 			}
 		};
 		open.SetColor(0.2f, 0.2f, 0.2f);
 		menu.PushEntry(std::move(open));
 
-		/*
 		disxx::ui::MenuEntry save
 		{
-			"Save",
-			[] -> void 
+			"Save source",
+			[] -> void
 			{
 				// Do nothing if the entry has been activated
 				static bool saveActive{false};
@@ -539,31 +536,43 @@ void Application::Init(void) noexcept(false)
 				frame.SetColor(0.2f, 0.2f, 0.2f);
 				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Frame>(frame));
 
-				disxx::ui::TextInput input
+				disxx::ui::Label upper
 				{
-					w / 2.f - 150.f,
-					h / 2.f + 25.f,
-					300.f,
-					40.f
+					w / 2.f,
+					h / 2.f + 100.f,
+					0.f,
+					0.f
 				};
-				input.SetColor(0.3f, 0.3f, 0.3f);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TextInput>(input));
-
-				disxx::ui::Button btn
+				upper.SetColor(1.f, 1.f, 1.f);
+				upper.SetText("Save source");
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(upper));
+				
+				disxx::ui::Label label
 				{
-					w / 2.f - 50.f,
-					h / 2.f - 25.f,
+					w / 4.f + 70.f,
+					h / 2.f + 45.f,
+					0.f,
+					0.f
+				};
+				label.SetColor(0.3f, 0.3f, 0.3f);
+				label.SetText("Save as:");
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(label));
+
+				disxx::ui::Button ok
+				{
+					w / 2.f + w / 5.f - 100.f,
+					h / 2.f - h / 5.f,
 					100.f,
 					40.f
 				};
-				btn.SetColor(0.3f, 0.3f, 0.3f);
-				btn.SetText("OK");
-				btn.SetCallback
+				ok.SetColor(0.3f, 0.3f, 0.3f);
+				ok.SetText("OK");
+				ok.SetCallback
 				(
 					disxx::ui::Button::Trigger::BTN_CLICKED,
 					[](const disxx::ui::Widget *const) -> void
 					{
-						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 2) [[unlikely]]
+						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
 							return;
 
 						const auto path
@@ -576,46 +585,71 @@ void Application::Init(void) noexcept(false)
 										.get()
 										->GetWidgets()
 										.rbegin()
-										+ 1
 								)->get()
 							)->GetText()
 
 						};
 
-						for (const auto _ : std::views::iota(0, 2))
+						for (const auto _ : std::views::iota(0, 5))
 							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
-
-						if (!path.empty())
+					
+						if (const auto tab{static_cast<disxx::ui::TabbedPane *>(s_pInstance->m_pWindow.get()->GetWidgets().begin()->get())->GetActiveTab()}) [[likely]]
 						{
-							std::fstream file{path.data(), std::fstream::out | std::fstream::binary | std::fstream::trunc};
-							if (std::error_code errc{}; !file.is_open()) [[unlikely]]
-								throw std::filesystem::filesystem_error{"SaveFileError", errc};
+							std::fstream file{std::string{path}, std::fstream::out | std::fstream::binary | std::fstream::trunc};
+							if (const std::error_code errc{}; !file.is_open()) [[unlikely]]
+								throw std::filesystem::filesystem_error{"FileError", errc};
 
-							for (const auto &line : static_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().begin()->get())->GetLines())
-								for (const auto ch : std::regex_replace(line, std::regex{"|"}, ""))
-									file.write(&ch, sizeof(ch));
+							const auto area{tab->get().GetTextArea()};
+							for (const auto &line : area.GetLines())
+								for (const auto &ch : std::regex_replace(line, std::regex{R"(\|)"}, "") + "\n")
+									file.write(&ch, sizeof(char));
 						}
 	
 						saveActive = false;
 					}
 				);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(btn));
-	
-				saveActive = true;
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(ok));
 
+				disxx::ui::Button cancel
+				{
+					w / 2 - w / 5.f,
+					h / 2 - h / 5.f,
+					100.f,
+					40.f
+				};
+				cancel.SetColor(0.3f, 0.3f, 0.3f);
+				cancel.SetText("Cancel");
+				cancel.SetCallback
+				(
+					disxx::ui::Button::Trigger::BTN_CLICKED,
+					[](const disxx::ui::Widget *const) -> void
+					{
+						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
+							return;
+
+						for (const auto _ : std::views::iota(0, 5))
+							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
+
+						saveActive = false;
+					}
+				);
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(cancel));
+
+				disxx::ui::TextInput input
+				{
+					w / 3.f + 50.f,
+					h / 2.f + 25.f,
+					250.f,
+					40.f
+				};
+				input.SetColor(0.3f, 0.3f, 0.3f);
+				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TextInput>(input));
+
+				saveActive = true;
 			}
 		};
 		save.SetColor(0.2f, 0.2f, 0.2f);
 		menu.PushEntry(std::move(save));
-		*/
-
-		disxx::ui::MenuEntry script
-		{
-			"Load script...",
-			[] -> void { return; }
-		};
-		script.SetColor(0.2f, 0.2f, 0.2f);
-		menu.PushEntry(std::move(script));
 
 		disxx::ui::MenuEntry exit
 		{

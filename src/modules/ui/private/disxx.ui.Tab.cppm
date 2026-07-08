@@ -35,6 +35,7 @@ export namespace disxx::ui
 
 		inline const SourceEditor &GetTextArea(void) const noexcept;
 		inline SourceEditor &GetTextArea(void) noexcept;
+		inline std::string_view GetText(void) const noexcept;
 
 		inline void SetPassive(void) noexcept;
 
@@ -54,6 +55,9 @@ export namespace disxx::ui
 
 	inline SourceEditor &Tab::GetTextArea(void) noexcept
 	{ return this->m_TextArea; }
+
+	inline std::string_view Tab::GetText(void) const noexcept
+	{ return this->m_Text; }
 
 	inline void Tab::SetPassive(void) noexcept
 	{ this->m_IsClicked = false; }

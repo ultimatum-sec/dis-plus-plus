@@ -4,9 +4,12 @@ module;
 
 #include <algorithm>
 #include <ranges>
-#include <vector>
 
 export module disxx.ui.TabbedPane;
+
+export import <functional>;
+export import <optional>;
+export import <vector>;
 
 export import disxx.ui.Tab;
 import disxx.ui.Widget;
@@ -31,6 +34,7 @@ export namespace disxx::ui
 		inline void Push(Tab &&) noexcept;
 		inline void Pop(void) noexcept;
 
+		inline std::optional<std::reference_wrapper<const Tab>> GetActiveTab(void) const noexcept;
 		inline const std::vector<Tab> &GetTabs(void) const noexcept;
 
 		virtual void Render(void) const noexcept override;
@@ -58,6 +62,14 @@ export namespace disxx::ui
 	{
 		if (this->m_Tabs.size() > 0) [[likely]]
 			this->m_Tabs.pop_back();
+	}
+
+	inline std::optional<std::reference_wrapper<const Tab>> TabbedPane::GetActiveTab(void) const noexcept
+	{
+		for (const auto &tab : this->m_Tabs)
+			if (tab.Clicked())
+				return std::cref(tab);
+		return std::nullopt;
 	}
 
 	inline const std::vector<Tab> &TabbedPane::GetTabs(void) const noexcept
