@@ -7,7 +7,6 @@ module;
 #include <format>
 #include <vector>
 #include <regex>
-#include <span>
 
 #define CLEARFRAME(frame) \
 	(frame) \
@@ -32,10 +31,10 @@ import disxx.ui.SourceEditor;
 FailHandler *FailHandler::s_pInstance = nullptr;
 
 FailHandler::FailHandler(void) noexcept(false)
-	: m_pWindow{disxx::ui::MainWindow::Init(disxx::ui::utility::Vec2<int>{800, 600}, "dis++ crash reporter")}
+	: m_Window{disxx::ui::utility::Vec2<int>{800, 600}, "dis++ crash reporter"}
 	, m_Parser{}
 {
-	this->m_pWindow->SetVisible(true);
+	this->m_Window.SetVisible(true);
 
 	disxx::ui::SourceEditor report
 	{
@@ -187,12 +186,12 @@ FailHandler::FailHandler(void) noexcept(false)
 		report.AddLine("{}", str);
 	report.AddLine("{}", CLEARFRAME(frame));
 
-	this->m_pWindow->AddWidget(std::make_unique<disxx::ui::SourceEditor>(report));
+	this->m_Window.AddWidget(std::make_unique<disxx::ui::SourceEditor>(report));
 }
 
 FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
 {
-	disxx::ui::MainWindow::InitContext(&argc, const_cast<char **>(argv));
+	disxx::ui::MainWindow::Init(&argc, const_cast<char **>(argv));
     if (!s_pInstance) [[likely]]
         s_pInstance = new FailHandler{};
 	return s_pInstance;
@@ -202,7 +201,7 @@ FailHandler *FailHandler::Init(int &argc, const char *argv[]) noexcept(false)
 [[nodiscard]] int FailHandler::Exec(void) const noexcept(false)
 {
 	try
-	{ this->m_pWindow->Exec(); }
+	{ this->m_Window.Exec(); }
 	catch (...)
 	{ return EXIT_FAILURE; }
 

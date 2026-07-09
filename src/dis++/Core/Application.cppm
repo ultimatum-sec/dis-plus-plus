@@ -25,7 +25,7 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application
 	static Application *s_pInstance;
 	
   private:
-	std::reference_wrapper<std::unique_ptr<disxx::ui::MainWindow>> m_pWindow;
+	disxx::ui::MainWindow m_Window{};
 	DisLog m_Logger{};
 	FileInput *m_pInput{};
 
@@ -44,17 +44,17 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application
 	// THIS FUNCTION CALLS ONCE!
 	[[clang::always_inline]] inline static Application *Init(int &, char **) noexcept(false);
 	
-	~Application(void) noexcept;
+	~Application(void) noexcept = default;
+
 	int Exec(void) const noexcept(false);
 };
 
 inline Application *Application::Init(int &argc, char **argv) noexcept(false)
 {
 	ScriptEngine::Init();
-
 	if (argv == nullptr) [[unlikely]]
 		throw disxx::utility::error::NullPointerError{"NullPointerError"};
-	disxx::ui::MainWindow::InitContext(&argc, argv);
+	disxx::ui::MainWindow::Init(&argc, argv);
     
 	if (!s_pInstance) [[likely]]
         s_pInstance = new Application{};

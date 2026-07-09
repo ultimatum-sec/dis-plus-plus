@@ -1,5 +1,7 @@
 module;
 
+#include <disconf.hpp>
+
 #include <type_traits>
 #include <vector>
 #include <memory>
@@ -7,14 +9,14 @@ module;
 export module disxx.ui.MainWindow;
 
 export import disxx.ui.utility.Vec;
-
+import disxx.utility.pointer.NonNull;
 import disxx.ui.backend.GLUTContext;
 import disxx.ui.backend.IContext;
 import disxx.ui.Widget;
 
 export namespace disxx::ui
 {
-	class MainWindow
+	class __DISXX_EXPORT__ [[nodiscard]] MainWindow
 	{
 	  private:
 		#ifdef BACKEND_CTX_GLUT
@@ -24,23 +26,22 @@ export namespace disxx::ui
 		#endif
 
 	  private:
-		static std::unique_ptr<MainWindow> s_pInstance;
-
+		static disxx::utility::pointer::NonNull
+		<
+			#if defined(BACKEND_CTX_GLUT)
+				disxx::ui::backend::GLUTContext
+			#else
+			#	error "Context required"
+			#endif
+		> s_pContext;
+		
 	  private:
-		#if defined(BACKEND_CTX_GLUT)
-			disxx::ui::backend::GLUTContext
-		#else
-		#	error "Context required"
-		#endif
-		m_Context{};
 		std::vector<std::unique_ptr<Widget>> m_Widgets{};
 		utility::Vec2<int> m_InitialSize{};
 		utility::Vec2<int> m_Size{};
 		WindowHandle m_hWin{};
 
 	  private:
-		explicit MainWindow(utility::Vec2<int>, std::string_view) noexcept;
-
 		void DisplayCallback(void) const noexcept;
 		void ReshapeCallback(int, int) noexcept(false);
 		void KeyboardCallback(unsigned char, int, int) noexcept(false);
@@ -49,12 +50,17 @@ export namespace disxx::ui
 	  
 	  public:
 		template <typename ...Args>
-		static void InitContext(Args &&...) noexcept;
-		static std::unique_ptr<MainWindow> &Init(utility::Vec2<int>, std::string_view) noexcept;
+		static void Init(Args &&...) noexcept;
 
 	  public:
-		explicit MainWindow(const MainWindow &) = delete;
-		MainWindow &operator=(const MainWindow &) = delete;
+		explicit MainWindow(void) noexcept;
+		explicit MainWindow(utility::Vec2<int>, std::string_view) noexcept;
+
+		MainWindow(const MainWindow &) noexcept;
+		MainWindow &operator=(const MainWindow &) noexcept;
+
+		MainWindow(MainWindow &&) noexcept;
+		MainWindow &operator=(MainWindow &&) noexcept;
 
 		~MainWindow(void) noexcept;
 
@@ -63,11 +69,11 @@ export namespace disxx::ui
 		inline void AddWidget(std::unique_ptr<Widget> &&) noexcept;
 		inline std::vector<std::unique_ptr<Widget>> &GetWidgets(void) noexcept;
 		inline void Redisplay(void) const noexcept;
-		inline void Exec(void) noexcept;
+		inline void Exec(void) const noexcept;
 	};
 
 	template <typename ...Args>
-	void MainWindow::InitContext(Args &&...args) noexcept
+	void MainWindow::Init(Args &&...args) noexcept
 	{
 		#if defined(BACKEND_CTX_GLUT)
 			backend::GLUTContext::Init(std::forward<Args>(args)...);
@@ -81,11 +87,11 @@ export namespace disxx::ui
 
 	inline void MainWindow::SetVisible(bool visible) noexcept
 	{
-		this->m_Context.SwitchWindow(this->m_hWin);
+		s_pContext->SwitchWindow(this->m_hWin);
 		if (visible)
-			this->m_Context.ShowWindow();
+			s_pContext->ShowWindow();
 		else
-			this->m_Context.HideWindow();
+			s_pContext->HideWindow();
 	}
 
 	inline void MainWindow::AddWidget(std::unique_ptr<Widget> &&pWidget) noexcept
@@ -95,11 +101,14 @@ export namespace disxx::ui
 	{ return this->m_Widgets; }
 
 	inline void MainWindow::Redisplay(void) const noexcept
-	{ this->m_Context.Redisplay(); }
-
-	inline void MainWindow::Exec(void) noexcept
 	{
-		//this->m_Context.SwitchWindow(this->m_hWin);
-		this->m_Context.Exec();
+		s_pContext->SwitchWindow(this->m_hWin);
+		s_pContext->Redisplay();
+	}
+
+	inline void MainWindow::Exec(void) const noexcept
+	{
+		s_pContext->SwitchWindow(this->m_hWin);
+		s_pContext->Exec();
 	}
 } /* disxx::ui */

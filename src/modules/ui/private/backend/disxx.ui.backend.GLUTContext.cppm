@@ -10,7 +10,9 @@ module;
 
 export module disxx.ui.backend.GLUTContext;
 
+export import <unordered_map>;
 export import <string_view>;
+export import <functional>;
 export import <utility>;
 
 import disxx.ui.backend.IContext;
@@ -21,7 +23,31 @@ export namespace disxx::ui::backend
 	class __DISXX_EXPORT__ [[nodiscard]] GLUTContext final : public IContext<int>
 	{
 	  private:
-		WindowHandle m_hWin{};
+		static std::unordered_map
+		<
+			WindowHandle,
+			std::function<void(void)>
+		> s_DisplayCallbacks;
+		static std::unordered_map
+		<
+			WindowHandle,
+			std::function<void(int, int)>
+		> s_ReshapeCallbacks;
+		static std::unordered_map
+		<
+			WindowHandle,
+			std::function<void(unsigned char, int, int)>
+		> s_KeyboardCallbacks;
+		static std::unordered_map
+		<
+			WindowHandle,
+			std::function<void(int, int, int, int)>
+		> s_MouseButtonCallbacks;
+		static std::unordered_map
+		<
+			WindowHandle,
+			std::function<void(int, int)>
+		> s_MouseMotionCallbacks;
 
 	  public:
 		template <typename ...Args>
@@ -29,29 +55,27 @@ export namespace disxx::ui::backend
 		static inline utility::Vec2<float> GetWindowSize(void) noexcept;
 
 	  public:
-		explicit GLUTContext(void) noexcept;
+		explicit GLUTContext(void) noexcept = default;
 
-		explicit GLUTContext(const GLUTContext &) noexcept = delete;
-		GLUTContext &operator=(const GLUTContext &) noexcept = delete;
+		explicit GLUTContext(const GLUTContext &) noexcept = default;
+		GLUTContext &operator=(const GLUTContext &) noexcept = default;
 
-		explicit GLUTContext(GLUTContext &&) noexcept;
-		GLUTContext &operator=(GLUTContext &&) noexcept;
-
-		~GLUTContext(void) noexcept;
+		~GLUTContext(void) noexcept = default;
 
 		// Sone window methods
-		[[clang::acquire_handle("window")]] virtual WindowHandle CreateWindow(utility::Vec2<int>, std::string_view) noexcept override;
-		virtual void SwitchWindow([[clang::use_handle("window")]] WindowHandle &) noexcept override;
+		[[clang::acquire_handle("window")]]
+		virtual WindowHandle CreateWindow(utility::Vec2<int>, std::string_view) noexcept override;
+		virtual void DestroyWindow([[clang::release_handle("window")]] WindowHandle &) noexcept override;
+		virtual void SwitchWindow([[clang::use_handle("window")]] const WindowHandle &) noexcept override;
 		virtual void ShowWindow(void) noexcept override;
 		virtual void HideWindow(void) noexcept override;
-		virtual void DestroyWindow(void) noexcept override;
 
 		// Callback methods
-		virtual void SetDisplayCallback(const void *) noexcept override;
-		virtual void SetReshapeCallback(const void *) noexcept override;
-		virtual void SetKeyboardCallback(const void *) noexcept override;
-		virtual void SetMouseButtonCallback(const void *) noexcept override;
-		virtual void SetMouseMotionCallback(const void *) noexcept override;
+		inline void SetDisplayCallback(std::function<void(void)>) noexcept;
+		inline void SetReshapeCallback(std::function<void(int, int)>) noexcept;
+		inline void SetKeyboardCallback(std::function<void(unsigned char, int, int)>) noexcept;
+		inline void SetMouseButtonCallback(std::function<void(int, int, int, int)>) noexcept;
+		inline void SetMouseMotionCallback(std::function<void(int, int)>) noexcept;
 	
 		// Miscellaneous methods
 		virtual void SwapBuffers(void) const noexcept override;
@@ -83,4 +107,19 @@ export namespace disxx::ui::backend
 			glutGet(GLUT_WINDOW_HEIGHT) * 1.f
 		};
 	}
+
+	inline void GLUTContext::SetDisplayCallback(std::function<void(void)> func) noexcept
+	{ s_DisplayCallbacks[glutGetWindow()] = func; }
+
+	inline void GLUTContext::SetReshapeCallback(std::function<void(int, int)> func) noexcept
+	{ s_ReshapeCallbacks[glutGetWindow()] = func; }
+	
+	inline void GLUTContext::SetKeyboardCallback(std::function<void(unsigned char, int, int)> func) noexcept
+	{ s_KeyboardCallbacks[glutGetWindow()] = func; }
+	
+	inline void GLUTContext::SetMouseButtonCallback(std::function<void(int, int, int, int)> func) noexcept
+	{ s_MouseButtonCallbacks[glutGetWindow()] = func; }
+	
+	inline void GLUTContext::SetMouseMotionCallback(std::function<void(int, int)> func) noexcept
+	{ s_MouseMotionCallbacks[glutGetWindow()] = func; }
 } /* disxx::ui::backend */

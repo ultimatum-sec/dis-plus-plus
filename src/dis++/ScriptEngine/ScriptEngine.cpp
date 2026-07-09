@@ -188,25 +188,18 @@ ScriptEngine::ScriptEngine(void) noexcept
 		rb_cObject
 	);
 
-	rb_define_method
+	rb_define_alloc_func
 	(
 		this->m_Loader,
-		"initialize",
-		RUBY_METHOD_FUNC
-		(
-			+[](VALUE self) -> VALUE
-			{
-				TypedData_Wrap_Struct
-				(
-					self,
-					&loader,
-					new disxx::loader::macho::Loader{}
-				);
-				
-				return self;
-			}
-		),
-		0
+		+[](VALUE val) -> VALUE
+		{
+			return TypedData_Wrap_Struct
+			(
+				val,
+				&loader,
+				new disxx::loader::macho::Loader{}
+			);
+		}
 	);
 	rb_define_method
 	(
@@ -258,25 +251,18 @@ ScriptEngine::ScriptEngine(void) noexcept
 		0
 	);
 
-	rb_define_method
+	rb_define_alloc_func
 	(
 		this->m_ExecutableFile,
-		"initialize",
-		RUBY_METHOD_FUNC
-		(
-			+[](VALUE self) -> VALUE
-			{
-				TypedData_Wrap_Struct
-				(
-					self,
-					&executable,
-					new disxx::loader::executable::ExecutableFile{}
-				);
-
-				return self;
-			}
-		),
-		0
+		+[](VALUE val) -> VALUE
+		{
+			return TypedData_Wrap_Struct
+			(
+				val,
+				&executable,
+				new disxx::loader::executable::ExecutableFile{}
+			);
+		}
 	);
 	rb_define_method
 	(
@@ -328,25 +314,18 @@ ScriptEngine::ScriptEngine(void) noexcept
 		0
 	);
 
-	rb_define_method
+	rb_define_alloc_func
 	(
 		this->m_Section,
-		"initialize",
-		RUBY_METHOD_FUNC
-		(
-			+[](VALUE self) -> VALUE
-			{
-				TypedData_Wrap_Struct
-				(
-					self,
-					&section,
-					new disxx::loader::executable::Section{}
-				);
-		
-				return self;
-			}
-		),
-		0
+		+[](VALUE val) -> VALUE
+		{
+			return TypedData_Wrap_Struct
+			(
+				val,
+				&section,
+				new disxx::loader::executable::Section{}
+			);
+		}
 	);
 	rb_define_method
 	(
@@ -450,25 +429,18 @@ ScriptEngine::ScriptEngine(void) noexcept
 		0
 	);
 
-	rb_define_method
+	rb_define_alloc_func
 	(
 		this->m_Label,
-		"initialize",
-		RUBY_METHOD_FUNC
-		(
-			+[](VALUE self) -> VALUE
-			{
-				TypedData_Wrap_Struct
-				(
-					self,
-					&label,
-					new disxx::loader::executable::Label{}
-				);
-
-				return self;
-			}
-		),
-		0
+		+[](VALUE val) -> VALUE
+		{
+			return TypedData_Wrap_Struct
+			(
+				val,
+				&label,
+				new disxx::loader::executable::Label{}
+			);
+		}
 	);
 	rb_define_method
 	(

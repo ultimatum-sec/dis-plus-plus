@@ -10,6 +10,7 @@ module;
 export module disxx.ui.Menu;
 
 export import <string_view>;
+export import <memory>;
 
 import disxx.ui.Widget;
 
@@ -37,6 +38,8 @@ export namespace disxx::ui
 
 		inline void PushEntry(MenuEntry &&) noexcept;
 		inline void PopEntry(void) noexcept;
+
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
 
 		virtual void HandleMouse(int, int, int, int) noexcept override;
 		virtual void Render(void) const noexcept override;

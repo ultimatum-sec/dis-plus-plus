@@ -6,70 +6,121 @@ module;
 #	include <GL/freeglut.h>
 #endif
 
+#include <unordered_map>
 #include <utility>
-#include <bit>
 
 module disxx.ui.backend.GLUTContext;
 
 namespace disxx::ui::backend
 {
-	GLUTContext::GLUTContext(void) noexcept
-		: m_hWin{}
-	{}
+	std::unordered_map
+	<
+		GLUTContext::WindowHandle,
+		std::function<void(void)>
+	> GLUTContext::s_DisplayCallbacks{};
+	std::unordered_map
+	<
+		GLUTContext::WindowHandle,
+		std::function<void(int, int)>
+	> GLUTContext::s_ReshapeCallbacks{};
+	std::unordered_map
+	<
+		GLUTContext::WindowHandle,
+		std::function<void(unsigned char, int, int)>
+	> GLUTContext::s_KeyboardCallbacks{};
+	std::unordered_map
+	<
+		GLUTContext::WindowHandle,
+		std::function<void(int, int, int, int)>
+	> GLUTContext::s_MouseButtonCallbacks{};
+	std::unordered_map
+	<
+		GLUTContext::WindowHandle,
+		std::function<void(int, int)>
+	> GLUTContext::s_MouseMotionCallbacks{};
 
-	GLUTContext::GLUTContext(GLUTContext &&other) noexcept
-		: m_hWin{std::move(other.m_hWin)}
-	{}
-
-	GLUTContext &GLUTContext::operator=(GLUTContext &&other) noexcept
-	{
-		this->m_hWin = std::move(other.m_hWin);
-		return *this;
-	}
-
-	GLUTContext::~GLUTContext(void) noexcept
-    { this->DestroyWindow(); }
-
+	[[clang::acquire_handle("Window")]]
 	GLUTContext::WindowHandle GLUTContext::CreateWindow(utility::Vec2<int> size, std::string_view title) noexcept
 	{
 		glutInitWindowSize(size.x, size.y);
 		const auto hWin{glutCreateWindow(title.data())};
+		
+		glutDisplayFunc
+		(
+			[] -> void
+			{ s_DisplayCallbacks.at(glutGetWindow())(); }
+		);
+
+		glutReshapeFunc
+		(
+			[](int width, int height) -> void
+			{
+				s_ReshapeCallbacks.at(glutGetWindow())
+				(
+					width,
+					height
+				);
+			}
+		);
+
+		glutKeyboardFunc
+		(
+			[](unsigned char key, int x, int y) -> void
+			{
+				s_KeyboardCallbacks.at(glutGetWindow())
+				(
+					key,
+					x,
+					y
+				);
+			}
+		);
+
+		glutMouseFunc
+		(
+			[](int button, int state, int x, int y) -> void
+			{
+				s_MouseButtonCallbacks.at(glutGetWindow())
+				(
+					button,
+					state,
+					x,
+					y
+				);
+			}
+		);
+
+		glutMotionFunc
+		(
+			[](int x, int y) -> void
+			{
+				s_MouseMotionCallbacks.at(glutGetWindow())
+				(
+					x,
+					y
+				);
+			}
+		);
+
 		glutHideWindow();
+
 		return hWin;
 	}
 
-	void GLUTContext::SwitchWindow(WindowHandle &hWin) noexcept
+	void GLUTContext::DestroyWindow([[clang::release_handle("Window")]] WindowHandle &hWin) noexcept
 	{
-		glutSetWindow(hWin);
-		this->m_hWin = hWin;
+		if (hWin) [[likely]]
+			glutDestroyWindow(hWin);
 	}
+
+	void GLUTContext::SwitchWindow([[clang::use_handle("Window")]] const WindowHandle &hWin) noexcept
+	{ glutSetWindow(hWin); }
 
 	void GLUTContext::ShowWindow(void) noexcept
 	{ glutShowWindow(); }
 	
 	void GLUTContext::HideWindow(void) noexcept
 	{ glutHideWindow(); }
-
-	void GLUTContext::DestroyWindow(void) noexcept
-	{
-		if (this->m_hWin) [[likely]]
-			glutDestroyWindow(this->m_hWin);
-	}
-
-	void GLUTContext::SetDisplayCallback(const void *pCallback) noexcept
-	{ glutDisplayFunc(std::bit_cast<void (*)(void)>(pCallback)); }
-
-	void GLUTContext::SetReshapeCallback(const void *pCallback) noexcept
-	{ glutReshapeFunc(std::bit_cast<void (*)(int, int)>(pCallback)); }
-
-	void GLUTContext::SetKeyboardCallback(const void *pCallback) noexcept
-	{ glutKeyboardFunc(std::bit_cast<void (*)(unsigned char, int, int)>(pCallback)); }
-
-	void GLUTContext::SetMouseButtonCallback(const void *pCallback) noexcept
-	{ glutMouseFunc(std::bit_cast<void (*)(int, int, int, int)>(pCallback)); }
-
-	void GLUTContext::SetMouseMotionCallback(const void *pCallback) noexcept
-	{ glutMotionFunc(std::bit_cast<void (*)(int, int)>(pCallback)); }
 
 	void GLUTContext::SwapBuffers(void) const noexcept
 	{ glutSwapBuffers(); }

@@ -5,6 +5,7 @@ module;
 export module disxx.ui.Label;
 
 export import <string_view>;
+export import <memory>;
 export import <string>;
 
 import disxx.ui.Widget;
@@ -29,6 +30,8 @@ export namespace disxx::ui
 		inline void SetText(std::string_view) noexcept;
 		inline std::string_view GetText(void) const noexcept;
 	
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
+
 		virtual void Render(void) const noexcept override;
 	};
 

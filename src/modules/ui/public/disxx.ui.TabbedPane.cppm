@@ -9,6 +9,7 @@ export module disxx.ui.TabbedPane;
 
 export import <functional>;
 export import <optional>;
+export import <memory>;
 export import <vector>;
 
 export import disxx.ui.Tab;
@@ -36,6 +37,8 @@ export namespace disxx::ui
 
 		inline std::optional<std::reference_wrapper<const Tab>> GetActiveTab(void) const noexcept;
 		inline const std::vector<Tab> &GetTabs(void) const noexcept;
+
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
 
 		virtual void Render(void) const noexcept override;
 		virtual void HandleMouse(int, int, int, int) noexcept(false) override;

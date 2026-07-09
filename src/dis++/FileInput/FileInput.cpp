@@ -13,53 +13,66 @@ module;
 #include <memory>
 #include <vector>
 #include <array>
-#include <span>
 
 module FileInput;
 
 import DisLog;
 
-FileInput *FileInput::s_pInstance{nullptr};
-
-// WARNING: this constructor shouldn't be used
 FileInput::FileInput(void) noexcept
-	: m_pWindow{disxx::ui::MainWindow::Init(disxx::ui::utility::Vec2<int>{400, 300}, "Select an executable to disassemble")}
-	, m_Path{""}
+	: m_Window{disxx::ui::utility::Vec2<int>{400, 300}, "Main menu"}
+	, m_Path{}
 {
-	this->m_pWindow->SetVisible(true);
+	this->m_Window.SetVisible(true);
 
 	{
 		disxx::ui::TextInput txt{75, 150, 250, 40};
 		txt.SetColor(0.3f, 0.3f, 0.3f);
-		this->m_pWindow->AddWidget(std::make_unique<disxx::ui::TextInput>(txt));
+		this->m_Window.AddWidget(std::make_unique<disxx::ui::TextInput>(txt));
 	}
 
 	{
 		disxx::ui::Button btn{150, 100, 100, 40};
 		btn.SetColor(0.3f, 0.3f, 0.3f);
 		btn.SetText("OK");
-		this->m_pWindow->AddWidget(std::make_unique<disxx::ui::Button>(btn));
+		this->m_Window.AddWidget(std::make_unique<disxx::ui::Button>(btn));
 	}
 }
 
-FileInput::~FileInput(void) noexcept
+FileInput::FileInput(const FileInput &other) noexcept
+	: m_Window{other.m_Window}
+	, m_Path{other.m_Path}
+{}
+
+FileInput &FileInput::operator=(const FileInput &other) noexcept
 {
-	std::destroy_at(&this->m_pWindow);
+	if (this != &other) [[likely]]
+	{
+		this->m_Window = other.m_Window;
+		this->m_Path = other.m_Path;
+	}
+
+	return *this;
 }
 
-FileInput *FileInput::Init(void) noexcept(false)
+FileInput::FileInput(FileInput &&other) noexcept
+	: m_Window{std::move(other.m_Window)}
+	, m_Path{std::move(other.m_Path)}
+{}
+
+FileInput &FileInput::operator=(FileInput &&other) noexcept
 {
-	if (!s_pInstance) [[likely]]
-		s_pInstance = new FileInput{};
-	return s_pInstance;
+	this->m_Window = std::move(other.m_Window);
+	this->m_Path = std::move(other.m_Path);
+
+	return *this;
 }
 
 void FileInput::SetPath(const std::filesystem::path &path) noexcept
 {
 	static_cast<disxx::ui::TextInput *>
 	(
-		this->m_pWindow
-			->GetWidgets()
+		this->m_Window
+			.GetWidgets()
 			.begin()
 			->get()
 	)->SetText(path.string());
@@ -73,8 +86,8 @@ void FileInput::SetCallback(std::function<void(void)> func) noexcept
 	static_cast<disxx::ui::Button *>
 	(
 		this
-			->m_pWindow
-			->GetWidgets()
+			->m_Window
+			.GetWidgets()
 			.rbegin()
 			->get()
 	)->SetCallback
@@ -87,8 +100,8 @@ void FileInput::SetCallback(std::function<void(void)> func) noexcept
 				obj->m_Path = static_cast<disxx::ui::TextInput *>
 				(
 					obj
-						->m_pWindow
-						->GetWidgets()
+						->m_Window
+						.GetWidgets()
 						.begin()
 						->get()
 				)->GetText();

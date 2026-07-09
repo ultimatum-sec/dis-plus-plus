@@ -50,6 +50,9 @@ namespace disxx::ui
 		return *this;
 	}
 
+	std::unique_ptr<Widget> TabbedPane::Clone(void) const noexcept
+	{ return std::make_unique<std::decay<decltype(*this)>::type>(*this); }
+
 	void TabbedPane::Render(void) const noexcept
 	{
 		// Add a subframe

@@ -18,6 +18,8 @@ module;
 #include <tuple>
 #include <array>
 
+#include <print>
+
 #define MKHEX(x) (std::format("{:#x}", (x)))
 
 module Application;
@@ -45,8 +47,6 @@ import DisLog;
 // Miscellaneous function(s)
 namespace
 {
-	static constexpr std::unique_ptr<disxx::ui::MainWindow> pNull{nullptr};
-
 	inline std::tuple<std::string, std::string, std::string> splitver(const std::string &version) noexcept
 	{
 		std::smatch groups{};
@@ -60,20 +60,12 @@ namespace
 Application *Application::s_pInstance{nullptr};
 
 Application::Application(void) noexcept(false)
-	: m_pWindow{std::ref(const_cast<std::unique_ptr<disxx::ui::MainWindow> &>(pNull))}
+	: m_Window{disxx::ui::utility::Vec2<int>{800, 600}, "dis++ v" __DISXX_VERSION__}
 	, m_Logger{}
-	, m_pInput{nullptr}
+	, m_pInput{new FileInput{}}
 {
-	// Init file input window
-    this->m_pInput = FileInput::Init();
-    this->m_pInput->SetCallback([] -> void { Application::Init(); });
-}
-
-Application::~Application(void) noexcept
-{
-	if (this->m_pInput) [[likely]]
-		delete this->m_pInput;
-	this->m_pInput = nullptr;
+	s_pInstance->m_Window.SetVisible(false);
+	this->m_pInput->SetCallback([] -> void { Application::Init(); });
 }
 
 void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
@@ -83,7 +75,7 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 		throw std::filesystem::filesystem_error{"FileNotFoundError", errc};
 
 	// Just take the ptr, so I shouldn't cast it every time
-	auto *pLabels{static_cast<disxx::ui::SourceEditor *>(s_pInstance->m_pWindow.get()->GetWidgets().at(1).get())};
+	auto *pLabels{static_cast<disxx::ui::SourceEditor *>(s_pInstance->m_Window.GetWidgets().at(1).get())};
 	pLabels->ClearText();
 
 	disxx::ui::SourceEditor editor{};
@@ -305,7 +297,7 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 		}
 	}
 
-	const auto [width, height]{s_pInstance->m_pWindow.get()->GetSize()};
+	const auto [width, height]{s_pInstance->m_Window.GetSize()};
 	pLabels->Resize(disxx::ui::utility::Vec2<float>{width * 1.f, height * 0.2f});
 
 	disxx::ui::Tab tab{};
@@ -316,9 +308,8 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 	static_cast<disxx::ui::TabbedPane *>
 	(
 		s_pInstance
-			->m_pWindow
-			.get()
-			->GetWidgets()
+			->m_Window
+			.GetWidgets()
 			.begin()
 			->get()
 	)->Push(std::move(tab));
@@ -327,24 +318,16 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 void Application::Init(void) noexcept(false)
 {
 	// Destroy the previous window
-    std::destroy_at(s_pInstance->m_pInput);
+    std::filesystem::path path{};
+	if (s_pInstance->m_pInput) [[likely]]
+	{
+		path = s_pInstance->m_pInput->GetPath();
+		delete s_pInstance->m_pInput;
+	}
+	s_pInstance->m_pInput = nullptr;
 
-	// Init this window
-	s_pInstance->m_pWindow = std::ref
-	(
-		disxx::ui::MainWindow::Init
-		(
-			disxx::ui::utility::Vec2<int>
-			{
-				800,
-				600
-			},
-			"dis++ v" __DISXX_VERSION__
-		)
-	);
-	
-	s_pInstance->m_pWindow.get()->SetVisible(true);
-	const auto [width, height]{s_pInstance->m_pWindow.get()->GetSize()};
+	s_pInstance->m_Window.SetVisible(true);
+	const auto [width, height]{s_pInstance->m_Window.GetSize()};
 	
 	{
 		disxx::ui::TabbedPane pane
@@ -356,7 +339,7 @@ void Application::Init(void) noexcept(false)
 		};
 		pane.SetColor(0.2f, 0.2f, 0.2f);
 
-		s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TabbedPane>(pane));
+		s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::TabbedPane>(pane));
 	}
 
 	{
@@ -369,7 +352,7 @@ void Application::Init(void) noexcept(false)
 		};
 		labels.SetColor(0.2f, 0.2f, 0.2f);
 		
-		s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::SourceEditor>(labels));
+		s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::SourceEditor>(labels));
 	}
 
 	{
@@ -405,7 +388,7 @@ void Application::Init(void) noexcept(false)
 					h / 2
 				};
 				frame.SetColor(0.2f, 0.2f, 0.2f);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Frame>(frame));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Frame>(frame));
 
 				disxx::ui::Label upper
 				{
@@ -416,7 +399,7 @@ void Application::Init(void) noexcept(false)
 				};
 				upper.SetColor(1.f, 1.f, 1.f);
 				upper.SetText("Select an executable to disassemble");
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(upper));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(upper));
 				
 				disxx::ui::Label label
 				{
@@ -427,7 +410,7 @@ void Application::Init(void) noexcept(false)
 				};
 				label.SetColor(0.3f, 0.3f, 0.3f);
 				label.SetText("Executable:");
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(label));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(label));
 
 				disxx::ui::Button ok
 				{
@@ -443,18 +426,17 @@ void Application::Init(void) noexcept(false)
 					disxx::ui::Button::Trigger::BTN_CLICKED,
 					[](const disxx::ui::Widget *const) -> void
 					{
-						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
+						if (s_pInstance->m_Window.GetWidgets().size() < 5) [[unlikely]]
 							return;
 
-						const auto path
+						const auto p
 						{
 							static_cast<disxx::ui::TextInput *>
 							(
 								(
 									s_pInstance
-										->m_pWindow
-										.get()
-										->GetWidgets()
+										->m_Window
+										.GetWidgets()
 										.rbegin()
 								)->get()
 							)->GetText()
@@ -462,14 +444,14 @@ void Application::Init(void) noexcept(false)
 						};
 
 						for (const auto _ : std::views::iota(0, 5))
-							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
+							s_pInstance->m_Window.GetWidgets().pop_back();
 						
-						s_pInstance->Disassemble(std::filesystem::path{path});
+						s_pInstance->Disassemble(std::filesystem::path{p});
 					
 						openActive = false;
 					}
 				);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(ok));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Button>(ok));
 
 				disxx::ui::Button cancel
 				{
@@ -485,16 +467,16 @@ void Application::Init(void) noexcept(false)
 					disxx::ui::Button::Trigger::BTN_CLICKED,
 					[](const disxx::ui::Widget *const) -> void
 					{
-						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
+						if (s_pInstance->m_Window.GetWidgets().size() < 5) [[unlikely]]
 							return;
 
 						for (const auto _ : std::views::iota(0, 5))
-							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
+							s_pInstance->m_Window.GetWidgets().pop_back();
 
 						openActive = false;
 					}
 				);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(cancel));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Button>(cancel));
 
 				disxx::ui::TextInput input
 				{
@@ -504,7 +486,7 @@ void Application::Init(void) noexcept(false)
 					40.f
 				};
 				input.SetColor(0.3f, 0.3f, 0.3f);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TextInput>(input));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::TextInput>(input));
 
 				openActive = true;
 			}
@@ -534,7 +516,7 @@ void Application::Init(void) noexcept(false)
 					h / 2
 				};
 				frame.SetColor(0.2f, 0.2f, 0.2f);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Frame>(frame));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Frame>(frame));
 
 				disxx::ui::Label upper
 				{
@@ -545,7 +527,7 @@ void Application::Init(void) noexcept(false)
 				};
 				upper.SetColor(1.f, 1.f, 1.f);
 				upper.SetText("Save source");
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(upper));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(upper));
 				
 				disxx::ui::Label label
 				{
@@ -556,7 +538,7 @@ void Application::Init(void) noexcept(false)
 				};
 				label.SetColor(0.3f, 0.3f, 0.3f);
 				label.SetText("Save as:");
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Label>(label));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(label));
 
 				disxx::ui::Button ok
 				{
@@ -572,18 +554,17 @@ void Application::Init(void) noexcept(false)
 					disxx::ui::Button::Trigger::BTN_CLICKED,
 					[](const disxx::ui::Widget *const) -> void
 					{
-						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
+						if (s_pInstance->m_Window.GetWidgets().size() < 5) [[unlikely]]
 							return;
 
-						const auto path
+						const auto p
 						{
 							static_cast<disxx::ui::TextInput *>
 							(
 								(
 									s_pInstance
-										->m_pWindow
-										.get()
-										->GetWidgets()
+										->m_Window
+										.GetWidgets()
 										.rbegin()
 								)->get()
 							)->GetText()
@@ -591,11 +572,11 @@ void Application::Init(void) noexcept(false)
 						};
 
 						for (const auto _ : std::views::iota(0, 5))
-							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
+							s_pInstance->m_Window.GetWidgets().pop_back();
 					
-						if (const auto tab{static_cast<disxx::ui::TabbedPane *>(s_pInstance->m_pWindow.get()->GetWidgets().begin()->get())->GetActiveTab()}) [[likely]]
+						if (const auto tab{static_cast<disxx::ui::TabbedPane *>(s_pInstance->m_Window.GetWidgets().begin()->get())->GetActiveTab()}) [[likely]]
 						{
-							std::fstream file{std::string{path}, std::fstream::out | std::fstream::binary | std::fstream::trunc};
+							std::fstream file{std::string{p}, std::fstream::out | std::fstream::binary | std::fstream::trunc};
 							if (const std::error_code errc{}; !file.is_open()) [[unlikely]]
 								throw std::filesystem::filesystem_error{"FileError", errc};
 
@@ -608,7 +589,7 @@ void Application::Init(void) noexcept(false)
 						saveActive = false;
 					}
 				);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(ok));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Button>(ok));
 
 				disxx::ui::Button cancel
 				{
@@ -624,16 +605,16 @@ void Application::Init(void) noexcept(false)
 					disxx::ui::Button::Trigger::BTN_CLICKED,
 					[](const disxx::ui::Widget *const) -> void
 					{
-						if (s_pInstance->m_pWindow.get()->GetWidgets().size() < 5) [[unlikely]]
+						if (s_pInstance->m_Window.GetWidgets().size() < 5) [[unlikely]]
 							return;
 
 						for (const auto _ : std::views::iota(0, 5))
-							s_pInstance->m_pWindow.get()->GetWidgets().pop_back();
+							s_pInstance->m_Window.GetWidgets().pop_back();
 
 						saveActive = false;
 					}
 				);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Button>(cancel));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Button>(cancel));
 
 				disxx::ui::TextInput input
 				{
@@ -643,7 +624,7 @@ void Application::Init(void) noexcept(false)
 					40.f
 				};
 				input.SetColor(0.3f, 0.3f, 0.3f);
-				s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::TextInput>(input));
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::TextInput>(input));
 
 				saveActive = true;
 			}
@@ -659,7 +640,7 @@ void Application::Init(void) noexcept(false)
 		exit.SetColor(0.2f, 0.2f, 0.2f);
 		menu.PushEntry(std::move(exit));
 
-		s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Menu>(menu));
+		s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Menu>(menu));
 	}
 
 	{
@@ -673,21 +654,18 @@ void Application::Init(void) noexcept(false)
 		menu.SetColor(0.2f, 0.2f, 0.2f);
         menu.SetText("View");
 
-		s_pInstance->m_pWindow.get()->AddWidget(std::make_unique<disxx::ui::Menu>(menu));
+		s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Menu>(menu));
 	}
 	
-	auto path{s_pInstance->m_pInput->GetPath()};
-	if (!path.empty())
-		s_pInstance->Disassemble(path);
+	s_pInstance->Disassemble(path);
 
     s_pInstance
-		->m_pWindow
-		.get()
-		->Redisplay();
+		->m_Window
+		.Redisplay();
 }
 
 int Application::Exec(void) const noexcept(false)
 {
-	this->m_pWindow.get()->Exec();
+	this->m_Window.Exec();
 	return EXIT_SUCCESS;
 }

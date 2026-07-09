@@ -16,8 +16,8 @@ export class __DISXX_PRIVATE__ [[nodiscard]] FailHandler
 	static FailHandler *s_pInstance;
 
   private:
-	std::unique_ptr<disxx::ui::MainWindow> &m_pWindow;
-	disxx::utility::ini::Parser m_Parser;
+	disxx::ui::MainWindow m_Window{};
+	disxx::utility::ini::Parser m_Parser{};
 
   private:
 	explicit FailHandler(void) noexcept(false);

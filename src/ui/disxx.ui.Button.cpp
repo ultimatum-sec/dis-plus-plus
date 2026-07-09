@@ -67,6 +67,9 @@ namespace disxx::ui
 		return *this;
 	}
 
+	std::unique_ptr<Widget> Button::Clone(void) const noexcept
+	{ return std::make_unique<std::decay<decltype(*this)>::type>(*this); }
+
 	void Button::Render(void) const noexcept
 	{
 		// Add a frame

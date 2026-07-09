@@ -7,9 +7,11 @@ export module disxx.disasm.operand.AbstractOperand;
 export import <memory>;
 export import <string>;
 
+export import disxx.utility.trait.Cloneable;
+
 export namespace disxx::disasm::operand
 {
-    class __DISXX_EXPORT__ AbstractOperand
+    class __DISXX_EXPORT__ [[nodiscard]] AbstractOperand : public disxx::utility::trait::Cloneable<AbstractOperand>
     {
 	  public:
 		enum class Type
@@ -36,12 +38,10 @@ export namespace disxx::disasm::operand
 		AbstractOperand(AbstractOperand &&) noexcept;
 		AbstractOperand &operator=(AbstractOperand &&) noexcept;
 
-		virtual ~AbstractOperand(void) noexcept = default;
+		virtual ~AbstractOperand(void) noexcept override = default;
 	
         inline Type GetType(void) const noexcept;
 		virtual std::string GetMnemonic(void) const noexcept(false) = 0;
-    
-		virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept = 0;
 	};
 
 	inline AbstractOperand::Type AbstractOperand::GetType(void) const noexcept

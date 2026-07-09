@@ -4,6 +4,8 @@ module;
 
 export module disxx.ui.Frame;
 
+export import <memory>;
+
 import disxx.ui.Widget;
 
 export namespace disxx::ui
@@ -19,7 +21,9 @@ export namespace disxx::ui
 
 		Frame(Frame &&) noexcept;
 		Frame &operator=(Frame &&) noexcept;
-
+		
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
+		
 		virtual void Render(void) const noexcept override;
 	};
 } /* disxx::ui */

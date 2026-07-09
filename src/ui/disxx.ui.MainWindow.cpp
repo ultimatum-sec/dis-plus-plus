@@ -1,8 +1,8 @@
 module;
 
+#include <functional>
 #include <memory>
 #include <vector>
-#include <bit>
 
 // Make y starts at left bottom corner
 #define TRANSLATE(y) \
@@ -13,41 +13,230 @@ module disxx.ui.MainWindow;
 
 namespace disxx::ui
 {
-	std::unique_ptr<MainWindow> MainWindow::s_pInstance{nullptr};
+	decltype(MainWindow::s_pContext) MainWindow::s_pContext
+	{
+		new
+		#if defined(BACKEND_CTX_GLUT)
+			backend::GLUTContext{}
+		#else
+		#	error "Context required"
+		#endif
+	};
+
+	MainWindow::MainWindow(void) noexcept
+		: m_Widgets{}
+		, m_InitialSize{}
+		, m_Size{}
+		, m_hWin{0}
+	{
+		this->m_hWin = s_pContext->CreateWindow(utility::Vec2<int>{this->m_Size}, "");
+		s_pContext->SwitchWindow(this->m_hWin);
+		
+		s_pContext->SetDisplayCallback
+		(
+			[this] -> void
+			{ this->DisplayCallback(); }
+		);
+		s_pContext->SetReshapeCallback
+		(
+			[this](int width, int height) -> void
+			{ this->ReshapeCallback(width, height); }
+		);
+		s_pContext->SetKeyboardCallback
+		(
+			[this](unsigned char key, int x, int y) -> void
+			{ this->KeyboardCallback(key, x, y); }
+		);
+		s_pContext->SetMouseButtonCallback
+		(
+			[this](int button, int state, int x, int y) -> void
+			{ this->MouseButtonCallback(button, state, x, y); }
+		);
+		s_pContext->SetMouseMotionCallback
+		(
+			[this](int x, int y) -> void
+			{ this->MouseMotionCallback(x, y); }
+		);
+	}
 
 	MainWindow::MainWindow(utility::Vec2<int> size, std::string_view title) noexcept
-		: m_Context{}
-		, m_Widgets{}
+		: m_Widgets{}
 		, m_InitialSize{utility::Vec2<int>{size}}
 		, m_Size{size}
 		, m_hWin{0}
 	{
-		this->m_hWin = this->m_Context.CreateWindow(utility::Vec2<int>{this->m_Size}, title);
-		this->m_Context.SwitchWindow(this->m_hWin);
-		this->m_Context.SetDisplayCallback(std::bit_cast<void *>(+[] -> void { s_pInstance->DisplayCallback(); }));
-		this->m_Context.SetReshapeCallback(std::bit_cast<void *>(+[](int x, int y) -> void { s_pInstance->ReshapeCallback(x, y); }));
-		this->m_Context.SetKeyboardCallback(std::bit_cast<void *>(+[](unsigned char key, int x, int y) -> void { s_pInstance->KeyboardCallback(key, x, y); }));
-		this->m_Context.SetMouseButtonCallback(std::bit_cast<void *>(+[](int button, int state, int x, int y) -> void { s_pInstance->MouseButtonCallback(button, state, x, y); }));
-		this->m_Context.SetMouseMotionCallback(std::bit_cast<void *>(+[](int x, int y) -> void { s_pInstance->MouseMotionCallback(x, y); }));
+		this->m_hWin = s_pContext->CreateWindow(utility::Vec2<int>{this->m_Size}, title);
+		s_pContext->SwitchWindow(this->m_hWin);
+
+		s_pContext->SetDisplayCallback
+		(
+			[this] -> void
+			{ this->DisplayCallback(); }
+		);
+		s_pContext->SetReshapeCallback
+		(
+			[this](int width, int height) -> void
+			{ this->ReshapeCallback(width, height); }
+		);
+		s_pContext->SetKeyboardCallback
+		(
+			[this](unsigned char key, int x, int y) -> void
+			{ this->KeyboardCallback(key, x, y); }
+		);
+		s_pContext->SetMouseButtonCallback
+		(
+			[this](int button, int state, int x, int y) -> void
+			{ this->MouseButtonCallback(button, state, x, y); }
+		);
+		s_pContext->SetMouseMotionCallback
+		(
+			[this](int x, int y) -> void
+			{ this->MouseMotionCallback(x, y); }
+		);
+	}
+
+	MainWindow::MainWindow(const MainWindow &other) noexcept
+		: m_Widgets{}
+		, m_InitialSize{utility::Vec2<int>{other.m_InitialSize}}
+		, m_Size{other.m_Size}
+		, m_hWin{0}
+	{
+		for (const auto &pWidget : other.m_Widgets)
+			this->m_Widgets.emplace_back(pWidget->Clone());
+
+		this->m_hWin = s_pContext->CreateWindow(utility::Vec2<int>{this->m_Size}, "Copy");
+		s_pContext->SwitchWindow(this->m_hWin);
+	
+		s_pContext->SetDisplayCallback
+		(
+			[this] -> void
+			{ this->DisplayCallback(); }
+		);
+		s_pContext->SetReshapeCallback
+		(
+			[this](int width, int height) -> void
+			{ this->ReshapeCallback(width, height); }
+		);
+		s_pContext->SetKeyboardCallback
+		(
+			[this](unsigned char key, int x, int y) -> void
+			{ this->KeyboardCallback(key, x, y); }
+		);
+		s_pContext->SetMouseButtonCallback
+		(
+			[this](int button, int state, int x, int y) -> void
+			{ this->MouseButtonCallback(button, state, x, y); }
+		);
+		s_pContext->SetMouseMotionCallback
+		(
+			[this](int x, int y) -> void
+			{ this->MouseMotionCallback(x, y); }
+		);
+	}
+
+	MainWindow &MainWindow::operator=(const MainWindow &other) noexcept
+	{
+		if (this != &other) [[likely]]
+		{
+			for (const auto &pWidget : other.m_Widgets)
+				this->m_Widgets.emplace_back(pWidget->Clone());
+			this->m_InitialSize = other.m_InitialSize;
+			this->m_Size = other.m_Size;
+		}
+
+		return *this;
+	}
+
+	MainWindow::MainWindow(MainWindow &&other) noexcept
+		: m_Widgets{std::move(other.m_Widgets)}
+		, m_InitialSize{std::move(utility::Vec2<int>{other.m_InitialSize})}
+		, m_Size{std::move(other.m_Size)}
+		, m_hWin{std::exchange(other.m_hWin, {})}
+	{
+		s_pContext->SwitchWindow(this->m_hWin);
+
+		s_pContext->SetDisplayCallback
+		(
+			[this] -> void
+			{ this->DisplayCallback(); }
+		);
+		s_pContext->SetReshapeCallback
+		(
+			[this](int width, int height) -> void
+			{ this->ReshapeCallback(width, height); }
+		);
+		s_pContext->SetKeyboardCallback
+		(
+			[this](unsigned char key, int x, int y) -> void
+			{ this->KeyboardCallback(key, x, y); }
+		);
+		s_pContext->SetMouseButtonCallback
+		(
+			[this](int button, int state, int x, int y) -> void
+			{ this->MouseButtonCallback(button, state, x, y); }
+		);
+		s_pContext->SetMouseMotionCallback
+		(
+			[this](int x, int y) -> void
+			{ this->MouseMotionCallback(x, y); }
+		);
+	}
+
+	MainWindow &MainWindow::operator=(MainWindow &&other) noexcept
+	{
+		this->m_Widgets = std::move(other.m_Widgets);
+		this->m_InitialSize = std::move(other.m_InitialSize);
+		this->m_Size = std::move(other.m_Size);
+		this->m_hWin = std::exchange(other.m_hWin, {});
+
+		s_pContext->SwitchWindow(this->m_hWin);
+
+		s_pContext->SetDisplayCallback
+		(
+			[this] -> void
+			{ this->DisplayCallback(); }
+		);
+		s_pContext->SetReshapeCallback
+		(
+			[this](int width, int height) -> void
+			{ this->ReshapeCallback(width, height); }
+		);
+		s_pContext->SetKeyboardCallback
+		(
+			[this](unsigned char key, int x, int y) -> void
+			{ this->KeyboardCallback(key, x, y); }
+		);
+		s_pContext->SetMouseButtonCallback
+		(
+			[this](int button, int state, int x, int y) -> void
+			{ this->MouseButtonCallback(button, state, x, y); }
+		);
+		s_pContext->SetMouseMotionCallback
+		(
+			[this](int x, int y) -> void
+			{ this->MouseMotionCallback(x, y); }
+		);
+
+		return *this;
 	}
 
 	MainWindow::~MainWindow(void) noexcept
-	{
-		if (s_pInstance) [[likely]]
-			s_pInstance.release();
-		s_pInstance = nullptr;
-	}
+	{ s_pContext->DestroyWindow(this->m_hWin); }
 
 	void MainWindow::DisplayCallback(void) const noexcept
 	{
+		s_pContext->SwitchWindow(this->m_hWin);
+
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->Render();
-		this->m_Context.SwapBuffers();
+		s_pContext->SwapBuffers();
 		Widget::ClearBuffer();
 	}
 
 	void MainWindow::ReshapeCallback(int width, int height) noexcept(false)
 	{
+		s_pContext->SwitchWindow(this->m_hWin);
+
 		auto sX{static_cast<float>(this->m_Size.x / this->m_InitialSize.x)};
 		auto sY{static_cast<float>(this->m_Size.y / this->m_InitialSize.y)};
 		
@@ -62,46 +251,45 @@ namespace disxx::ui
 			pWidget->Resize(utility::Vec2<float>{w * sX, h * sY});
 		}
 
-		this->m_Context.Redisplay();
+		s_pContext->Redisplay();
 	}
 
 	void MainWindow::KeyboardCallback(unsigned char key, int x, int y) noexcept(false)
 	{
+		s_pContext->SwitchWindow(this->m_hWin);
+
 		#ifdef BACKEND_CTX_GLUT
 			TRANSLATE(y);
 		#endif
 
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->HandleKeyboard(key, x, y);
-		this->m_Context.Redisplay();
+		s_pContext->Redisplay();
 	}
 
 	void MainWindow::MouseButtonCallback(int button, int state, int x, int y) noexcept(false)
 	{
+		s_pContext->SwitchWindow(this->m_hWin);
+
 		#ifdef BACKEND_CTX_GLUT
 			TRANSLATE(y);
 		#endif
 
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->HandleMouse(button, state, x, y);
-		this->m_Context.Redisplay();
+		s_pContext->Redisplay();
 	}
 
 	void MainWindow::MouseMotionCallback(int x, int y) noexcept(false)
 	{
+		s_pContext->SwitchWindow(this->m_hWin);
+
 		#ifdef BACKEND_CTX_GLUT
 			TRANSLATE(y);
 		#endif
 
 		for (const auto &pWidget : this->m_Widgets)
 			pWidget->HandleMotion(x, y);
-		this->m_Context.Redisplay();
-	}
-
-	std::unique_ptr<MainWindow> &MainWindow::Init(utility::Vec2<int> size, std::string_view title) noexcept
-	{
-		if (!s_pInstance) [[likely]]
-			s_pInstance = std::unique_ptr<MainWindow>{new MainWindow{utility::Vec2<int>{size}, title}};
-		return s_pInstance;
+		s_pContext->Redisplay();
 	}
 } /* disxx::ui */

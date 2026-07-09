@@ -6,6 +6,9 @@ module;
 
 export module disxx.ui.TextInput;
 
+export import <string_view>;
+export import <memory>;
+
 import disxx.ui.Widget;
 
 export namespace disxx::ui
@@ -26,6 +29,8 @@ export namespace disxx::ui
 
 		inline void SetText(std::string_view) noexcept;
 		inline std::string_view GetText(void) const noexcept;
+
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
 
 		virtual void HandleKeyboard(unsigned char, int, int) override;
 		virtual void HandleMouse(int, int, int, int) override;

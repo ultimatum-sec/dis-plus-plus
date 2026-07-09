@@ -31,6 +31,7 @@ else
 endif
 
 MODULES=\
+	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)trait$(PATHSEP)disxx.utility.trait.Cloneable.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.NullPointerError.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.DefaultDeleter.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.NonNull.cppm \
@@ -54,7 +55,6 @@ MODULES=\
 	$(MODULESPATH)private$(PATHSEP)disxx.ui.MenuEntry.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Button.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Label.cppm \
-	$(MODULESPATH)public$(PATHSEP)disxx.ui.MenuEntry.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.Menu.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.TextInput.cppm \
 	$(MODULESPATH)public$(PATHSEP)disxx.ui.MainWindow.cppm

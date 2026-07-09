@@ -9,6 +9,7 @@ module;
 
 export module disxx.ui.Widget;
 
+import disxx.utility.trait.Cloneable;
 import disxx.utility.pointer.NonNull;
 import disxx.ui.backend.IRenderer;
 import disxx.ui.backend.GLRenderer;
@@ -17,7 +18,7 @@ export import disxx.ui.utility.Vec;
 
 export namespace disxx::ui
 {
-	class __DISXX_EXPORT__ [[nodiscard]] Widget
+	class __DISXX_EXPORT__ [[nodiscard]] Widget : public disxx::utility::trait::Cloneable<Widget>
 	{
 	  protected:
 		static disxx::utility::pointer::NonNull<backend::IRenderer> s_pRenderer;
@@ -41,7 +42,7 @@ export namespace disxx::ui
 		Widget(const Widget &) noexcept;
 		Widget &operator=(const Widget &) noexcept;
 
-		virtual ~Widget(void) noexcept = default;
+		virtual ~Widget(void) noexcept override = default;
 
 		inline utility::Vec2<float> GetPosition(void) const noexcept;
 		inline utility::Vec2<float> GetSize(void) const noexcept;

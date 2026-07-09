@@ -48,6 +48,9 @@ namespace disxx::ui
 		return *this;
 	}
 
+	std::unique_ptr<Widget> Label::Clone(void) const noexcept
+	{ return std::make_unique<std::decay<decltype(*this)>::type>(*this); }
+
 	void Label::Render(void) const noexcept
 	{
 		// Render the text

@@ -61,6 +61,9 @@ namespace disxx::ui
 		return *this;
 	}
 
+	std::unique_ptr<Widget> Menu::Clone(void) const noexcept
+	{ return std::make_unique<std::decay<decltype(*this)>::type>(*this); }
+
 	void Menu::HandleMouse(int button, int state, int x, int y) noexcept
 	{
 		if (this->m_IsClicked)

@@ -6,6 +6,7 @@ export module disxx.ui.MenuEntry;
 
 export import <string_view>;
 export import <functional>;
+export import <memory>;
 export import <string>;
 
 import disxx.ui.Widget;
@@ -32,6 +33,8 @@ export namespace disxx::ui
 		inline void SetCallback(std::function<void(void)>) noexcept;
 
 		inline std::string_view GetText(void) const noexcept;
+
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
 
 		virtual void Render(void) const noexcept override;
 		virtual void HandleMouse(int, int, int, int) noexcept override;

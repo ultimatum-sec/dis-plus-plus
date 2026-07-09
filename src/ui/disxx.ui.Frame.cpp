@@ -38,6 +38,9 @@ namespace disxx::ui
 		return *this;
 	}
 
+	std::unique_ptr<Widget> Frame::Clone(void) const noexcept
+	{ return std::make_unique<std::decay<decltype(*this)>::type>(*this); }
+
 	void Frame::Render(void) const noexcept
 	{
 		// Add a subframe

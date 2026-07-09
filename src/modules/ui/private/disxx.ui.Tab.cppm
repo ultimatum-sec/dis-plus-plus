@@ -8,6 +8,7 @@ module;
 export module disxx.ui.Tab;
 
 export import <string_view>;
+export import <memory>;
 
 export import disxx.ui.SourceEditor;
 import disxx.ui.Widget;
@@ -38,6 +39,8 @@ export namespace disxx::ui
 		inline std::string_view GetText(void) const noexcept;
 
 		inline void SetPassive(void) noexcept;
+
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
 
 		virtual void Render(void) const noexcept override;
 		virtual void HandleMouse(int, int, int, int) noexcept(false) override;

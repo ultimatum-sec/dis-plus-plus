@@ -36,6 +36,8 @@ export namespace disxx::ui
 
 		virtual ~SourceEditor(void) noexcept override = default;
 
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
+
 		virtual void Resize(utility::Vec2<float>) noexcept override;
 
 		inline std::vector<std::string> GetLines(void) const noexcept;

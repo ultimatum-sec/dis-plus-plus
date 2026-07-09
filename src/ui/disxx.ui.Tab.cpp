@@ -56,6 +56,9 @@ namespace disxx::ui
 		return *this;
 	}
 
+	std::unique_ptr<Widget> Tab::Clone(void) const noexcept
+	{ return std::make_unique<std::decay<decltype(*this)>::type>(*this); }
+
 	void Tab::Render(void) const noexcept
 	{
 		float heightModifier{this->m_IsClicked ? 5.f : 0.f};

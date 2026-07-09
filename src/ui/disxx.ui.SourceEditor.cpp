@@ -120,6 +120,9 @@ namespace disxx::ui
 		this->m_HorizontalSliderWidth = std::max(30.f, std::min(this->m_HorizontalSliderWidth, this->m_Size.x - CORNER_WIDTH));
 	}
 
+	std::unique_ptr<Widget> SourceEditor::Clone(void) const noexcept
+	{ return std::make_unique<std::decay<decltype(*this)>::type>(*this); }
+
 	void SourceEditor::Resize(utility::Vec2<float> size) noexcept
 	{
 		Widget::Resize(utility::Vec2<float>{size});

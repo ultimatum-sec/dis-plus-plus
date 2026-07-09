@@ -6,6 +6,9 @@ module;
 
 export module disxx.ui.Button;
 
+export import <string_view>;
+export import <memory>;
+
 import disxx.ui.utility.ImageLoader;
 import disxx.ui.Widget;
 
@@ -40,6 +43,8 @@ export namespace disxx::ui
 
 		inline void SetCallback(const Trigger, std::function<void(const Widget *const)>) noexcept;
 		inline void SetText(std::string_view) noexcept;	
+
+		virtual std::unique_ptr<Widget> Clone(void) const noexcept override;
 
 		virtual void HandleMouse(int, int, int, int) noexcept override;
 		virtual void HandleMotion(int, int) noexcept override;
