@@ -108,7 +108,7 @@ export namespace disxx::ui
 
 	inline void MainWindow::Exec(void) const noexcept
 	{
-		s_pContext->SwitchWindow(this->m_hWin);
+		//s_pContext->SwitchWindow(this->m_hWin);
 		s_pContext->Exec();
 	}
 } /* disxx::ui */

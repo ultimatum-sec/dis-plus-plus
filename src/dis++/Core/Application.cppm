@@ -27,7 +27,7 @@ export class __DISXX_PRIVATE__ [[nodiscard]] Application
   private:
 	disxx::ui::MainWindow m_Window{};
 	DisLog m_Logger{};
-	FileInput *m_pInput{};
+	std::unique_ptr<FileInput> m_pInput{};
 
   private:
 	static void Init(void) noexcept(false);
@@ -65,6 +65,8 @@ inline Application *Application::Init(int &argc, char **argv) noexcept(false)
 	(
 		[] -> void
 		{
+			Application::s_pInstance->m_Window.SetVisible(false);
+
 			Application::s_pInstance->m_Logger.LogErr
 			(
 				sArgc && sArgv

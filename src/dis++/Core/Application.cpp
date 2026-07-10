@@ -18,8 +18,6 @@ module;
 #include <tuple>
 #include <array>
 
-#include <print>
-
 #define MKHEX(x) (std::format("{:#x}", (x)))
 
 module Application;
@@ -62,11 +60,8 @@ Application *Application::s_pInstance{nullptr};
 Application::Application(void) noexcept(false)
 	: m_Window{disxx::ui::utility::Vec2<int>{800, 600}, "dis++ v" __DISXX_VERSION__}
 	, m_Logger{}
-	, m_pInput{new FileInput{}}
-{
-	s_pInstance->m_Window.SetVisible(false);
-	this->m_pInput->SetCallback([] -> void { Application::Init(); });
-}
+	, m_pInput{std::make_unique<FileInput>()}
+{ this->m_pInput->SetCallback([] -> void { Application::Init(); }); }
 
 void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 {
@@ -322,9 +317,8 @@ void Application::Init(void) noexcept(false)
 	if (s_pInstance->m_pInput) [[likely]]
 	{
 		path = s_pInstance->m_pInput->GetPath();
-		delete s_pInstance->m_pInput;
+		s_pInstance->m_pInput.reset();
 	}
-	s_pInstance->m_pInput = nullptr;
 
 	s_pInstance->m_Window.SetVisible(true);
 	const auto [width, height]{s_pInstance->m_Window.GetSize()};
@@ -656,8 +650,9 @@ void Application::Init(void) noexcept(false)
 
 		s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Menu>(menu));
 	}
-	
-	s_pInstance->Disassemble(path);
+
+	if (!path.empty())	
+		s_pInstance->Disassemble(path);
 
     s_pInstance
 		->m_Window

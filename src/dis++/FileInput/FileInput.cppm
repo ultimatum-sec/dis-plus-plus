@@ -8,14 +8,12 @@ module;
 export module FileInput;
 
 import disxx.ui.MainWindow;
-import disxx.ui.TextInput;
-import disxx.ui.Button;
-import disxx.ui.Widget;
 
 export class FileInput
 {
   private:
 	disxx::ui::MainWindow m_Window{};
+	std::function<void(void)> m_Callback{};
 	std::filesystem::path m_Path{};
 
   public:
