@@ -30,25 +30,25 @@ FileInput::FileInput(void) noexcept
 	this->m_Window.SetVisible(true);
 	
 	{
-		disxx::ui::Button open{50.f, 250.f, 100.f, 25.f};
+		disxx::ui::Button open{5.f, 250.f, 75.f, 25.f};
 		open.SetColor(0.3f, 0.3f, 0.3f);
-		open.SetText("Open...");
+		open.SetText("Open");
 		open.SetCallback
 		(
 			disxx::ui::Button::Trigger::BTN_CLICKED,
 			[this](const disxx::ui::Widget *const) -> void
 			{
 				disxx::ui::Frame frame{0.f, 0.f, 400.f, 300.f};
-				frame.SetColor(0.3f, 0.3f, 0.3f);
+				frame.SetColor(0.2f, 0.2f, 0.2f);
 				this->m_Window.AddWidget(std::make_unique<disxx::ui::Frame>(frame));
 
-				disxx::ui::TextInput input{125.f, 150.f, 150.f, 40.f};
-				input.SetColor(4.f, 4.f, 4.f);
+				disxx::ui::TextInput input{100.f, 150.f, 200.f, 40.f};
+				input.SetColor(0.3f, 0.3f, 0.3f);
 				this->m_Window.AddWidget(std::make_unique<disxx::ui::TextInput>(input));
 				
 				const auto &ref
 				{
-					dynamic_cast<disxx::ui::TextInput &>
+					static_cast<disxx::ui::TextInput &>
 					(
 						**this
 							->m_Window
@@ -58,12 +58,12 @@ FileInput::FileInput(void) noexcept
 				};
 	
 				disxx::ui::Button ok{150.f, 100.f, 100.f, 40.f};
-				ok.SetColor(3.f, 3.f, 3.f);
+				ok.SetColor(0.3f, 0.3f, 0.3f);
 				ok.SetText("OK");
 				ok.SetCallback
 				(
 					disxx::ui::Button::Trigger::BTN_CLICKED,
-					[this, ref](const disxx::ui::Widget *const) mutable -> void
+					[this, &ref](const disxx::ui::Widget *const) mutable -> void
 					{
 						this->m_Path = ref.GetText();
 						this->m_Callback();
@@ -76,14 +76,14 @@ FileInput::FileInput(void) noexcept
 	}
 
 	{
-		disxx::ui::Label text{175.f, 250.f, 0.f, 0.f};
+		disxx::ui::Label text{240.f, 255.f, 0.f, 0.f};
 		text.SetColor(1.f, 1.f, 1.f);
 		text.SetText("Select an executable to disassemble");
 		this->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(text));
 	}
 
 	{
-		disxx::ui::Button pass{50.f, 200.f, 100.f, 25.f};
+		disxx::ui::Button pass{5.f, 210.f, 75.f, 25.f};
 		pass.SetColor(0.3f, 0.3f, 0.3f);
 		pass.SetText("Pass");
 		pass.SetCallback
@@ -96,7 +96,7 @@ FileInput::FileInput(void) noexcept
 	}
 
 	{
-		disxx::ui::Label text{175.f, 200.f, 0.f, 0.f};
+		disxx::ui::Label text{225.f, 210.f, 0.f, 0.f};
 		text.SetColor(1.f, 1.f, 1.f);
 		text.SetText("Continue without opening a file");
 		this->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(text));

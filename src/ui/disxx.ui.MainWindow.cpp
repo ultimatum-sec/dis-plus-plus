@@ -1,6 +1,8 @@
 module;
 
 #include <functional>
+#include <algorithm>
+#include <ranges>
 #include <memory>
 #include <vector>
 
@@ -262,8 +264,8 @@ namespace disxx::ui
 			TRANSLATE(y);
 		#endif
 
-		for (const auto &pWidget : this->m_Widgets)
-			pWidget->HandleKeyboard(key, x, y);
+		for (const auto i : std::views::iota(0ul, this->m_Widgets.size()))
+			this->m_Widgets[i]->HandleKeyboard(key, x, y);
 		s_pContext->Redisplay();
 	}
 
@@ -275,8 +277,8 @@ namespace disxx::ui
 			TRANSLATE(y);
 		#endif
 
-		for (const auto &pWidget : this->m_Widgets)
-			pWidget->HandleMouse(button, state, x, y);
+		for (const auto i : std::views::iota(0ul, this->m_Widgets.size()))
+			this->m_Widgets[i]->HandleMouse(button, state, x, y);
 		s_pContext->Redisplay();
 	}
 
@@ -288,8 +290,8 @@ namespace disxx::ui
 			TRANSLATE(y);
 		#endif
 
-		for (const auto &pWidget : this->m_Widgets)
-			pWidget->HandleMotion(x, y);
+		for (const auto i : std::views::iota(0ul, this->m_Widgets.size()))
+			this->m_Widgets[i]->HandleMotion(x, y);
 		s_pContext->Redisplay();
 	}
 } /* disxx::ui */

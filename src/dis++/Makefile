@@ -10,7 +10,7 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-   	-c -std=c++26 -Weverything -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+   	-c -std=c++26 -Weverything -Werror -Og -g -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
 	-fstrict-aliasing -ftrapv -fwrapv -Wno-unused-command-line-argument -Wno-c99-extensions -Wno-global-constructors -Wno-exit-time-destructors \
 	-Wno-reserved-identifier -Wno-switch-enum -Wno-reserved-macro-identifier -Wno-writable-strings -Wno-weak-vtables \
 	-Wno-non-virtual-dtor -Wno-covered-switch-default -Wno-padded -Wno-sign-conversion -Wno-c++98-compat -Wno-c++98-compat-pedantic \
@@ -22,6 +22,8 @@ CXXFLAGS=\
 LDFLAGS=\
 	-O2 $(LTOFLAGS) -S -demangle -arch $(ARCH) -pie -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
 	-L$(DEPENDENCIESDIR) -framework GLUT -framework Ruby -ldisxx-util -ldisxx-ui -ldisxx-disasm -ldisxx-macho
+	#-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/ \
+	#-lclang_rt.ubsan_osx_dynamic -lclang_rt.asan_osx_dynamic -rpath /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/
 
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)trait$(PATHSEP)disxx.utility.trait.Cloneable.cppm \
