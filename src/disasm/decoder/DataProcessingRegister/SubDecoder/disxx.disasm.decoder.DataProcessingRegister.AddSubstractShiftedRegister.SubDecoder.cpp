@@ -31,8 +31,8 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractShiftedReg
 
 	SubDecoder &SubDecoder::operator=(const SubDecoder &other) noexcept
 	{
-		if (this != &other)
-			[[maybe_unused]] const auto &_{disxx::disasm::decoder::abstract::SubDecoder::operator=(other)};
+		if (this != &other) [[likely]]
+			disxx::disasm::decoder::abstract::SubDecoder::operator=(other);
 		return *this;
 	}
 
@@ -42,7 +42,8 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractShiftedReg
 
 	SubDecoder &SubDecoder::operator=(SubDecoder &&other) noexcept
 	{
-		[[maybe_unused]] const auto &_{disxx::disasm::decoder::abstract::SubDecoder::operator=(std::move(other))};
+		if (this != &other) [[likely]]
+			disxx::disasm::decoder::abstract::SubDecoder::operator=(std::forward<SubDecoder &&>(other));
 		return *this;
 	}
 

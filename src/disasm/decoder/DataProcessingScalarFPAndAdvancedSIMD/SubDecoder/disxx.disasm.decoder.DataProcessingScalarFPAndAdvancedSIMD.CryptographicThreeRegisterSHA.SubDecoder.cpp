@@ -28,18 +28,19 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Cryptog
 
 	SubDecoder &SubDecoder::operator=(const SubDecoder &other) noexcept
 	{
-		if (this != &other)
-			[[maybe_unused]] const auto &_{disxx::disasm::decoder::abstract::SubDecoder::operator=(other)};
+		if (this != &other) [[likely]]
+			disxx::disasm::decoder::abstract::SubDecoder::operator=(other);
 		return *this;
 	}
 
 	SubDecoder::SubDecoder(SubDecoder &&other) noexcept
-		: disxx::disasm::decoder::abstract::SubDecoder{std::move(other)}
+		: disxx::disasm::decoder::abstract::SubDecoder{std::forward<SubDecoder &&>(other)}
 	{}
 
 	SubDecoder &SubDecoder::operator=(SubDecoder &&other) noexcept
 	{
-		[[maybe_unused]] const auto &_{disxx::disasm::decoder::abstract::SubDecoder::operator=(std::move(other))};
+		if (this != &other) [[likely]]
+			disxx::disasm::decoder::abstract::SubDecoder::operator=(std::forward<SubDecoder &&>(other));
 		return *this;
 	}
 

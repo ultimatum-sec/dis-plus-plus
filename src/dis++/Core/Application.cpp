@@ -198,6 +198,8 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 										std::regex{it->str()},
 										std::format("<color value=\"0.3 0.7 0.7 1.0\">{}</color>", it->str())
 									);
+
+									it = {str.begin(), str.end(), regs};
 								}
 
 								static const std::regex imms{R"(#-?((0x[a-f0-9]+)|(\d+\.\d+)))"};
@@ -222,6 +224,8 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 											std::format("<color value=\"0.7 0.2 0.1 1.0\">{}</color>", it->str())
 										);
 									}
+
+									it = {str.begin(), str.end(), regs};
 								}
 
 								return str;
