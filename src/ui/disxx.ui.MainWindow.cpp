@@ -265,7 +265,7 @@ namespace disxx::ui
 		#endif
 
 		for (const auto i : std::views::iota(0ul, this->m_Widgets.size()))
-			this->m_Widgets[i]->HandleKeyboard(key, x, y);
+			this->m_Widgets.at(i)->HandleKeyboard(key, x, y);
 		s_pContext->Redisplay();
 	}
 
@@ -278,7 +278,7 @@ namespace disxx::ui
 		#endif
 
 		for (const auto i : std::views::iota(0ul, this->m_Widgets.size()))
-			this->m_Widgets[i]->HandleMouse(button, state, x, y);
+			this->m_Widgets.at(i)->HandleMouse(button, state, x, y);
 		s_pContext->Redisplay();
 	}
 
@@ -291,7 +291,7 @@ namespace disxx::ui
 		#endif
 
 		for (const auto i : std::views::iota(0ul, this->m_Widgets.size()))
-			this->m_Widgets[i]->HandleMotion(x, y);
+			this->m_Widgets.at(i)->HandleMotion(x, y);
 		s_pContext->Redisplay();
 	}
 } /* disxx::ui */

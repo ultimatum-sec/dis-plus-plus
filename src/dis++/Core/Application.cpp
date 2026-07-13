@@ -177,7 +177,7 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 					{
 						auto mnemonic
 						{
-							[insn](void) -> std::string
+							[&insn](void) -> std::string
 							{
 								auto str{std::format("{}", *insn)};
 								
@@ -185,9 +185,9 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 								for (std::sregex_iterator it{str.begin(), str.end(), regs}, end{}; it != end; ++it)
 								{
 									// Check if it was accidentally confused with immediate operand
-									if (const auto prev{str.at(it->position() - 1uz)}; prev == 'x' || std::isdigit(prev) || (prev >= 97 && prev <= 102)) [[unlikely]]
+									if (const auto &prev{str.at(it->position() - 1uz)}; prev == 'x' || std::isdigit(prev) || (prev >= 97 && prev <= 102)) [[unlikely]]
 										continue;
-									// Check if number of the register is valid
+									// Check if a number of the register is valid
 									else if (auto n{0ull}; std::from_chars(it->str().data() + 1, it->str().data() + it->str().size() - 1, n)) [[likely]]
 										if (n > 31) [[unlikely]]
 											continue;
@@ -204,7 +204,7 @@ void Application::Disassemble(const std::filesystem::path &path) noexcept(false)
 								for (std::sregex_iterator it{str.begin(), str.end(), imms}, end{}; it != end; ++it)
 								{
 									// Check if it's a pc-relevant address (using .value_or(0) instead of .value() method)
-									if (auto insnAddr{insn->GetProgramCounterRelevantAddress()}; insnAddr && std::string{"#"} + MKHEX(insnAddr.value_or(0)) == it->str())
+									if (const auto insnAddr{insn->GetProgramCounterRelevantAddress()}; insnAddr && std::string{"#"} + MKHEX(insnAddr.value_or(0)) == it->str())
 									{
 										str = std::regex_replace
 										(
@@ -625,6 +625,135 @@ void Application::Init(void) noexcept(false)
 		};
 		save.SetColor(0.2f, 0.2f, 0.2f);
 		menu.PushEntry(std::move(save));
+
+		disxx::ui::MenuEntry script
+		{
+			"Script",
+			[] -> void
+			{
+				// Do nothing if the entry has been activated
+				static bool scriptActive{false};
+				if (scriptActive) [[unlikely]]
+					return;
+
+				#ifdef BACKEND_CTX_GLUT
+					const auto [w, h]{disxx::ui::backend::GLUTContext::GetWindowSize()};
+				#endif
+
+				disxx::ui::Frame frame
+				{
+					w / 4,
+					h / 4,
+					w / 2,
+					h / 2
+				};
+				frame.SetColor(0.2f, 0.2f, 0.2f);
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Frame>(frame));
+
+				disxx::ui::Label upper
+				{
+					w / 2.f,
+					h / 2.f + 100.f,
+					0.f,
+					0.f
+				};
+				upper.SetColor(1.f, 1.f, 1.f);
+				upper.SetText("Load script file");
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(upper));
+				
+				disxx::ui::Label label
+				{
+					w / 4.f + 70.f,
+					h / 2.f + 45.f,
+					0.f,
+					0.f
+				};
+				label.SetColor(0.3f, 0.3f, 0.3f);
+				label.SetText("Path:");
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Label>(label));
+
+				disxx::ui::Button ok
+				{
+					w / 2.f + w / 5.f - 100.f,
+					h / 2.f - h / 5.f,
+					100.f,
+					40.f
+				};
+				ok.SetColor(0.3f, 0.3f, 0.3f);
+				ok.SetText("Load");
+				ok.SetCallback
+				(
+					disxx::ui::Button::Trigger::BTN_CLICKED,
+					[](const disxx::ui::Widget *const) -> void
+					{
+						if (s_pInstance->m_Window.GetWidgets().size() < 5) [[unlikely]]
+							return;
+
+						const auto p
+						{
+							static_cast<disxx::ui::TextInput *>
+							(
+								(
+									s_pInstance
+										->m_Window
+										.GetWidgets()
+										.rbegin()
+								)->get()
+							)->GetText()
+
+						};
+
+						for (const auto _ : std::views::iota(0, 5))
+							s_pInstance->m_Window.GetWidgets().pop_back();
+
+						static ScriptEngine engine{};
+						engine.ExecFile(p);
+	
+						scriptActive = false;
+					}
+				);
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Button>(ok));
+
+				disxx::ui::Button cancel
+				{
+					w / 2 - w / 5.f,
+					h / 2 - h / 5.f,
+					100.f,
+					40.f
+				};
+				cancel.SetColor(0.3f, 0.3f, 0.3f);
+				cancel.SetText("Cancel");
+				cancel.SetCallback
+				(
+					disxx::ui::Button::Trigger::BTN_CLICKED,
+					[](const disxx::ui::Widget *const) -> void
+					{
+						if (s_pInstance->m_Window.GetWidgets().size() < 5) [[unlikely]]
+							return;
+
+						for (const auto _ : std::views::iota(0, 5))
+							s_pInstance->m_Window.GetWidgets().pop_back();
+
+						scriptActive = false;
+					}
+				);
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::Button>(cancel));
+
+				disxx::ui::TextInput input
+				{
+					w / 3.f + 50.f,
+					h / 2.f + 25.f,
+					250.f,
+					40.f
+				};
+				input.SetColor(0.3f, 0.3f, 0.3f);
+				s_pInstance->m_Window.AddWidget(std::make_unique<disxx::ui::TextInput>(input));
+
+				scriptActive = true;
+			}
+		};
+		script.SetColor(0.2f, 0.2f, 0.2f);
+		menu.PushEntry(std::move(script));
 
 		disxx::ui::MenuEntry exit
 		{

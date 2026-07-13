@@ -21,9 +21,9 @@ CXXFLAGS=\
 
 LDFLAGS=\
 	-O2 $(LTOFLAGS) -S -demangle -arch $(ARCH) -pie -syslibroot $(shell xcrun --show-sdk-path) -lSystem -lc++ \
-	-L$(DEPENDENCIESDIR) -framework GLUT -framework Ruby -ldisxx-util -ldisxx-ui -ldisxx-disasm -ldisxx-macho
+	-L$(DEPENDENCIESDIR) -framework GLUT -framework Ruby -ldisxx-util -ldisxx-ui -ldisxx-disasm -ldisxx-macho 
 	#-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/ \
-	#-lclang_rt.ubsan_osx_dynamic -lclang_rt.asan_osx_dynamic -rpath /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/
+	-lclang_rt.ubsan_osx_dynamic -lclang_rt.asan_osx_dynamic -rpath /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/
 
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)trait$(PATHSEP)disxx.utility.trait.Cloneable.cppm \
