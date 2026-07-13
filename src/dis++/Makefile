@@ -10,12 +10,12 @@ PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
 OBJECTSDIR=$(BUILDDIR)$(PATHSEP)objects
 
 CXXFLAGS=\
-   	-c -std=c++26 -Weverything -Werror -Og -g -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
+   	-c -std=c++26 -Weverything -Werror -O3 -arch $(ARCH) -isysroot $(shell xcrun --show-sdk-path) \
 	-fstrict-aliasing -ftrapv -fwrapv -Wno-unused-command-line-argument -Wno-c99-extensions -Wno-global-constructors -Wno-exit-time-destructors \
 	-Wno-reserved-identifier -Wno-switch-enum -Wno-reserved-macro-identifier -Wno-writable-strings -Wno-weak-vtables \
 	-Wno-non-virtual-dtor -Wno-covered-switch-default -Wno-padded -Wno-sign-conversion -Wno-c++98-compat -Wno-c++98-compat-pedantic \
 	-Wno-implicit-int-float-conversion -Wno-disabled-macro-expansion -Wno-cast-function-type-strict -Wno-compound-token-split-by-macro \
-	-Wno-cast-function-type-mismatch -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined \
+	-Wno-cast-function-type-mismatch -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer \
 	-fmodules -Xclang -fmodules-local-submodule-visibility -fcxx-modules -fprebuilt-module-path=$(PRECOMPILEDDIR) \
 	-DGL_SILENCE_DEPRECATION -DBACKEND_CTX_GLUT -DNDEBUG -I..$(PATHSEP)include -fstack-protector-all -fvisibility=hidden
 
