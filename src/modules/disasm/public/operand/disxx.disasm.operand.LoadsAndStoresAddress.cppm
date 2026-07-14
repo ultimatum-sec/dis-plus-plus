@@ -50,7 +50,6 @@ export namespace disxx::disasm::operand
 		explicit LoadsAndStoresAddress(LoadsAndStoresAddress &&) noexcept;
 		LoadsAndStoresAddress &operator=(LoadsAndStoresAddress &&) noexcept;
 
-		virtual std::string GetMnemonic(void) const noexcept(false) override;
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
 
 		void AddImmediatePreIndexedOffset(const signed short int, bool) noexcept;
@@ -59,4 +58,4 @@ export namespace disxx::disasm::operand
 		void AddExtension(Extension &&) noexcept;
 		void AddShift(Shift &&) noexcept;
 	};
-} /* operand */
+} /* disxx::disasm::operand */

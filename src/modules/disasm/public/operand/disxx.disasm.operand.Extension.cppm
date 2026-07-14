@@ -12,24 +12,17 @@ export namespace disxx::disasm::operand
 {
 	class __DISXX_EXPORT__ Extension final : public AbstractOperand
 	{
-	  private:
-		enum class Type : unsigned short int
+	  public:
+		enum class Identifier : unsigned short int
 		{
-			TYPE_UXTB,
-			TYPE_UXTH,
-			TYPE_UXTW,
-			TYPE_UXTX,
-			TYPE_SXTB,
-			TYPE_SXTH,
-			TYPE_SXTW,
-			TYPE_SXTX
+			TYPE_UXTB, TYPE_UXTH,
+			TYPE_UXTW, TYPE_UXTX,
+			TYPE_SXTB, TYPE_SXTH,
+			TYPE_SXTW, TYPE_SXTX
 		};
 
 	  private:
-		static const std::unordered_map<Type, const char *> s_ExtensionTable;
-
-	  private:
-		Type m_ExtensionType{};
+		Identifier m_Identifier{};
 		unsigned short int m_Val{};
 
 	  public:
@@ -42,7 +35,11 @@ export namespace disxx::disasm::operand
 		explicit Extension(Extension &&) noexcept;
 		Extension &operator=(Extension &&) noexcept;
  
-		virtual std::string GetMnemonic(void) const noexcept(false)  override;
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+	
+		inline Identifier GetIdentifier(void) const noexcept;
 	};
-} /* operand */
+
+	inline Extension::Type Extension::GetIdentifier(void) const noexcept
+	{ return this->m_Identifier; }
+} /* disxx::disasm::operand */

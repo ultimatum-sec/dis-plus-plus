@@ -33,44 +33,39 @@ export namespace disxx::disasm::operand
 	  public:
 		enum class Option
 		{
-			OPT_NONE,
-			OPT_SIGNEXTEND,
-			OPT_ZEROEXTEND,
-			OPT_VFPEXPANDIMM
+			OPT_NONE, OPT_SIGNEXTEND,
+			OPT_ZEROEXTEND, OPT_VFPEXPANDIMM
 		};
 
 	  private:
 		Option m_Opt{};
 		T m_Value{};
 	
-	  private:
-		inline std::string FormatValue(void) const noexcept;
-
       public:
-		explicit Immediate(void) noexcept;
-        explicit Immediate(T val, Option opt = Option::OPT_NONE) noexcept;
+		explicit constexpr Immediate(void) noexcept;
+        explicit constexpr Immediate(T val, Option opt = Option::OPT_NONE) noexcept;
       
 		virtual ~Immediate(void) noexcept override = default;
  
-		explicit Immediate(const Immediate &) noexcept;
-		Immediate& operator=(const Immediate &) noexcept;
+		constexpr Immediate(const Immediate &) noexcept;
+		constexpr Immediate& operator=(const Immediate &) noexcept;
         
-		explicit Immediate(Immediate &&) noexcept;
-		Immediate& operator=(Immediate &&) noexcept;
-
-		inline T GetValue(void) const noexcept;
+		constexpr Immediate(Immediate &&) noexcept;
+		constexpr Immediate& operator=(Immediate &&) noexcept;
 
        	template <Imm U> requires OverflowProof<T, U>
-		Immediate<T, _Size> operator+(const U &) const noexcept;
+		constexpr Immediate<T, _Size> operator+(const U &) const noexcept;
         template <Imm U> requires OverflowProof<T, U>
-		Immediate<T, _Size> &operator+=(const U &) noexcept;
+		constexpr Immediate<T, _Size> &operator+=(const U &) noexcept;
 		template <Imm U> requires OverflowProof<T, U>
-		Immediate<T, _Size> operator<<(const U &) const noexcept;
+		constexpr Immediate<T, _Size> operator<<(const U &) const noexcept;
     	template <Imm U> requires OverflowProof<T, U>
-		Immediate<T, _Size> &operator<<=(const U &) noexcept;
+		constexpr Immediate<T, _Size> &operator<<=(const U &) noexcept;
  
-		virtual std::string GetMnemonic(void) const noexcept(false) override; 
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+
+		inline constexpr T GetValue(void) const noexcept;
+		inline constexpr Option GetOption(void) const noexcept;
 	};
 
 
@@ -135,49 +130,14 @@ export namespace disxx::disasm::operand
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
 	Immediate<T, _Size> &Immediate<T, _Size>::operator=(Immediate &&other) noexcept
 	{
-		this->m_Opt = std::move(other.m_Opt);
-		this->m_Value = std::move(other.m_Value);
+		if (this != &other) [[likely]]
+		{
+			this->m_Opt = std::move(other.m_Opt);
+			this->m_Value = std::move(other.m_Value);
+		}
 
 		return *this;
 	}
-
-	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	inline std::string Immediate<T, _Size>::FormatValue(void) const noexcept
-	{
-		if constexpr (std::is_floating_point<T>::value)
-			return std::vformat("{:f}", std::make_format_args(this->m_Value));
-
-		if constexpr (!std::is_floating_point<T>::value)
-			if (this->m_Opt != Option::OPT_VFPEXPANDIMM)
-				return std::vformat("#{:#x}", std::make_format_args(this->m_Value));
-	
-		if constexpr (_Size <= 32)
-		{
-			union
-			{
-				T bytes;
-				float fp;
-			} u{0}; u.bytes = this->m_Value;
-			
-			return std::vformat("#{:f}", std::make_format_args(u.fp));
-		}
-		
-		union
-		{
-        	T bytes;
-            double fp;
-		} u{0}; u.bytes = this->m_Value;
-		
-		return std::vformat("#{:f}", std::make_format_args(u.fp));
-	}
-
-	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	inline T Immediate<T, _Size>::GetValue(void) const noexcept
-	{ return this->m_Value; }
-
-	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	std::string Immediate<T, _Size>::GetMnemonic(void) const noexcept(false)
-	{ return this->FormatValue(); }
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
     template <Imm U> requires OverflowProof<T, U>
@@ -202,12 +162,22 @@ export namespace disxx::disasm::operand
     template <Imm U> requires OverflowProof<T, U>
     Immediate<T, _Size> Immediate<T, _Size>::operator<<(const U &val) const noexcept
     {
-        return Immediate<T, _Size>
+		return Immediate<T, _Size>
 		{
-			static_cast<T>(this->m_Value << val),
+ 			std::mul_sat<T>
+			(
+				this->m_Value,
+				[](U num) -> U
+				{
+					auto result{static_cast<U>(2)};
+					for (const auto _ : std::views::iota(static_cast<U>(1), num))
+						result = std::mul_sat<U>(result, 2);
+					return result;
+				}(val)
+  			),
 			Option::OPT_NONE
 		};
-    }
+	}
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
     template <Imm U> requires OverflowProof<T, U>
@@ -231,4 +201,12 @@ export namespace disxx::disasm::operand
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
 	std::unique_ptr<AbstractOperand> Immediate<T, _Size>::Clone(void) const noexcept
 	{ return std::make_unique<Immediate<T, _Size>>(*this); }
-} /* operand */
+
+	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
+	inline T Immediate<T, _Size>::GetValue(void) const noexcept
+	{ return this->m_Value; }
+
+	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
+	inline Immediate<T, _Size>::Option Immediate<T, _Size>::GetOption(void) const noexcept
+	{ return this->m_Option; }
+} /* disxx::disasm::operand */

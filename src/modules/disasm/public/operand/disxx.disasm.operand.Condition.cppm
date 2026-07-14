@@ -12,8 +12,8 @@ export namespace disxx::disasm::operand
 {
 	class __DISXX_EXPORT__ Condition final : public AbstractOperand
 	{
-	  private:
-		enum class Type : unsigned short int
+	  public:
+		enum class Identifier : unsigned short int
 		{
 			TYPE_EQ, TYPE_NE, TYPE_CS, TYPE_CC,
 			TYPE_MI, TYPE_PL, TYPE_VS, TYPE_VC,
@@ -22,10 +22,7 @@ export namespace disxx::disasm::operand
 		};
 	
 	  private:
-        static const std::unordered_map<Type, const char *> m_sCondTable;
-
-	  private:
-		Type m_Value{};
+		Identifier m_Identifier{};
 
 	  public:
 		explicit Condition(void) noexcept;
@@ -37,7 +34,11 @@ export namespace disxx::disasm::operand
 		explicit Condition(Condition &&) noexcept;
 		Condition &operator=(Condition &&) noexcept;
  
-		virtual std::string GetMnemonic(void) const noexcept(false) override; 
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+	
+		inline Identifier GetIdentifier(void) const noexcept;
 	};
-} /* operand */
+
+	inline Condition::Identifier Condition::GetIdentifier(void) const noexcept
+	{ return this->m_Identifier; }
+} /* disxx::disasm::operand */
