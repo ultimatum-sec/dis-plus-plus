@@ -13,57 +13,58 @@ export namespace disxx::disasm::operand
 	class __DISXX_EXPORT__ PrefetchOperand final : public AbstractOperand
 	{
 	  private:
-		enum class Type : unsigned short int
+		enum class Identifier : unsigned short int
 		{
-			TYPE_PLDL1KEEP,
-			TYPE_PLDL1STRM,
-            TYPE_PLDL2KEEP,
-			TYPE_PLDL2STRM,
-            TYPE_PLDL3KEEP,
-			TYPE_PLDL3STRM,
-            TYPE_PLDSLCKEEP,
-			TYPE_PLDSLCSTRM,
-            TYPE_PLIL1KEEP,
-			TYPE_PLIL1STRM,
-            TYPE_PLIL2KEEP,
-			TYPE_PLIL2STRM,
-			TYPE_PLIL3KEEP,
-			TYPE_PLIL3STRM,
-            TYPE_PLISLCKEEP,
-			TYPE_PLISLCSTRM,
-            TYPE_PSTL1KEEP,
-			TYPE_PSTL1STRM,
-            TYPE_PSTL2KEEP,
-			TYPE_PSTL2STRM,
-            TYPE_PSTL3KEEP,
-			TYPE_PSTL3STRM,
-            TYPE_PSTSLCKEEP,
-			TYPE_PSTSLCSTRM,
-			TYPE_IR,
+			ID_PLDL1KEEP,
+			ID_PLDL1STRM,
+            ID_PLDL2KEEP,
+			ID_PLDL2STRM,
+            ID_PLDL3KEEP,
+			ID_PLDL3STRM,
+            ID_PLDSLCKEEP,
+			ID_PLDSLCSTRM,
+            ID_PLIL1KEEP,
+			ID_PLIL1STRM,
+            ID_PLIL2KEEP,
+			ID_PLIL2STRM,
+			ID_PLIL3KEEP,
+			ID_PLIL3STRM,
+            ID_PLISLCKEEP,
+			ID_PLISLCSTRM,
+            ID_PSTL1KEEP,
+			ID_PSTL1STRM,
+            ID_PSTL2KEEP,
+			ID_PSTL2STRM,
+            ID_PSTL3KEEP,
+			ID_PSTL3STRM,
+            ID_PSTSLCKEEP,
+			ID_PSTSLCSTRM,
+			ID_IR,
 			// Part for INSN_RPRFM
-			TYPE_PLDKEEP = 0b010011000,
-			TYPE_PSTKEEP = 0b010011001,
-			TYPE_PLDSTRM = 0b010011100,
-			TYPE_PSTSTRM = 0b010011101
+			ID_PLDKEEP = 0b010011000,
+			ID_PSTKEEP = 0b010011001,
+			ID_PLDSTRM = 0b010011100,
+			ID_PSTSTRM = 0b010011101
 		};
 	  
 	  private:
-		static const std::unordered_map<Type, const char *> s_PrfopTable;
-
-	  private:
-		Type m_Prfop{};
+		Identifier m_Identifier{};
 
 	  public:
 		explicit PrefetchOperand(void) noexcept;
 		explicit PrefetchOperand(unsigned short int) noexcept;
 
-		explicit PrefetchOperand(const PrefetchOperand &) noexcept;
+		PrefetchOperand(const PrefetchOperand &) noexcept;
 		PrefetchOperand &operator=(const PrefetchOperand &) noexcept;
 
-		explicit PrefetchOperand(PrefetchOperand &&) noexcept;
+		PrefetchOperand(PrefetchOperand &&) noexcept;
 		PrefetchOperand &operator=(PrefetchOperand &&) noexcept;
  
-		virtual std::string GetMnemonic(void) const noexcept(false) override; 
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+	
+		inline Identifier GetIdentifier(void) const noexcept;
 	};
+
+	inline PrefetchOperand::Identifier PrefetchOperand::GetIdentifier(void) const noexcept
+	{ return this->m_Identifier; }
 } /* operand */

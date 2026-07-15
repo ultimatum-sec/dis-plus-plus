@@ -15,10 +15,10 @@ export namespace disxx::disasm::operand
 	  public:
 		enum class Identifier : unsigned short int
 		{
-			TYPE_EQ, TYPE_NE, TYPE_CS, TYPE_CC,
-			TYPE_MI, TYPE_PL, TYPE_VS, TYPE_VC,
-			TYPE_HI, TYPE_LS, TYPE_GE, TYPE_LT,
-			TYPE_GT, TYPE_LE, TYPE_AL, TYPE_NV
+			ID_EQ, ID_NE, ID_CS, ID_CC,
+			ID_MI, ID_PL, ID_VS, ID_VC,
+			ID_HI, ID_LS, ID_GE, ID_LT,
+			ID_GT, ID_LE, ID_AL, ID_NV
 		};
 	
 	  private:

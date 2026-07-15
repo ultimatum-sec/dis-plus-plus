@@ -42,42 +42,42 @@ export namespace disxx::disasm::operand
 		T m_Value{};
 	
       public:
-		explicit constexpr Immediate(void) noexcept;
-        explicit constexpr Immediate(T val, Option opt = Option::OPT_NONE) noexcept;
+		explicit Immediate(void) noexcept;
+        explicit Immediate(T, Option = Option::OPT_NONE) noexcept;
       
 		virtual ~Immediate(void) noexcept override = default;
  
-		constexpr Immediate(const Immediate &) noexcept;
-		constexpr Immediate& operator=(const Immediate &) noexcept;
+		Immediate(const Immediate &) noexcept;
+		Immediate& operator=(const Immediate &) noexcept;
         
-		constexpr Immediate(Immediate &&) noexcept;
-		constexpr Immediate& operator=(Immediate &&) noexcept;
+		Immediate(Immediate &&) noexcept;
+		Immediate& operator=(Immediate &&) noexcept;
 
        	template <Imm U> requires OverflowProof<T, U>
-		constexpr Immediate<T, _Size> operator+(const U &) const noexcept;
+		Immediate<T, _Size> operator+(const U &) const noexcept;
         template <Imm U> requires OverflowProof<T, U>
-		constexpr Immediate<T, _Size> &operator+=(const U &) noexcept;
+		Immediate<T, _Size> &operator+=(const U &) noexcept;
 		template <Imm U> requires OverflowProof<T, U>
-		constexpr Immediate<T, _Size> operator<<(const U &) const noexcept;
+		Immediate<T, _Size> operator<<(const U &) const noexcept;
     	template <Imm U> requires OverflowProof<T, U>
-		constexpr Immediate<T, _Size> &operator<<=(const U &) noexcept;
+		Immediate<T, _Size> &operator<<=(const U &) noexcept;
  
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
 
-		inline constexpr T GetValue(void) const noexcept;
-		inline constexpr Option GetOption(void) const noexcept;
+		inline T GetValue(void) const noexcept;
+		inline Option GetOption(void) const noexcept;
 	};
 
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-    Immediate<T, _Size>::Immediate(void) noexcept
+    constexpr Immediate<T, _Size>::Immediate(void) noexcept
         : AbstractOperand{AbstractOperand::Type::TYPE_IMMEDIATE}
 		, m_Opt{}
         , m_Value{static_cast<T>(0)}
 	{}
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	Immediate<T, _Size>::Immediate(T value, Option opt) noexcept
+	constexpr Immediate<T, _Size>::Immediate(T value, Option opt) noexcept
 		: AbstractOperand{AbstractOperand::Type::TYPE_IMMEDIATE}
 		, m_Opt{opt}
 		, m_Value{value}

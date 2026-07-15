@@ -15,10 +15,10 @@ export namespace disxx::disasm::operand
 	  public:
 		enum class Identifier : unsigned short int
 		{
-			TYPE_UXTB, TYPE_UXTH,
-			TYPE_UXTW, TYPE_UXTX,
-			TYPE_SXTB, TYPE_SXTH,
-			TYPE_SXTW, TYPE_SXTX
+			ID_UXTB, ID_UXTH,
+			ID_UXTW, ID_UXTX,
+			ID_SXTB, ID_SXTH,
+			ID_SXTW, ID_SXTX
 		};
 
 	  private:

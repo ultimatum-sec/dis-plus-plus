@@ -4,6 +4,7 @@ module;
 
 #include <optional>
 #include <variant>
+#include <cassert>
 
 export module disxx.disasm.operand.LoadsAndStoresAddress;
 
@@ -17,45 +18,144 @@ export namespace disxx::disasm::operand
 {
 	class __DISXX_EXPORT__ LoadsAndStoresAddress final : public AbstractOperand
 	{
+	  public:
+		enum class PreIndexedOffsetKind : bool
+		{
+			IDX_REGULAR,
+			IDX_ACCUMULATIVE
+		};
+
 	  private:
 		std::optional
 		<
 			std::variant
 			<
-				disxx::disasm::operand::Extension,
-				disxx::disasm::operand::Shift
+				Extension,
+				Shift
 			>
 		> m_Modifier{};
 		std::optional
 		<
 			std::variant
 			<
-				disxx::disasm::operand::Register,
+				Register,
 				std::pair
 				<
-					signed short int,
-					bool
+					Immediate<signed short int, 9>,
+					PreIndexedOffsetKind
 				>
 			>
-		> m_ExtraValue{};
+		> m_PreIndexedOffset{};
 		Register m_BaseRegister{};
 
 	  public:
 		explicit LoadsAndStoresAddress(void) noexcept;
 		explicit LoadsAndStoresAddress(Register &&) noexcept;
 		
-		explicit LoadsAndStoresAddress(const LoadsAndStoresAddress &) noexcept;
+		LoadsAndStoresAddress(const LoadsAndStoresAddress &) noexcept;
 		LoadsAndStoresAddress &operator=(const LoadsAndStoresAddress &) noexcept;
 
-		explicit LoadsAndStoresAddress(LoadsAndStoresAddress &&) noexcept;
+		LoadsAndStoresAddress(LoadsAndStoresAddress &&) noexcept;
 		LoadsAndStoresAddress &operator=(LoadsAndStoresAddress &&) noexcept;
 
         virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
 
-		void AddImmediatePreIndexedOffset(const signed short int, bool) noexcept;
-		void AddRegisterOffset(disxx::disasm::operand::Register &&) noexcept;
+		inline void AddImmediatePreIndexedOffset(const Immediate<signed short int, 9>, const PreIndexedOffsetKind) noexcept;
+		inline void AddRegisterOffset(Register &&) noexcept;
 
-		void AddExtension(Extension &&) noexcept;
-		void AddShift(Shift &&) noexcept;
+		inline void AddExtension(Extension &&) noexcept;
+		inline void AddShift(Shift &&) noexcept;
+
+		inline std::optional
+		<
+			std::variant
+			<
+				Register,
+				std::pair
+				<
+					Immediate<signed short int, 9>
+					PreIndexedOffsetKind
+				>
+			>
+		> GetPreIndexedOffset(void) const noexcept;
+		inline std::optional
+		<
+			std::variant
+			<
+				Extension,
+				Shift
+			>
+		> GetModifier(void) const noexcept;
 	};
+
+	inline void LoadsAndStoresAddress::AddImmediatePreIndexedOffset(const Immediate<signed short int, 9> value, const PreIndexedOffsetKind kind) noexcept
+	{
+		assert(!this->m_ExtraValue && "Adding offset twice");
+		this->m_ExtraValue.emplace
+		(
+			std::in_place_type
+			<
+				std::pair
+				<
+					Immediate<signed short int, 9>,
+					PreIndexedOffsetKind
+				>
+			>,
+			std::make_pair(value, kind)
+		);
+	}
+
+	inline void LoadsAndStoresAddress::AddRegisterOffset(Register &&reg) noexcept
+	{
+		assert(!this->m_ExtraValue && "Adding offset twice");
+		this->m_ExtraValue.emplace
+		(
+			std::in_place_type<Register>,
+			std::forward<Register &&>(reg)
+		);
+	}
+
+	inline void LoadsAndStoresAddress::AddExtension(Extension &&extension) noexcept
+	{
+		assert(!this->m_Modifier && "Adding modifier twice");
+		this->m_Modifier.emplace
+		(
+			std::in_place_type<Extension>,
+			std::forward<Extension &&>(extension)
+		);
+	}
+
+	inline void LoadsAndStoresAddress::AddShift(Shift &&shift) noexcept
+	{
+		assert(!this->m_Modifier && "Adding modifier twice");
+		this->m_Modifier.emplace
+		(
+			std::in_place_type<Shift>,
+			std::forward<Shift &&>(shift)
+		);
+	}
+
+	inline std::optional
+	<
+		std::variant
+		<
+			Register,
+			std::pair
+			<
+				Immediate<signed short int, 9>
+				PreIndexedOffsetKind
+			>
+		>
+	> LoadsAndStoresAddress::GetPreIndexedOffset(void) const noexcept
+	{ return this->m_PreIndexedOffset; }
+
+	inline std::optional
+	<
+		std::variant
+		<
+			Extension,
+			Shift
+		>
+	> LoadsAndStoresAddress::GetModifier(void) const noexcept
+	{ return this->m_Modifier; }
 } /* disxx::disasm::operand */
