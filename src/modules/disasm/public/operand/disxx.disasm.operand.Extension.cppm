@@ -6,11 +6,11 @@ module;
 
 export module disxx.disasm.operand.Extension;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ Extension final : public AbstractOperand
+	class __DISXX_EXPORT__ Extension final : public IOperand
 	{
 	  public:
 		enum class Identifier : unsigned short int
@@ -23,7 +23,7 @@ export namespace disxx::disasm::operand
 
 	  private:
 		Identifier m_Identifier{};
-		unsigned short int m_Val{};
+		unsigned short int m_Value{};
 
 	  public:
 		explicit Extension(void) noexcept;
@@ -35,11 +35,11 @@ export namespace disxx::disasm::operand
 		explicit Extension(Extension &&) noexcept;
 		Extension &operator=(Extension &&) noexcept;
  
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 	
 		inline Identifier GetIdentifier(void) const noexcept;
 	};
 
-	inline Extension::Type Extension::GetIdentifier(void) const noexcept
+	inline Extension::Identifier Extension::GetIdentifier(void) const noexcept
 	{ return this->m_Identifier; }
 } /* disxx::disasm::operand */

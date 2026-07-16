@@ -6,11 +6,11 @@ module;
 
 export module disxx.disasm.operand.PState;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ PState final : public AbstractOperand
+	class __DISXX_EXPORT__ PState final : public IOperand
 	{
 	  public:
 		enum class Identifier : unsigned short int
@@ -46,11 +46,11 @@ export namespace disxx::disasm::operand
 		PState(PState &&) noexcept;
 		PState &operator=(PState &&) noexcept;
 
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 	
 		Identifier GetIdentifier(void) const noexcept;
 	};
 
-	PState::Identifier PState::GetIdentifier::GetIdentifier(void) const noexcept
+	PState::Identifier PState::GetIdentifier(void) const noexcept
 	{ return this->m_Identifier; }
 } /* operand */

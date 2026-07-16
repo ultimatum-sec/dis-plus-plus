@@ -86,7 +86,7 @@ namespace disxx::disasm::decoder::abstract
 		return *this;
 	}
 
-	const std::optional<std::reference_wrapper<disxx::disasm::operand::AbstractOperand>> &
+	const std::optional<std::reference_wrapper<disxx::disasm::operand::IOperand>> &
 	SubDecoder::GetProgramCounterRelevantAddress(void) const noexcept
 	{ return this->m_ProgramCounterRelevantAddress; }
 } /* disxx::disasm::decoder::abstract */

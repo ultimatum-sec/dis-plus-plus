@@ -9,17 +9,17 @@ module disxx.disasm.operand.PState;
 namespace disxx::disasm::operand
 {
 	PState::PState(void) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{}
 	{}
 
 	PState::PState(unsigned short int bits) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{static_cast<Identifier>(bits)}
 	{}
 
 	PState::PState(const PState &other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{other.m_Identifier}
 	{}
 
@@ -32,7 +32,7 @@ namespace disxx::disasm::operand
 	}
 
 	PState::PState(PState &&other) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_PSTATE}
+		: IOperand{}
 		, m_Identifier{std::move(other.m_Identifier)}
 	{}
 
@@ -43,6 +43,6 @@ namespace disxx::disasm::operand
 		return *this;
 	}
 
-	std::unique_ptr<AbstractOperand> PState::Clone(void) const noexcept
+	std::unique_ptr<IOperand> PState::Clone(void) const noexcept
 	{ return std::make_unique<PState>(*this); }
 } /* operand */

@@ -13,7 +13,7 @@ export import <vector>;
 export import disxx.utility.error.DisassemblyError;
 
 export import disxx.disasm.InstructionID;
-export import disxx.disasm.operand.AbstractOperand;
+export import disxx.disasm.operand.IOperand;
 
 export using DisassemblyResult = std::expected
 <
@@ -23,7 +23,7 @@ export using DisassemblyResult = std::expected
 		std::vector
 		<
 			std::unique_ptr
-			<disxx::disasm::operand::AbstractOperand>
+			<disxx::disasm::operand::IOperand>
 		>
 	>,
 	disxx::utility::error::DisassemblyError
@@ -41,11 +41,11 @@ export namespace disxx::disasm::decoder::abstract
 			// - there is no opportunity somewhere in the code to
 			// create a nullptr for this vector
 			std::unique_ptr
-			<disxx::disasm::operand::AbstractOperand>
+			<disxx::disasm::operand::IOperand>
 		> m_Operands{};
 
 		// Possible reference to one of immediate operands
-		mutable std::optional<std::reference_wrapper<disxx::disasm::operand::AbstractOperand>>
+		mutable std::optional<std::reference_wrapper<disxx::disasm::operand::IOperand>>
 		m_ProgramCounterRelevantAddress{};
 	
 		// Program counter address	
@@ -69,7 +69,7 @@ export namespace disxx::disasm::decoder::abstract
 		explicit SubDecoder(SubDecoder &&) noexcept;
 		SubDecoder &operator=(SubDecoder &&) noexcept;
 
-		const std::optional<std::reference_wrapper<disxx::disasm::operand::AbstractOperand>> &
+		const std::optional<std::reference_wrapper<disxx::disasm::operand::IOperand>> &
 		GetProgramCounterRelevantAddress(void) const noexcept;
 
 		virtual std::unique_ptr<SubDecoder> Clone(void) const noexcept = 0;

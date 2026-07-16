@@ -10,17 +10,17 @@ module disxx.disasm.operand.Condition;
 namespace disxx::disasm::operand
 {
 	Condition::Condition(void) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{}
 	{}
 
 	Condition::Condition(unsigned short int val) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{static_cast<Identifier>(val)}
 	{}
 
 	Condition::Condition(const Condition &other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{other.m_Identifier}
 	{}
 
@@ -32,7 +32,7 @@ namespace disxx::disasm::operand
 	}
 
 	Condition::Condition(Condition &&other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{std::move(other.m_Identifier)}
 	{}
 
@@ -43,6 +43,6 @@ namespace disxx::disasm::operand
 		return *this;
 	}
 
-	std::unique_ptr<AbstractOperand> Condition::Clone(void) const noexcept
+	std::unique_ptr<IOperand> Condition::Clone(void) const noexcept
 	{ return std::make_unique<Condition>(*this); }
 } /* disxx::disasm::operand */

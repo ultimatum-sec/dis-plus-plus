@@ -10,7 +10,7 @@ import disxx.utility.pointer.NonNull;
 export import <expected>;
 
 export import disxx.disasm.InstructionID;
-export import disxx.disasm.operand.AbstractOperand;
+export import disxx.disasm.operand.IOperand;
 
 export import disxx.disasm.decoder.abstract.SubDecoder;
 
@@ -50,6 +50,6 @@ export namespace disxx::disasm::decoder::abstract
 
 		bool HasProgramCounterRelevantAddress(void) const noexcept;
 
-		DisassemblyResult Decode(void) noexcept(false);
+		DisassemblyResult Decode(void) noexcept;
 	};
 } /* disxx::disasm::decoder::abstract */

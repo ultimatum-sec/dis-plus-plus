@@ -10,19 +10,19 @@ module disxx.disasm.operand.Extension;
 namespace disxx::disasm::operand
 {
 	Extension::Extension(void) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{}
 		, m_Value{}
 	{}
 
 	Extension::Extension(unsigned short int id, unsigned short int value) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{static_cast<Identifier>(id)}
 		, m_Value{value}
 	{}
 
 	Extension::Extension(const Extension &other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{other.m_Identifier}
 		, m_Value{other.m_Value}
 	{}
@@ -39,7 +39,7 @@ namespace disxx::disasm::operand
 	}
 
 	Extension::Extension(Extension &&other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{std::move(other.m_Identifier)}
 		, m_Value{std::move(other.m_Value)}
 	{}
@@ -55,6 +55,6 @@ namespace disxx::disasm::operand
 		return *this;
 	}
 
-	std::unique_ptr<AbstractOperand> Extension::Clone(void) const noexcept
+	std::unique_ptr<IOperand> Extension::Clone(void) const noexcept
 	{ return std::make_unique<Extension>(*this); }
 } /* operand */

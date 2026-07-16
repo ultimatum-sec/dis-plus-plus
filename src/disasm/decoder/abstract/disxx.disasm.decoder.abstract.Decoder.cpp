@@ -13,6 +13,7 @@ module;
 
 module disxx.disasm.decoder.abstract.Decoder;
 
+import disxx.disasm.operand.IOperand;
 import disxx.disasm.operand.Immediate;
 
 namespace disxx::disasm::decoder::abstract
@@ -37,12 +38,15 @@ namespace disxx::disasm::decoder::abstract
 
 	Decoder &Decoder::operator=(Decoder &&other) noexcept
 	{
-		if (this->m_pSubDecoder) [[likely]]
-			this->m_pSubDecoder.Delete();
-		this->m_pSubDecoder = std::move(other.m_pSubDecoder);
-		this->m_ProgramCounter = std::move(other.m_ProgramCounter);
-		this->m_Insn = std::move(other.m_Insn);
-	
+		if (this != &other) [[likely]]
+		{
+			if (this->m_pSubDecoder) [[likely]]
+				this->m_pSubDecoder.Delete();
+			this->m_pSubDecoder = std::move(other.m_pSubDecoder);
+			this->m_ProgramCounter = std::move(other.m_ProgramCounter);
+			this->m_Insn = std::move(other.m_Insn);
+		}
+
 		return *this;
 	}
 
@@ -60,10 +64,10 @@ namespace disxx::disasm::decoder::abstract
 			.has_value();
 	}
 
-	DisassemblyResult Decoder::Decode(void) noexcept(false)
+	DisassemblyResult Decoder::Decode(void) noexcept
 	{
 		if (auto decoder{this->__GetDecoder()}) [[likely]]
-			this->m_pSubDecoder = decoder.value().release();
+			this->m_pSubDecoder = decoder->release();
 		else
 			return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 

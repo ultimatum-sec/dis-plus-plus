@@ -8,17 +8,17 @@ module disxx.disasm.operand.SystemOperand;
 namespace disxx::disasm::operand
 {
 	SystemOperand::SystemOperand(void) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{}
 	{}
 
 	SystemOperand::SystemOperand(unsigned short int bits) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{static_cast<Identifier>(bits)}
 	{}
 
 	SystemOperand::SystemOperand(const SystemOperand &other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{other.m_Identifier}
 	{}
 
@@ -30,7 +30,7 @@ namespace disxx::disasm::operand
 	}
 
 	SystemOperand::SystemOperand(SystemOperand &&other) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
+		: IOperand{}
 		, m_Identifier{std::move(other.m_Identifier)}
 	{}
 
@@ -41,6 +41,6 @@ namespace disxx::disasm::operand
 		return *this;
 	}
 
-	std::unique_ptr<AbstractOperand> SystemOperand::Clone(void) const noexcept
+	std::unique_ptr<IOperand> SystemOperand::Clone(void) const noexcept
 	{ return std::make_unique<SystemOperand>(*this); }
 } /* disxx::disasm::operand */

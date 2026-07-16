@@ -24,6 +24,6 @@ export namespace disxx::disasm::decoder::BranchesExceptionsAndSystemInstructions
 		SubDecoder &operator=(SubDecoder &&) noexcept;
 
 		virtual std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> Clone(void) const noexcept override;
-		virtual DisassemblyResult Decode(void) const noexcept(false) override;
+		virtual DisassemblyResult Decode(void) const noexcept override;
 	};
 } /* disxx::disasm::decoder::BranchesExceptionsAndSystemInstructions::MiscellaneousBranchImmediate */

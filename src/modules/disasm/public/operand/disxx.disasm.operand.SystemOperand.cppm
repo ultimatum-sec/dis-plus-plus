@@ -6,11 +6,11 @@ module;
 
 export module disxx.disasm.operand.SystemOperand;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ SystemOperand final : public AbstractOperand
+	class __DISXX_EXPORT__ SystemOperand final : public IOperand
 	{
 	  public:
 		enum class Identifier : unsigned short int
@@ -106,8 +106,8 @@ export namespace disxx::disasm::operand
 			ID_VAAE1 = 0b00010000111011,
 			ID_VALE1 = 0b00010000111101,
 			ID_VAALE1 = 0b00010000111111,
-			ID_VMALLE1OSNXS = 0b00010010001000,
-			ID_VAE1OSNXS = 0b00010010001001,
+			ID_VMALLE1OSNXS	= 0b00010010001000,
+			ID_VAE1OSNXS	= 0b00010010001001,
 			ID_ASIDE1OSNXS = 0b00010010001010,
 			ID_VAAE1OSNXS = 0b00010010001011,
 			ID_VALE1OSNXS = 0b00010010001101,
@@ -245,7 +245,7 @@ export namespace disxx::disasm::operand
 		};
 
 	  private:
-		Identifier m_Opr{};
+		Identifier m_Identifier{};
 
 	  public:
 		explicit SystemOperand(void) noexcept;
@@ -257,7 +257,11 @@ export namespace disxx::disasm::operand
 		explicit SystemOperand(SystemOperand &&) noexcept;
 		SystemOperand &operator=(SystemOperand &&) noexcept;
  
-		virtual std::string GetMnemonic(void) const noexcept(false) override; 
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
+	
+		inline Identifier GetIdentifier(void) const noexcept;
 	};
-} /* operand */
+
+	inline SystemOperand::Identifier SystemOperand::GetIdentifier(void) const noexcept
+	{ return this->m_Identifier; }
+} /* disxx::disasm::operand */

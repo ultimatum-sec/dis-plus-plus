@@ -51,7 +51,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::LogicalShiftedRegister
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+---+-----+-----+-+--+----+--+--+
         // |sf|opc|01010|shift|N|Rm|imm6|Rn|Rd|
@@ -100,7 +100,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::LogicalShiftedRegister
             if (imm6)
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(static_cast<disxx::disasm::operand::Shift::Type>(shift), imm6));
         
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
         else if (alias && Rd == 0b11111)
         {
@@ -109,7 +109,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::LogicalShiftedRegister
             if (imm6)
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(static_cast<disxx::disasm::operand::Shift::Type>(shift), imm6));
         
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
 
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));

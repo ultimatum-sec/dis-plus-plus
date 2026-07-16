@@ -6,17 +6,19 @@ module;
 
 export module disxx.disasm.operand.Shift;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ Shift final : public AbstractOperand
+	class __DISXX_EXPORT__ Shift final : public IOperand
 	{
 	  public:
 		enum class Identifier : unsigned short int
 		{
-			ID_LSL = 0b000, ID_LSR = 0b001,
-            ID_ASR = 0b010, ID_ROR = 0b011,
+			ID_LSL = 0b000,
+			ID_LSR = 0b001,
+            ID_ASR = 0b010,
+			ID_ROR = 0b011,
             ID_MSL = 0b100
 		};
 
@@ -34,7 +36,7 @@ export namespace disxx::disasm::operand
 		Shift(Shift &&) noexcept;
         Shift &operator=(Shift &&) noexcept;
        
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 	
 		inline Identifier GetIdentifier(void) const noexcept;
 		inline unsigned short int GetAmount(void) const noexcept;

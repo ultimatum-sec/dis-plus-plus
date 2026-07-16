@@ -8,15 +8,16 @@ module;
 
 export module disxx.disasm.operand.LoadsAndStoresAddress;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
+export import disxx.disasm.operand.Immediate;
 export import disxx.disasm.operand.Extension;
 export import disxx.disasm.operand.Register;
 export import disxx.disasm.operand.Shift;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ LoadsAndStoresAddress final : public AbstractOperand
+	class __DISXX_EXPORT__ LoadsAndStoresAddress final : public IOperand
 	{
 	  public:
 		enum class PreIndexedOffsetKind : bool
@@ -58,7 +59,7 @@ export namespace disxx::disasm::operand
 		LoadsAndStoresAddress(LoadsAndStoresAddress &&) noexcept;
 		LoadsAndStoresAddress &operator=(LoadsAndStoresAddress &&) noexcept;
 
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 
 		inline void AddImmediatePreIndexedOffset(const Immediate<signed short int, 9>, const PreIndexedOffsetKind) noexcept;
 		inline void AddRegisterOffset(Register &&) noexcept;
@@ -73,7 +74,7 @@ export namespace disxx::disasm::operand
 				Register,
 				std::pair
 				<
-					Immediate<signed short int, 9>
+					Immediate<signed short int, 9>,
 					PreIndexedOffsetKind
 				>
 			>
@@ -91,7 +92,7 @@ export namespace disxx::disasm::operand
 	inline void LoadsAndStoresAddress::AddImmediatePreIndexedOffset(const Immediate<signed short int, 9> value, const PreIndexedOffsetKind kind) noexcept
 	{
 		assert(!this->m_ExtraValue && "Adding offset twice");
-		this->m_ExtraValue.emplace
+		this->m_PreIndexedOffset.emplace
 		(
 			std::in_place_type
 			<
@@ -108,7 +109,7 @@ export namespace disxx::disasm::operand
 	inline void LoadsAndStoresAddress::AddRegisterOffset(Register &&reg) noexcept
 	{
 		assert(!this->m_ExtraValue && "Adding offset twice");
-		this->m_ExtraValue.emplace
+		this->m_PreIndexedOffset.emplace
 		(
 			std::in_place_type<Register>,
 			std::forward<Register &&>(reg)
@@ -142,8 +143,8 @@ export namespace disxx::disasm::operand
 			Register,
 			std::pair
 			<
-				Immediate<signed short int, 9>
-				PreIndexedOffsetKind
+				Immediate<signed short int, 9>,
+				LoadsAndStoresAddress::PreIndexedOffsetKind
 			>
 		>
 	> LoadsAndStoresAddress::GetPreIndexedOffset(void) const noexcept

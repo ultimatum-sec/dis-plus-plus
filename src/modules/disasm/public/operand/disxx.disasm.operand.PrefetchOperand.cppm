@@ -6,11 +6,11 @@ module;
 
 export module disxx.disasm.operand.PrefetchOperand;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ PrefetchOperand final : public AbstractOperand
+	class __DISXX_EXPORT__ PrefetchOperand final : public IOperand
 	{
 	  private:
 		enum class Identifier : unsigned short int
@@ -60,7 +60,7 @@ export namespace disxx::disasm::operand
 		PrefetchOperand(PrefetchOperand &&) noexcept;
 		PrefetchOperand &operator=(PrefetchOperand &&) noexcept;
  
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 	
 		inline Identifier GetIdentifier(void) const noexcept;
 	};

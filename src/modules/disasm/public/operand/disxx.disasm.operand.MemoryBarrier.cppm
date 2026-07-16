@@ -6,11 +6,11 @@ module;
 
 export module disxx.disasm.operand.MemoryBarrier;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ MemoryBarrier final : public AbstractOperand
+	class __DISXX_EXPORT__ MemoryBarrier final : public IOperand
 	{
 	  public:
 		enum class Identifier : unsigned short int
@@ -30,9 +30,6 @@ export namespace disxx::disasm::operand
 		};
 
 	  private:
-		static const std::unordered_map<Type, const char *> s_BarrierTable;
-
-	  private:
 		Identifier m_Identifier{};
 		bool m_Nxs{};
 
@@ -46,15 +43,15 @@ export namespace disxx::disasm::operand
 		MemoryBarrier(MemoryBarrier &&) noexcept;
 		MemoryBarrier &operator=(MemoryBarrier &&) noexcept;
 
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 	
-		inline Identifier GetIentifier(void) const noexcept;
-		inline bool GetNxs(void) const noexcept;
+		inline Identifier GetIdentifier(void) const noexcept;
+		inline bool Nxs(void) const noexcept;
 	};
 
 	inline MemoryBarrier::Identifier MemoryBarrier::GetIdentifier(void) const noexcept
 	{ return this->m_Identifier; }
 
-	inline bool MemoryBarrier::GetNxs(void) const noexcept
+	inline bool MemoryBarrier::Nxs(void) const noexcept
 	{ return this->m_Nxs; }
 } /* disxx::disasm::operand */

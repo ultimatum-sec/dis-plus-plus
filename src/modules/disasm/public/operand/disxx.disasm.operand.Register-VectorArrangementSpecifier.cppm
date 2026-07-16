@@ -4,6 +4,8 @@ module;
 
 export module disxx.disasm.operand.Register:VectorArrangementSpecifier;
 
+export import <optional>;
+
 export namespace disxx::disasm::operand
 {
 	class __DISXX_EXPORT__ [[nodiscard]] VectorArrangementSpecifier
@@ -14,7 +16,7 @@ export namespace disxx::disasm::operand
 			ID_B8, ID_B16,
 			ID_H4, ID_H8,
 			ID_S2, ID_S4,
-			ID_D1, ID_D2
+			ID_D1, ID_D2,
 
 			ID_B, ID_H,
 			ID_S, ID_D

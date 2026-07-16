@@ -16,7 +16,7 @@ export import <vector>;
 export import <string>;
 
 export import disxx.utility.error.DisassemblyError;
-export import disxx.disasm.operand.AbstractOperand;
+export import disxx.disasm.operand.IOperand;
 export import disxx.disasm.InstructionID;
 export import disxx.disasm.Address;
 export import disxx.disasm.Bytes;
@@ -27,7 +27,7 @@ export namespace disxx::disasm
 	{
 	  private:
 		// Bunch of operands (may be empty)
-		std::vector<std::unique_ptr<operand::AbstractOperand>> m_Operands{};
+		std::vector<std::unique_ptr<operand::IOperand>> m_Operands{};
 
 		// Program-counter relevant address
 		std::optional<signed long long int> m_ProgramCounterRelevantAddress{};
@@ -56,12 +56,12 @@ export namespace disxx::disasm
 		~Instruction(void) noexcept = default;
 
 		inline void SetInstructionID(InstructionID &&) noexcept;
-		inline void SetOperands(std::vector<std::unique_ptr<operand::AbstractOperand>> &&) noexcept;
+		inline void SetOperands(std::vector<std::unique_ptr<operand::IOperand>> &&) noexcept;
 		inline void SetProgramCounterRelevantAddress(std::optional<signed long long int> &&) noexcept;
 		inline void SetAddress(Address &&) noexcept;
 		inline void SetBytes(Bytes &&) noexcept;
 
-		inline const std::vector<std::unique_ptr<operand::AbstractOperand>> &GetOperands(void) const noexcept;
+		inline const std::vector<std::unique_ptr<operand::IOperand>> &GetOperands(void) const noexcept [[clang::lifetimebound]];
 		inline std::optional<signed long long int> GetProgramCounterRelevantAddress(void) const noexcept;
 		inline Bytes GetBytes(void) const noexcept;
 		inline InstructionID GetInstructionID(void) const noexcept;
@@ -70,7 +70,7 @@ export namespace disxx::disasm
 	inline void Instruction::SetInstructionID(InstructionID &&insn) noexcept
 	{ this->m_InstructionID = std::move(insn); }
 
-	inline void Instruction::SetOperands(std::vector<std::unique_ptr<operand::AbstractOperand>> &&oprs) noexcept
+	inline void Instruction::SetOperands(std::vector<std::unique_ptr<operand::IOperand>> &&oprs) noexcept
 	{ this->m_Operands = std::move(oprs); }
 
 	inline void Instruction::SetProgramCounterRelevantAddress(std::optional<signed long long int> &&pc) noexcept
@@ -82,7 +82,7 @@ export namespace disxx::disasm
 	inline void Instruction::SetBytes(Bytes &&bytes) noexcept
 	{ this->m_Bytes = std::move(bytes); }
 	
-	inline const std::vector<std::unique_ptr<operand::AbstractOperand>> &Instruction::GetOperands(void) const noexcept
+	inline const std::vector<std::unique_ptr<operand::IOperand>> &Instruction::GetOperands(void) const noexcept [[clang::lifetimebound]]
 	{ return this->m_Operands; }
 	
 	inline std::optional<signed long long int> Instruction::GetProgramCounterRelevantAddress(void) const noexcept
@@ -94,7 +94,7 @@ export namespace disxx::disasm
 	inline InstructionID Instruction::GetInstructionID(void) const noexcept
  	{ return this->m_InstructionID; }
 } /* disxx::disasm */
-
+/*
 export template <> struct std::formatter<disxx::disasm::Instruction> : public std::formatter<std::string>
 {
   private:
@@ -1685,3 +1685,4 @@ auto std::formatter<disxx::disasm::Instruction>::format(const disxx::disasm::Ins
 	  }
 	}
 }
+*/

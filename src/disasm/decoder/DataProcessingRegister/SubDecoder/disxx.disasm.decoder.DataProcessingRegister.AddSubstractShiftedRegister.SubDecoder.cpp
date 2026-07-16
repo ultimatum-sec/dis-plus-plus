@@ -50,7 +50,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractShiftedReg
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<std::decay_t<decltype(*this)>>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+--+-+-----+-----+-+--+----+--+--+
         // |sf|op|S|01011|shift|0|Rm|imm6|Rn|Rd|
@@ -82,31 +82,67 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractShiftedReg
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         const auto &[insn, alias]{it->second};
-        const unsigned short int regSize = 32 << sf;
 
         if (alias && Rd == 0b11111)
         {
             if (shift == 0b11) [[unlikely]]
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
-            if (imm6)
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(static_cast<disxx::disasm::operand::Shift::Type>(shift), imm6));
+			this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					sf
+						? disxx::disasm::operand::Register::Type::TYPE_X
+						: disxx::disasm::operand::Register::Type::TYPE_W,
+					Rn
+				)
+			);
+			this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					sf
+						? disxx::disasm::operand::Register::Type::TYPE_X
+						: disxx::disasm::operand::Register::Type::TYPE_W,
+					Rm
+				)
+			);
 
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+            if (imm6)
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(shift, imm6));
+
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
         else if (alias && Rn == 0b11111)
         {
             if (shift == 0b11) [[unlikely]]
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
             
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
+			this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					sf
+						? disxx::disasm::operand::Register::Type::TYPE_X
+						: disxx::disasm::operand::Register::Type::TYPE_W,
+					Rd
+				)
+			);
+			this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					sf
+						? disxx::disasm::operand::Register::Type::TYPE_X
+						: disxx::disasm::operand::Register::Type::TYPE_W,
+					Rm
+				)
+			);
             if (imm6)
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(static_cast<disxx::disasm::operand::Shift::Type>(shift), imm6));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(shift, imm6));
     
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
         else if (op == 0b1 && S == 0b1 && (Rd == 0b11111 || (Rn == 0b11111 && Rd != 0b11111)))
         {
@@ -115,17 +151,53 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractShiftedReg
 
             if (Rd == 0b11111)
             {
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rm
+					)
+				);
             }
             else
             {
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rm
+					)
+				);
             }
 
             if (imm6)
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(static_cast<disxx::disasm::operand::Shift::Type>(shift), imm6));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(shift, imm6));
 
             return std::make_pair
             (
@@ -135,12 +207,39 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractShiftedReg
                 std::move(this->m_Operands)
             );
         }
-            
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
+        
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rm
+			)
+		);
         if (imm6)
-        	this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(static_cast<disxx::disasm::operand::Shift::Type>(shift), imm6));
+        	this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(shift, imm6));
 
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

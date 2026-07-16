@@ -11,17 +11,17 @@ module disxx.disasm.operand.PrefetchOperand;
 namespace disxx::disasm::operand
 {
 	PrefetchOperand::PrefetchOperand(void) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{}
 	{}
 
 	PrefetchOperand::PrefetchOperand(unsigned short int id) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{static_cast<Identifier>(id)}
 	{}
 
 	PrefetchOperand::PrefetchOperand(const PrefetchOperand &other) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_PREFETCHOPERAND}
+		: IOperand{}
 		, m_Identifier{other.m_Identifier}
 	{}
 
@@ -33,7 +33,7 @@ namespace disxx::disasm::operand
 	}
 
 	PrefetchOperand::PrefetchOperand::PrefetchOperand(PrefetchOperand &&other) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_PREFETCHOPERAND}
+		: IOperand{}
 		, m_Identifier{std::move(other.m_Identifier)}
 	{}
 
@@ -44,6 +44,6 @@ namespace disxx::disasm::operand
 		return *this;
 	}
 
-	std::unique_ptr<AbstractOperand> PrefetchOperand::Clone(void) const noexcept
+	std::unique_ptr<IOperand> PrefetchOperand::Clone(void) const noexcept
 	{ return std::make_unique<PrefetchOperand>(*this); }
 } /* disxx::disasm::operand */

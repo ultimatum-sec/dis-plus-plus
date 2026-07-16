@@ -6,11 +6,11 @@ module;
 
 export module disxx.disasm.operand.Condition;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export namespace disxx::disasm::operand
 {
-	class __DISXX_EXPORT__ Condition final : public AbstractOperand
+	class __DISXX_EXPORT__ Condition final : public IOperand
 	{
 	  public:
 		enum class Identifier : unsigned short int
@@ -34,7 +34,7 @@ export namespace disxx::disasm::operand
 		explicit Condition(Condition &&) noexcept;
 		Condition &operator=(Condition &&) noexcept;
  
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 	
 		inline Identifier GetIdentifier(void) const noexcept;
 	};

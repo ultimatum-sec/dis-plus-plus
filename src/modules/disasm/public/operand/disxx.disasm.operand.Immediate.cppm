@@ -9,7 +9,7 @@ module;
 
 export module disxx.disasm.operand.Immediate;
 
-import disxx.disasm.operand.AbstractOperand;
+import disxx.disasm.operand.IOperand;
 
 export import <type_traits>;
 export import <numeric>;
@@ -28,17 +28,19 @@ concept OverflowProof = sizeof(T) >= sizeof(U);
 export namespace disxx::disasm::operand
 {
     template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	class __DISXX_PRIVATE__ Immediate final : public AbstractOperand
+	class __DISXX_PRIVATE__ Immediate final : public IOperand
     {
 	  public:
 		enum class Option
 		{
-			OPT_NONE, OPT_SIGNEXTEND,
-			OPT_ZEROEXTEND, OPT_VFPEXPANDIMM
+			OPT_NONE,
+			OPT_SIGNEXTEND,
+			OPT_ZEROEXTEND,
+			OPT_VFPEXPANDIMM
 		};
 
 	  private:
-		Option m_Opt{};
+		Option m_Option{};
 		T m_Value{};
 	
       public:
@@ -62,7 +64,7 @@ export namespace disxx::disasm::operand
     	template <Imm U> requires OverflowProof<T, U>
 		Immediate<T, _Size> &operator<<=(const U &) noexcept;
  
-        virtual std::unique_ptr<AbstractOperand> Clone(void) const noexcept override;
+        virtual std::unique_ptr<IOperand> Clone(void) const noexcept override;
 
 		inline T GetValue(void) const noexcept;
 		inline Option GetOption(void) const noexcept;
@@ -70,16 +72,16 @@ export namespace disxx::disasm::operand
 
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-    constexpr Immediate<T, _Size>::Immediate(void) noexcept
-        : AbstractOperand{AbstractOperand::Type::TYPE_IMMEDIATE}
-		, m_Opt{}
+    Immediate<T, _Size>::Immediate(void) noexcept
+        : IOperand{}
+		, m_Option{}
         , m_Value{static_cast<T>(0)}
 	{}
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	constexpr Immediate<T, _Size>::Immediate(T value, Option opt) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_IMMEDIATE}
-		, m_Opt{opt}
+	Immediate<T, _Size>::Immediate(T value, Option opt) noexcept
+		: IOperand{}
+		, m_Option{opt}
 		, m_Value{value}
 	{
 		switch (opt)
@@ -103,8 +105,8 @@ export namespace disxx::disasm::operand
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
 	Immediate<T, _Size>::Immediate(const Immediate &other) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_IMMEDIATE}
-		, m_Opt{other.m_Opt}
+		: IOperand{}
+		, m_Option{other.m_Option}
 		, m_Value{other.m_Value}
 	{}
 
@@ -113,7 +115,7 @@ export namespace disxx::disasm::operand
 	{
 		if (this != &other) [[likely]]
 		{
-			this->m_Opt = other.m_Opt;
+			this->m_Option = other.m_Option;
 			this->m_Value = other.m_Value;
 		}
 
@@ -122,8 +124,8 @@ export namespace disxx::disasm::operand
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
 	Immediate<T, _Size>::Immediate(Immediate &&other) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_IMMEDIATE}
-		, m_Opt{std::move(other.m_Opt)}
+		: IOperand{}
+		, m_Option{std::move(other.m_Option)}
 		, m_Value{std::move(other.m_Value)}
 	{}
 
@@ -132,7 +134,7 @@ export namespace disxx::disasm::operand
 	{
 		if (this != &other) [[likely]]
 		{
-			this->m_Opt = std::move(other.m_Opt);
+			this->m_Option = std::move(other.m_Option);
 			this->m_Value = std::move(other.m_Value);
 		}
 
@@ -199,7 +201,7 @@ export namespace disxx::disasm::operand
     }
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>
-	std::unique_ptr<AbstractOperand> Immediate<T, _Size>::Clone(void) const noexcept
+	std::unique_ptr<IOperand> Immediate<T, _Size>::Clone(void) const noexcept
 	{ return std::make_unique<Immediate<T, _Size>>(*this); }
 
 	template <Imm T, unsigned short int _Size> requires ImmSize<T, _Size>

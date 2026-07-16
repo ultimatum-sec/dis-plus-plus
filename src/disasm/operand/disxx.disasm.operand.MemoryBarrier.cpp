@@ -9,19 +9,19 @@ module disxx.disasm.operand.MemoryBarrier;
 namespace disxx::disasm::operand
 {
 	MemoryBarrier::MemoryBarrier(void) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{}
 		, m_Nxs{}
 	{}
 
-	MemoryBarrier::MemoryBarrier(unsigned short int bits, bool nXS) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_MEMORYBARRIER}
-		, m_Identifier{static_cast<Type>(bits)}
-		, m_Nxs{nXS}
+	MemoryBarrier::MemoryBarrier(unsigned short int bits, bool nxs) noexcept
+		: IOperand{}
+		, m_Identifier{static_cast<Identifier>(bits)}
+		, m_Nxs{nxs}
 	{}
 
 	MemoryBarrier::MemoryBarrier(const MemoryBarrier &other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{other.m_Identifier}
 		, m_Nxs{other.m_Nxs}
 	{}
@@ -38,7 +38,7 @@ namespace disxx::disasm::operand
 	}
 
 	MemoryBarrier::MemoryBarrier(MemoryBarrier &&other) noexcept
-		: AbstractOperand{}
+		: IOperand{}
 		, m_Identifier{std::move(other.m_Identifier)}
 		, m_Nxs{std::move(other.m_Nxs)}
 	{}
@@ -54,6 +54,6 @@ namespace disxx::disasm::operand
 		return *this;
 	}
 
-	std::unique_ptr<AbstractOperand> MemoryBarrier::Clone(void) const noexcept
+	std::unique_ptr<IOperand> MemoryBarrier::Clone(void) const noexcept
 	{ return std::make_unique<MemoryBarrier>(*this); }
 } /* disxx::disasm::operand */

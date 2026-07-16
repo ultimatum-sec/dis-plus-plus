@@ -40,9 +40,9 @@ MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)pointer$(PATHSEP)disxx.utility.pointer.NonNull.cppm \
 	.$(PATHSEP)utility$(PATHSEP)bits$(PATHSEP)disxx.disasm.utility.bits.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)private$(PATHSEP)disxx.disasm.InstructionID.cppm \
-	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.AbstractOperand.cppm \
+	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.IOperand.cppm \
+	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Register-VectorArrangementSpecifier.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Register.cppm \
-	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Register-RegsTable.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Immediate.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Extension.cppm \
 	..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.PState.cppm \
@@ -188,7 +188,6 @@ MODULES=\
 
 SOURCES=\
 	.$(PATHSEP)utility$(PATHSEP)bits$(PATHSEP)disxx.disasm.utility.bits.cpp \
-	$(OPERANDS)disxx.disasm.operand.AbstractOperand.cpp \
 	$(OPERANDS)disxx.disasm.operand.Register.cpp \
 	$(OPERANDS)disxx.disasm.operand.Extension.cpp \
 	$(OPERANDS)disxx.disasm.operand.PState.cpp \
