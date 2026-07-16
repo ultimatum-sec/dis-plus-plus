@@ -8,274 +8,39 @@ module disxx.disasm.operand.SystemOperand;
 namespace disxx::disasm::operand
 {
 	SystemOperand::SystemOperand(void) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
-		, m_Opr{}
+		: AbstractOperand{}
+		, m_Identifier{}
 	{}
 
 	SystemOperand::SystemOperand(unsigned short int bits) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
-		, m_Opr{static_cast<Type>(bits)}
+		: AbstractOperand{}
+		, m_Identifier{static_cast<Identifier>(bits)}
 	{}
 
 	SystemOperand::SystemOperand(const SystemOperand &other) noexcept
-		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
-		, m_Opr{other.m_Opr}
+		: AbstractOperand{}
+		, m_Identifier{other.m_Identifier}
 	{}
 
 	SystemOperand &SystemOperand::operator=(const SystemOperand &other) noexcept
 	{
 		if (this != &other) [[likely]]
-			this->m_Opr = other.m_Opr;
+			this->m_Identifier = other.m_Identifier;
 		return *this;
 	}
 
 	SystemOperand::SystemOperand(SystemOperand &&other) noexcept
 		: AbstractOperand{AbstractOperand::Type::TYPE_SYSTEMOPERAND}
-		, m_Opr{std::move(other.m_Opr)}
+		, m_Identifier{std::move(other.m_Identifier)}
 	{}
 
 	SystemOperand &SystemOperand::operator=(SystemOperand &&other) noexcept
 	{
-		this->m_Opr = std::move(other.m_Opr);
+		if (this != &other) [[likely]]
+			this->m_Identifier = std::move(other.m_Identifier);
 		return *this;
-	}
-
-	std::string SystemOperand::GetMnemonic(void) const noexcept(false)
-	{
-		return s_OprsTable
-			.at(this->m_Opr);
 	}
 
 	std::unique_ptr<AbstractOperand> SystemOperand::Clone(void) const noexcept
 	{ return std::make_unique<SystemOperand>(*this); }
-
-	const std::unordered_map<SystemOperand::SystemOperand::Type, const char *> SystemOperand::SystemOperand::s_OprsTable = {
-		{Type::TYPE_S1E1R, "s1e1r"},
-		{Type::TYPE_S1E1W, "s1e1w"},
-		{Type::TYPE_S1E0R, "s1e0r"},
-		{Type::TYPE_S1E0W, "s1e0w"},
-		{Type::TYPE_S1E1RP, "s1e1rp"},
-		{Type::TYPE_S1E1WP, "s1e1wp"},
-		{Type::TYPE_S1E1A, "s1e1a"},
-		{Type::TYPE_S1E2R, "s1e2r"},
-		{Type::TYPE_S1E2W, "s1e2w"},
-		{Type::TYPE_S12E1R, "s12e1r"},
-		{Type::TYPE_S12E1W, "s12e1w"},
-		{Type::TYPE_S12E0R, "s12e0r"},
-		{Type::TYPE_S12E0W, "s12e0w"},
-		{Type::TYPE_S1E2A, "s1e2a"},
-		{Type::TYPE_S1E3R, "s1e3r"},
-		{Type::TYPE_S1E3W, "s1e3w"},
-		{Type::TYPE_S1E3A, "s1e3a"},
-		{Type::TYPE_RCTX, "rctx"},
-		{Type::TYPE_IALL, "iall"},
-		{Type::TYPE_INJ, "inj"},
-		{Type::TYPE_IVAC, "ivac"},
-		{Type::TYPE_ISW, "isw"},
-		{Type::TYPE_IGVAC, "igvac"},
-		{Type::TYPE_IGSW, "igsw"},
-		{Type::TYPE_IGDVAC, "igdvac"},
-		{Type::TYPE_IGDSW, "igdsw"},
-		{Type::TYPE_CSW, "csw"},
-		{Type::TYPE_CGSW, "cgsw"},
-		{Type::TYPE_CGDSW, "cgdsw"},
-		{Type::TYPE_CISW, "cisw"},
-		{Type::TYPE_CIGSW, "cigsw"},
-		{Type::TYPE_CIGDSW, "cigdsw"},
-		{Type::TYPE_CIVAPS, "civaps"},
-		{Type::TYPE_CIGDVAPS, "cigdvaps"},
-		{Type::TYPE_ZVA, "zva"},
-		{Type::TYPE_GVA, "gva"},
-		{Type::TYPE_GZVA, "gzva"},
-		{Type::TYPE_CVAC, "cvac"},
-		{Type::TYPE_CGVAC, "cgvac"},
-		{Type::TYPE_CGDVAC, "cgdvac"},
-		{Type::TYPE_CVAOC, "cvaoc"},
-		{Type::TYPE_CVAU, "cvau"},
-		{Type::TYPE_CGDVAOC, "cgdvaoc"},
-		{Type::TYPE_CVAP, "cvap"},
-		{Type::TYPE_CGVAP, "cgvap"},
-		{Type::TYPE_CGDVAP, "cgdvap"},
-		{Type::TYPE_CVADP, "cvadp"},
-		{Type::TYPE_CGVADP, "cgvadp"},
-		{Type::TYPE_CGDVADP, "cgdvadp"},
-		{Type::TYPE_CIVAC, "civac"},
-		{Type::TYPE_CIGVAC, "cigvac"},
-		{Type::TYPE_CIGDVAC, "cigdvac"},
-		{Type::TYPE_CIVAOC, "civaoc"},
-		{Type::TYPE_CIGDVAOC, "cigdvaoc"},
-		{Type::TYPE_CIPAE, "cipae"},
-		{Type::TYPE_CIGDPAE, "cigdpae"},
-		{Type::TYPE_CIPAPA, "cipapa"},
-		{Type::TYPE_CIGDPAPA, "cigdpapa"},
-		{Type::TYPE_IALLUIS, "ialluis"},
-		{Type::TYPE_IALLU, "iallu"},
-		{Type::TYPE_IVAU, "ivau"},
-		{Type::TYPE_VMALLE1OS, "vmalle1os"},
-		{Type::TYPE_VAE1OS, "vae1os"},
-		{Type::TYPE_ASIDE1OS, "aside1os"},
-		{Type::TYPE_VAAE1OS, "vaae1os"},
-		{Type::TYPE_VALE1OS, "vale1os"},
-		{Type::TYPE_VAALE1OS, "vaale1os"},
-		{Type::TYPE_RVAE1IS, "rvae1is"},
-		{Type::TYPE_RVAAE1IS, "rvaae1is"},
-		{Type::TYPE_RVALE1IS, "rvale1is"},
-		{Type::TYPE_RVAALE1IS, "rvaale1is"},
-		{Type::TYPE_VMALLE1IS, "vmalle1is"},
-		{Type::TYPE_VAE1IS, "vae1is"},
-		{Type::TYPE_ASIDE1IS, "aside1is"},
-		{Type::TYPE_VAAE1IS, "vaae1is"},
-		{Type::TYPE_VALE1IS, "vale1is"},
-		{Type::TYPE_VAALE1IS, "vaale1is"},
-		{Type::TYPE_RVAE1OS, "rvae1os"},
-		{Type::TYPE_RVAAE1OS, "rvaae1os"},
-		{Type::TYPE_RVALE1OS, "rvale1os"},
-		{Type::TYPE_RVAALE1OS, "rvaale1os"},
-		{Type::TYPE_RVAE1, "rvae1"},
-		{Type::TYPE_RVAAE1, "rvaae1"},
-		{Type::TYPE_RVALE1, "rvale1"},
-		{Type::TYPE_RVAALE1, "rvaale1"},
-		{Type::TYPE_VMALLE1, "vmalle1"},
-		{Type::TYPE_VAE1, "vae1"},
-		{Type::TYPE_ASIDE1, "aside1"},
-		{Type::TYPE_VAAE1, "vaae1"},
-		{Type::TYPE_VALE1, "vale1"},
-		{Type::TYPE_VAALE1, "vaale1"},
-		{Type::TYPE_VMALLE1OSNXS, "vmalle1osnxs"},
-		{Type::TYPE_VAE1OSNXS, "vae1osnxs"},
-		{Type::TYPE_ASIDE1OSNXS, "aside1osnxs"},
-		{Type::TYPE_VAAE1OSNXS, "vaae1osnxs"},
-		{Type::TYPE_VALE1OSNXS, "vale1osnxs"},
-		{Type::TYPE_VAALE1OSNXS, "vaale1osnxs"},
-		{Type::TYPE_RVAE1ISNXS, "rvae1isnxs"},
-		{Type::TYPE_RVAAE1ISNXS, "rvaae1isnxs"},
-		{Type::TYPE_RVALE1ISNXS, "rvale1isnxs"},
-		{Type::TYPE_RVAALE1ISNXS, "rvaale1isnxs"},
-		{Type::TYPE_VMALLE1ISNXS, "vmalle1isnxs"},
-		{Type::TYPE_VAE1ISNXS, "vae1isnxs"},
-		{Type::TYPE_ASIDE1ISNXS, "aside1isnxs"},
-		{Type::TYPE_VAAE1ISNXS, "vaae1isnxs"},
-		{Type::TYPE_VALE1ISNXS, "vale1isnxs"},
-		{Type::TYPE_VAALE1ISNXS, "vaale1isnxs"},
-		{Type::TYPE_RVAE1OSNXS, "rvae1osnxs"},
-		{Type::TYPE_RVAAE1OSNXS, "rvaae1osnxs"},
-		{Type::TYPE_RVALE1OSNXS, "rvale1osnxs"},
-		{Type::TYPE_RVAALE1OSNXS, "rvaale1osnxs"},
-		{Type::TYPE_RVAE1NXS, "rvae1nxs"},
-		{Type::TYPE_RVAAE1NXS, "rvaae1nxs"},
-		{Type::TYPE_RVALE1NXS, "rvale1nxs"},
-		{Type::TYPE_RVAALE1NXS, "rvaale1nxs"},
-		{Type::TYPE_VMALLE1NXS, "vmalle1nxs"},
-		{Type::TYPE_VAE1NXS, "vae1nxs"},
-		{Type::TYPE_ASIDE1NXS, "aside1nxs"},
-		{Type::TYPE_VAAE1NXS, "vaae1nxs"},
-		{Type::TYPE_VALE1NXS, "vale1nxs"},
-		{Type::TYPE_VAALE1NXS, "vaale1nxs"},
-		{Type::TYPE_IPAS2E1IS, "ipas2e1is"},
-		{Type::TYPE_RIPAS2E1IS, "ripas2e1is"},
-		{Type::TYPE_IPAS2LE1IS, "ipas2le1is"},
-		{Type::TYPE_RIPAS2LE1IS, "ripas2le1is"},
-		{Type::TYPE_ALLE2OS, "alle2os"},
-		{Type::TYPE_VAE2OS, "vae2os"},
-		{Type::TYPE_ALLE1OS, "alle1os"},
-		{Type::TYPE_VALE2OS, "vale2os"},
-		{Type::TYPE_VMALLS12E1OS, "vmalls12e1os"},
-		{Type::TYPE_RVAE2IS, "rvae2is"},
-		{Type::TYPE_VMALLWS2E1IS, "vmallws2e1is"},
-		{Type::TYPE_RVALE2IS, "rvale2is"},
-		{Type::TYPE_ALLE2IS, "alle2is"},
-		{Type::TYPE_VAE2IS, "vae2is"},
-		{Type::TYPE_ALLE1IS, "alle1is"},
-		{Type::TYPE_VALE2IS, "vale2is"},
-		{Type::TYPE_VMALLS12E1IS, "vmalls12e1is"},
-		{Type::TYPE_IPAS2E1OS, "ipas2e1os"},
-		{Type::TYPE_IPAS2E1, "ipas2e1"},
-		{Type::TYPE_RIPAS2E1, "ripas2e1"},
-		{Type::TYPE_RIPAS2E1OS, "ripas2e1os"},
-		{Type::TYPE_IPAS2LE1OS, "ipas2le1os"},
-		{Type::TYPE_IPAS2LE1, "ipas2le1"},
-		{Type::TYPE_RIPAS2LE1, "ripas2le1"},
-		{Type::TYPE_RIPAS2LE1OS, "ripas2le1os"},
-		{Type::TYPE_RVAE2OS, "rvae2os"},
-		{Type::TYPE_VMALLWS2E1OS, "vmallws2e1os"},
-		{Type::TYPE_RVALE2OS, "rvale2os"},
-		{Type::TYPE_RVAE2, "rvae2"},
-		{Type::TYPE_VMALLWS2E1, "vmallws2e1"},
-		{Type::TYPE_RVALE2, "rvale2"},
-		{Type::TYPE_ALLE2, "alle2"},
-		{Type::TYPE_VAE2, "vae2"},
-		{Type::TYPE_ALLE1, "alle1"},
-		{Type::TYPE_VALE2, "vale2"},
-		{Type::TYPE_VMALLS12E1, "vmalls12e1"},
-		{Type::TYPE_IPAS2E1ISNXS, "ipas2e1isnxs"},
-		{Type::TYPE_RIPAS2E1ISNXS, "ripas2e1isnxs"},
-		{Type::TYPE_IPAS2LE1ISNXS, "ipas2le1isnxs"},
-		{Type::TYPE_RIPAS2LE1ISNXS, "ripas2le1isnxs"},
-		{Type::TYPE_ALLE2OSNXS, "alle2osnxs"},
-		{Type::TYPE_VAE2OSNXS, "vae2osnxs"},
-		{Type::TYPE_ALLE1OSNXS, "alle1osnxs"},
-		{Type::TYPE_VALE2OSNXS, "vale2osnxs"},
-		{Type::TYPE_VMALLS12E1OSNXS, "vmalls12e1osnxs"},
-		{Type::TYPE_RVAE2ISNXS, "rvae2isnxs"},
-		{Type::TYPE_VMALLWS2E1ISNXS, "vmallws2e1isnxs"},
-		{Type::TYPE_RVALE2ISNXS, "rvale2isnxs"},
-		{Type::TYPE_ALLE2ISNXS, "alle2isnxs"},
-		{Type::TYPE_VAE2ISNXS, "vae2isnxs"},
-		{Type::TYPE_ALLE1ISNXS, "alle1isnxs"},
-		{Type::TYPE_VALE2ISNXS, "vale2isnxs"},
-		{Type::TYPE_VMALLS12E1ISNXS, "vmalls12e1isnxs"},
-		{Type::TYPE_IPAS2E1OSNXS, "ipas2e1osnxs"},
-		{Type::TYPE_IPAS2E1NXS, "ipas2e1nxs"},
-		{Type::TYPE_RIPAS2E1NXS, "ripas2e1nxs"},
-		{Type::TYPE_RIPAS2E1OSNXS, "ripas2e1osnxs"},
-		{Type::TYPE_IPAS2LE1OSNXS, "ipas2le1osnxs"},
-		{Type::TYPE_IPAS2LE1NXS, "ipas2le1nxs"},
-		{Type::TYPE_RIPAS2LE1NXS, "ripas2le1nxs"},
-		{Type::TYPE_RIPAS2LE1OSNXS, "ripas2le1osnxs"},
-		{Type::TYPE_RVAE2OSNXS, "rvae2osnxs"},
-		{Type::TYPE_VMALLWS2E1OSNXS, "vmallws2e1osnxs"},
-		{Type::TYPE_RVALE2OSNXS, "rvale2osnxs"},
-		{Type::TYPE_RVAE2NXS, "rvae2nxs"},
-		{Type::TYPE_VMALLWS2E1NXS, "vmallws2e1nxs"},
-		{Type::TYPE_RVALE2NXS, "rvale2nxs"},
-		{Type::TYPE_ALLE2NXS, "alle2nxs"},
-		{Type::TYPE_VAE2NXS, "vae2nxs"},
-		{Type::TYPE_ALLE1NXS, "alle1nxs"},
-		{Type::TYPE_VALE2NXS, "vale2nxs"},
-		{Type::TYPE_VMALLS12E1NXS, "vmalls12e1nxs"},
-		{Type::TYPE_ALLE3OS, "alle3os"},
-		{Type::TYPE_VAE3OS, "vae3os"},
-		{Type::TYPE_PAALLOS, "paallos"},
-		{Type::TYPE_VALE3OS, "vale3os"},
-		{Type::TYPE_RVAE3IS, "rvae3is"},
-		{Type::TYPE_RVALE3IS, "rvale3is"},
-		{Type::TYPE_ALLE3IS, "alle3is"},
-		{Type::TYPE_VAE3IS, "vae3is"},
-		{Type::TYPE_VALE3IS, "vale3is"},
-		{Type::TYPE_RPAOS, "rpaos"},
-		{Type::TYPE_RPALOS, "rpalos"},
-		{Type::TYPE_RVAE3OS, "rvae3os"},
-		{Type::TYPE_RVALE3OS, "rvale3os"},
-		{Type::TYPE_RVAE3, "rvae3"},
-		{Type::TYPE_RVALE3, "rvale3"},
-		{Type::TYPE_ALLE3, "alle3"},
-		{Type::TYPE_VAE3, "vae3"},
-		{Type::TYPE_PAALL, "paall"},
-		{Type::TYPE_VALE3, "vale3"},
-		{Type::TYPE_ALLE3OSNXS, "alle3osnxs"},
-		{Type::TYPE_VAE3OSNXS, "vae3osnxs"},
-		{Type::TYPE_VALE3OSNXS, "vale3osnxs"},
-		{Type::TYPE_RVAE3ISNXS, "rvae3isnxs"},
-		{Type::TYPE_RVALE3ISNXS, "rvale3isnxs"},
-		{Type::TYPE_ALLE3ISNXS, "alle3isnxs"},
-		{Type::TYPE_VAE3ISNXS, "vae3isnxs"},
-		{Type::TYPE_VALE3ISNXS, "vale3isnxs"},
-		{Type::TYPE_RVAE3OSNXS, "rvae3osnxs"},
-		{Type::TYPE_RVALE3OSNXS, "rvale3osnxs"},
-		{Type::TYPE_RVAE3NXS, "rvae3nxs"},
-		{Type::TYPE_RVALE3NXS, "rvale3nxs"},
-		{Type::TYPE_ALLE3NXS, "alle3nxs"},
-		{Type::TYPE_VAE3NXS, "vae3nxs"},
-		{Type::TYPE_VALE3NXS, "vale3nxs"}
-	};
-} /* operand */
+} /* disxx::disasm::operand */

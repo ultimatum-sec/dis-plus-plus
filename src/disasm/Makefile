@@ -4,8 +4,6 @@ else
 	include ../../common.mk
 endif
 
-RUBYFLAGS=-I ./misc
-
 BUILDDIR=.$(PATHSEP)build
 DEPENDENCIESDIR=$(BUILDDIR)$(PATHSEP)dependencies
 PRECOMPILEDDIR=$(BUILDDIR)$(PATHSEP)precompiled
@@ -34,8 +32,6 @@ endif
 OPERANDS=.$(PATHSEP)operand$(PATHSEP)
 INSNS=.$(PATHSEP)instruction$(PATHSEP)
  
-REGSSCRIPT=.$(PATHSEP)misc$(PATHSEP)registers.rb
-
 MODULES=\
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)public$(PATHSEP)trait$(PATHSEP)disxx.utility.trait.Cloneable.cppm \
 	..$(PATHSEP)modules$(PATHSEP)utility$(PATHSEP)private$(PATHSEP)error$(PATHSEP)disxx.utility.error.DisassemblyError.cppm \
@@ -336,10 +332,6 @@ SOURCES=\
 
 .PHONY: all clean
 all: $(BUILDDIR)$(PATHSEP)libdisxx-disasm.$(DYLIB)
-
-..$(PATHSEP)modules$(PATHSEP)disasm$(PATHSEP)public$(PATHSEP)operand$(PATHSEP)disxx.disasm.operand.Register-RegsTable.cppm: \
-.$(PATHSEP)misc$(PATHSEP)registers.rb $(OPERANDS)register.dat
-	$(RUBY) $(RUBYFLAGS) .$(PATHSEP)misc$(PATHSEP)registers.rb --interface-file=$@ --input-file=$(OPERANDS)register.dat
 
 UTILITIES=$(DEPENDENCIESDIR)$(PATHSEP)libdisxx-util.$(DYLIB)
 
