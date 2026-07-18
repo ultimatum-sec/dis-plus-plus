@@ -49,7 +49,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::MoveWideImmediate
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+---+------+--+-----+--+
         // |sf|opc|100101|hw|imm16|Rd|
@@ -77,22 +77,31 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::MoveWideImmediate
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         const auto &[insn, alias]{it->second};
     
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, 32 << sf));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd
+			)
+		);
         if (alias && !(imm16 == 0x0000 && hw != 0b00) && encoding != 0b00000)
         {
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 16>>(imm16 | hw));
             
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
         else if (alias && !(imm16 == 0x00 && hw != 0b00) && bits::IsOnes<unsigned short int, 16>(imm16))
         {
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 16>>(imm16 | hw));
 
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
 
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 16>>(imm16));
-        if (hw) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(disxx::disasm::operand::Shift::Type::SHIFT_LSL, hw << 4));
+        if (hw) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(0b000, hw << 4));
     
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

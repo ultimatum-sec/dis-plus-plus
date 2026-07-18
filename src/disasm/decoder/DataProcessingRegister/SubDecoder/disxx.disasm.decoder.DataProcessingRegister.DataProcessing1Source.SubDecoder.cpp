@@ -49,7 +49,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::DataProcessing1Source
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+-+-+--------+-------+------+--+--+
         // |sf|1|S|11010110|opcode2|opcode|Rn|Rd|
@@ -124,20 +124,75 @@ namespace disxx::disasm::decoder::DataProcessingRegister::DataProcessing1Source
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
             if ((encoding2 & 0x3FF) == 0b1111111110 && (opcode >> 4) == 0b00)
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, 64, true));
-            else if ((encoding2 & 0x3FF) == 0b1111111110 && (opcode >> 4) == 0b01)
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, 64));
-            else if ((encoding2 & 0x3FF) == 0b0000011110)
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, 64));
-            else if ((opcode >> 1) == 0b10111)
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64));
-    
+			{
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_X,
+						Rd,
+						true
+					)
+				);
+            }
+			else if ((encoding2 & 0x3FF) == 0b1111111110 && (opcode >> 4) == 0b01)
+            {
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_X,
+						Rd
+					)
+				);
+            }
+			else if ((encoding2 & 0x3FF) == 0b0000011110)
+            {
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_X,
+						Rd
+					)
+				);
+            }
+			else if ((opcode >> 1) == 0b10111)
+			{
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_X,
+						Rn
+					)
+				);
+   			}
+
             return std::make_pair(it2->second, std::move(this->m_Operands));
         }
             
-        const unsigned short int regSize = sf == 0b1 ? 64 : 32;
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize, opcode2 == 0b00001 ? true : false));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn,
+				opcode2 == 0b00001
+			)
+		);
     
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}

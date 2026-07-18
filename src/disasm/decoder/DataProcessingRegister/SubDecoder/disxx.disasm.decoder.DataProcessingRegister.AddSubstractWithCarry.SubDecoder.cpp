@@ -47,9 +47,9 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractWithCarry
 	}
 
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
-	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
+	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+--+-+--------+--+------+--+--+
         // |sf|op|S|11010000|Rm|000000|Rn|Rd|
@@ -79,17 +79,53 @@ namespace disxx::disasm::decoder::DataProcessingRegister::AddSubstractWithCarry
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         const auto &[insn, alias]{it->second};
-        const unsigned short int regSize = 32 << sf;
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd
+			)
+		);
         if (alias && Rn == 0b11111)
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+			this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					sf
+						? disxx::disasm::operand::Register::Type::TYPE_X
+						: disxx::disasm::operand::Register::Type::TYPE_W,
+					Rm
+				)
+			);
+
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
-            
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
+         
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rm
+			)
+		);
 
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

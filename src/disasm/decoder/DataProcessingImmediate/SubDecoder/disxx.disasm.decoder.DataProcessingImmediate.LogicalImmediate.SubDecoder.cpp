@@ -48,7 +48,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::LogicalImmediate
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+---+------+-+----+----+--+--+
         // |sf|opc|100100|N|immr|imms|Rn|Rd|
@@ -100,10 +100,18 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::LogicalImmediate
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         }
 
-        const signed short int regSize = 32 << sf;
         if (alias && opc == 0b01 && Rn == 0b11111 && !bits::MoveWidePreferred(sf, N, imms, immr))
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					sf
+						? disxx::disasm::operand::Register::Type::TYPE_X
+						: disxx::disasm::operand::Register::Type::TYPE_W,
+					Rn
+				)
+			);
             std::visit
             (
                 [this](auto &&immediate) -> void
@@ -111,11 +119,21 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::LogicalImmediate
                 imm
             );
 
-            return std::make_pair(alias.value(), std::move(this->m_Operands));
+            return std::make_pair(*alias, std::move(this->m_Operands));
         }
         else if (alias && opc == 0b11 && Rd == 0b11111)
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize, opc != 0b11));
+			this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					sf
+						? disxx::disasm::operand::Register::Type::TYPE_X
+						: disxx::disasm::operand::Register::Type::TYPE_W,
+					Rd,
+					opc != 0b11
+				)
+			);
             std::visit
             (
                 [this](auto &&immediate) -> void
@@ -126,8 +144,27 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::LogicalImmediate
             return std::make_pair(alias.value(), std::move(this->m_Operands));
         }
     
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize, opc != 0b11));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd,
+				opc != 0b11
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn
+			)
+		);
         std::visit
         (
             [this](auto &&immediate) -> void

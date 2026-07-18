@@ -48,7 +48,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::MinMaxImmediate
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+--+-+-------+---+----+--+--+
         // |sf|op|S|1000111|opc|imm8|Rn|Rd|
@@ -78,9 +78,26 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::MinMaxImmediate
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        unsigned short int regSize = sf == 0b1 ? 64 : 32;
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn
+			)
+		);
         if (opc & 1)
         {
             this->m_Operands.emplace_back

@@ -51,7 +51,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::ConditionalSelect
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+--+-+--------+--+----+---+--+--+
         // |sf|op|S|11010100|Rm|cond|op2|Rn|Rd|
@@ -102,11 +102,11 @@ namespace disxx::disasm::decoder::DataProcessingRegister::ConditionalSelect
         };
 
         std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::optional<InstructionID>(void)>>> insnTable = {
-            {0b00000, {InstructionID::INSN_CSEL, [](void) -> std::optional<InstructionID> { return std::nullopt; }}},
+            {0b00000, {InstructionID::INSN_CSEL, [] -> std::optional<InstructionID> { return std::nullopt; }}},
             {0b00001, {InstructionID::INSN_CSINC, csincAlias}},
             {0b01000, {InstructionID::INSN_CSINV, csinvAlias}},
             {0b01001, {InstructionID::INSN_CSNEG, csnegAlias}},
-            {0b10000, {InstructionID::INSN_CSEL, [](void) -> std::optional<InstructionID> { return std::nullopt; }}},
+            {0b10000, {InstructionID::INSN_CSEL, [] -> std::optional<InstructionID> { return std::nullopt; }}},
             {0b10001, {InstructionID::INSN_CSINC, csincAlias}},
             {0b11000, {InstructionID::INSN_CSINV, csinvAlias}},
             {0b11001, {InstructionID::INSN_CSNEG, csnegAlias}}
@@ -118,10 +118,36 @@ namespace disxx::disasm::decoder::DataProcessingRegister::ConditionalSelect
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         const auto &[insn, aliasFunc]{it->second};
 
-        const unsigned short int regSize = sf == 0b1 ? 64 : 32;
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
-           this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, regSize));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rm
+			)
+		);
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Condition>(cond));
 
         const auto alias{aliasFunc()};
@@ -129,7 +155,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::ConditionalSelect
         return std::make_pair
         (
             alias
-                ? alias.value()
+                ? *alias
                 : insn,
             std::move(this->m_Operands)
         );

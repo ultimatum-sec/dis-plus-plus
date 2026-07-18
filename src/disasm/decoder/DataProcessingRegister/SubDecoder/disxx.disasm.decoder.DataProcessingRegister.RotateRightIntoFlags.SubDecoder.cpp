@@ -50,7 +50,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::RotateRightIntoFlags
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+--+-+--------+----+-----+--+--+----+
         // |sf|op|S|11010000|imm6|00001|Rn|o2|mask|
@@ -67,7 +67,14 @@ namespace disxx::disasm::decoder::DataProcessingRegister::RotateRightIntoFlags
 
         if (const unsigned short encoding = (sf << 3) | (op << 2) | (S << 1) | o2; encoding != 0b0101) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_X,
+				Rn
+			)
+		);
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imm6));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 4>>(mask));
 

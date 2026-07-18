@@ -13,6 +13,26 @@ import disxx.disasm.operand.Register;
 import disxx.disasm.utility.bits;
 import disxx.disasm.InstructionID;
 
+namespace
+{
+	inline disxx::disasm::operand::Register::Type mktp(unsigned short int ftype) noexcept
+	{
+		switch (ftype)
+		{
+		  case 0b11:
+			return disxx::disasm::operand::Register::Type::TYPE_H;
+
+		  case 0b10:
+			[[fallthrough]];
+		  case 0b00:
+			return disxx::disasm::operand::Register::Type::TYPE_S;
+		
+		  default:
+			return disxx::disasm::operand::Register::Type::TYPE_D;
+		}
+	}
+} /* */
+
 namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::FloatingPointConditionalSelect
 {
 	SubDecoder::SubDecoder(void) noexcept
@@ -66,10 +86,10 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Floatin
         if (M == 0b1 || S == 0b1 || ftype == 0b10) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        const unsigned short int regSize = 64 >> (ftype - (ftype != 0b00 ? 1 : -1));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, regSize));
+		const auto type{mktp(ftype)};
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rd));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rn));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rm));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Condition>(cond));
 
         return std::make_pair(InstructionID::INSN_FCSEL, std::move(this->m_Operands));

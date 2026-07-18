@@ -51,7 +51,7 @@ namespace disxx::disasm::decoder::DataProcessingRegister::ConditionalCompareImme
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+--+-+--------+----+----+-+--+--+--+----+
         // |sf|op|S|11010010|imm5|cond|1|o2|Rn|o3|nzcv|
@@ -76,16 +76,43 @@ namespace disxx::disasm::decoder::DataProcessingRegister::ConditionalCompareImme
         };
     
         const unsigned short int encoding = (sf << 4) | (op << 3) | (S << 2) | (o2 << 1) | o3;
-           const auto it{insnTable.find(encoding)};
+        const auto it{insnTable.find(encoding)};
         if (it == insnTable.end()) [[unlikely]]
-            return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+        	return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, sf == 0b1 ? 64 : 32));
-           if (sf == 0b1)
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned long long int, 64>>(imm5, disxx::disasm::operand::Immediate<unsigned long long int, 64>::Option::OPT_ZEROEXTEND));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn
+			)
+		);
+        if (sf == 0b1)
+		{
+           	this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Immediate<unsigned long long int, 64>>
+				(
+					imm5,
+					disxx::disasm::operand::Immediate<unsigned long long int, 64>::Option::OPT_ZEROEXTEND
+				)
+			);
+		}
         else
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 32>>(imm5, disxx::disasm::operand::Immediate<unsigned int, 32>::Option::OPT_ZEROEXTEND));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 4>>(nzcv));
+		{
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 32>>
+				(
+					imm5,
+					disxx::disasm::operand::Immediate<unsigned int, 32>::Option::OPT_ZEROEXTEND
+				)
+			);
+        }
+		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 4>>(nzcv));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Condition>(cond));
 
         return std::make_pair(it->second, std::move(this->m_Operands));

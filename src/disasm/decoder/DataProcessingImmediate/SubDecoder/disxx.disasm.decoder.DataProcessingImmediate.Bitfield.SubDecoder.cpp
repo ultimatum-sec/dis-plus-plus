@@ -48,7 +48,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+---+------+-+----+----+--+--+
         // |sf|opc|100110|N|immr|imms|Rn|Rd|
@@ -83,18 +83,52 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
           {
             if (imms == 0b011111 || imms == 0b111111)
             {
-                const unsigned short int regSize = 32 << (imms >> 5);
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						(imms >> 5)
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						(imms >> 5)
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
                 
                 return std::make_pair(InstructionID::INSN_ASR, std::move(this->m_Operands));
             }
             else if (imms < immr)
             {
-                const unsigned short int regSize = 32 << sf;
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imms));
 
@@ -102,10 +136,27 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
             }
             else if (bits::BFXPreffered(sf, opc >> 1, imms, immr))
             {
-                const unsigned short int regSize = 32 << sf;
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
-                  this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
+				this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imms));
 
                 return std::make_pair(InstructionID::INSN_SBFX, std::move(this->m_Operands));
@@ -122,9 +173,26 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
                 if (aliasIt == aliasTable.end()) [[unlikely]]
                     break;
                 
-                const unsigned short int regSize = 32 << sf;
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
 
                 return std::make_pair(aliasIt->second, std::move(this->m_Operands));
             }
@@ -136,9 +204,29 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
           {
             if (imms < immr)
             {
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, 32 << sf));
-                if (Rn != 0b11111)
-                    this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 32 << sf));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+				if (Rn != 0b11111)
+				{
+                	this->m_Operands.emplace_back
+					(
+						std::make_unique<disxx::disasm::operand::Register>
+						(
+							sf
+								? disxx::disasm::operand::Register::Type::TYPE_X
+								: disxx::disasm::operand::Register::Type::TYPE_W,
+							Rn
+						)
+					);
+				}
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imms));
                
@@ -146,9 +234,26 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
             }
             else if (imms >= immr)
             {
-                const unsigned short int regSize = 32 << sf;
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imms));
                
@@ -162,27 +267,78 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
           {
             if ((imms != 0b011111 || imms != 0b11111) && imms + 1 == immr)
             {
-                const unsigned short int regSize = 32 << (imms >> 5);
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						(imms >> 5)
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						(imms >> 5)
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
 
                 return std::make_pair(InstructionID::INSN_LSL, std::move(this->m_Operands));
             }
             else if (imms == 0b011111 || imms == 0b111111)
             {
-                const unsigned short int regSize = 32 << (imms >> 5);
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						(imms >> 5)
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						(imms >> 5)
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
 
                 return std::make_pair(InstructionID::INSN_LSR, std::move(this->m_Operands));
             }
             else if (imms < immr)
             {
-                const unsigned short int regSize = 32 << sf;
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imms));
               
@@ -190,9 +346,26 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
             }
             else if (bits::BFXPreffered(sf, opc >> 1, imms, immr))
             {
-                const unsigned short int regSize = 32 << sf;
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imms));
               
@@ -209,9 +382,26 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
                 if (aliasIt == aliasTable.end()) [[unlikely]]
                     break;
  
-                const unsigned short int regSize = 32 << sf;
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn
+					)
+				);
 
                 return std::make_pair(aliasIt->second, std::move(this->m_Operands));
             }
@@ -223,9 +413,26 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::Bitfield
             break;
         }
         
-        const unsigned short int regSize = 32 << sf;
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize));
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn
+			)
+		);
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(immr));
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imms));
     

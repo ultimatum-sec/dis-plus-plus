@@ -48,7 +48,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::PCRelAddressing
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+-----+-----+-----+--+
         // |op|immlo|10000|immhi|Rd|
@@ -63,7 +63,14 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::PCRelAddressing
         immhi = bits::extract<signed int, std::uint32_t, 5, 23>(this->m_Insn);
         Rd = bits::extract<unsigned short int, std::uint32_t, 0, 4>(this->m_Insn);
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, 64));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_X,
+				Rd
+			)
+		);
         const auto imm
         {
             disxx::disasm::operand::Immediate<signed long long int, 64>

@@ -67,10 +67,36 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (size == 0b00 || size == 0b11) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         
-        const auto regSize{size == 0b01 ? 16 : 32};
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, regSize));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b01
+					? disxx::disasm::operand::Register::Type::TYPE_H
+					: disxx::disasm::operand::Register::Type::TYPE_S,
+				Rd
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b01
+					? disxx::disasm::operand::Register::Type::TYPE_H
+					: disxx::disasm::operand::Register::Type::TYPE_S,
+				Rn
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b01
+					? disxx::disasm::operand::Register::Type::TYPE_H
+					: disxx::disasm::operand::Register::Type::TYPE_S,
+				Rm
+			)
+		);
 
         return std::make_pair
         (

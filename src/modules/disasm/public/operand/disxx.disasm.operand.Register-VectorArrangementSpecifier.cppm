@@ -11,15 +11,21 @@ export namespace disxx::disasm::operand
 	class __DISXX_EXPORT__ [[nodiscard]] VectorArrangementSpecifier
 	{
 	  public:
-		enum class Identifier
+		enum class Identifier : unsigned short int
 		{
-			ID_B8, ID_B16,
-			ID_H4, ID_H8,
-			ID_S2, ID_S4,
-			ID_D1, ID_D2,
+			ID_8B	= 0b000,
+			ID_B16	= 0b001,
+			ID_4H	= 0b010,
+			ID_8H	= 0b011,
+			ID_2S	= 0b100,
+			ID_4S	= 0b101,
+			ID_1D	= 0b110,
+			ID_2D	= 0b111,
 
-			ID_B, ID_H,
-			ID_S, ID_D
+			ID_B	= 0b1000,
+			ID_H	= 0b1001,
+			ID_S	= 0b1010,
+			ID_D	= 0b1011
 		};
 
 	  private:
@@ -40,6 +46,53 @@ export namespace disxx::disasm::operand
 		inline std::optional<unsigned short int> GetLanes(void) const noexcept;
 		inline Identifier GetIdentifier(void) const noexcept;
 	};
+
+	VectorArrangementSpecifier::VectorArrangementSpecifier(void) noexcept
+		: m_Lanes{}
+		, m_Identifier{}
+	{}
+
+	VectorArrangementSpecifier::VectorArrangementSpecifier(unsigned short int bits) noexcept
+		: m_Lanes{}
+		, m_Identifier{static_cast<Identifier>(bits)}
+	{}
+
+	VectorArrangementSpecifier::VectorArrangementSpecifier(unsigned short int bits, unsigned short int lanes) noexcept
+		: m_Lanes{lanes}
+		, m_Identifier{static_cast<Identifier>(bits | 0b1000)}
+	{}
+
+	VectorArrangementSpecifier::VectorArrangementSpecifier(const VectorArrangementSpecifier &other) noexcept
+		: m_Lanes{other.m_Lanes}
+		, m_Identifier{other.m_Identifier}
+	{}
+
+	VectorArrangementSpecifier &VectorArrangementSpecifier::operator=(const VectorArrangementSpecifier &other) noexcept
+	{
+		if (this != &other) [[likely]]
+		{
+			this->m_Lanes = other.m_Lanes;
+			this->m_Identifier = other.m_Identifier;
+		}
+
+		return *this;
+	}
+
+	VectorArrangementSpecifier::VectorArrangementSpecifier(VectorArrangementSpecifier &&other) noexcept
+		: m_Lanes{std::move(other.m_Lanes)}
+		, m_Identifier{std::move(other.m_Identifier)}
+	{}
+
+	VectorArrangementSpecifier &VectorArrangementSpecifier::operator=(VectorArrangementSpecifier &&other) noexcept
+	{
+		if (this != &other) [[likely]]
+		{
+			this->m_Lanes = std::move(other.m_Lanes);
+			this->m_Identifier = std::move(other.m_Identifier);
+		}
+
+		return *this;
+	}
 
 	inline std::optional<unsigned short int> VectorArrangementSpecifier::GetLanes(void) const noexcept
 	{ return this->m_Lanes; }

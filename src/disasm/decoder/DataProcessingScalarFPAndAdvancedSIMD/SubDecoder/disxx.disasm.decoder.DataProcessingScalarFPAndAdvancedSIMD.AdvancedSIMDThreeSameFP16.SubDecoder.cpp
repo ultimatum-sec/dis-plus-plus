@@ -47,7 +47,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +-+-+-+-----+-+--+--+--+------+-+--+--+
         // |0|Q|U|01110|a|10|Rm|00|opcode|1|Rn|Rd|
@@ -97,11 +97,11 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
-        for (const auto specifier{Q == 0b1 ? "8h" : "4h"}; auto &pReg : this->m_Operands)
-            static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetArrangementSpecifier(specifier);
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_V, Rd));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_V, Rn));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_V, Rm));
+        for (const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>(0b010 | Q)}; auto &pReg : this->m_Operands)
+            static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetVectorArrangementSpecifier(spec);
 
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}

@@ -49,7 +49,7 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::AddSubstractImmediate
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<std::decay_t<decltype(*this)>>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+--+-+------+--+-----+--+--+
         // |sf|op|S|100010|sh|imm12|Rn|Rd|
@@ -81,30 +81,79 @@ namespace disxx::disasm::decoder::DataProcessingImmediate::AddSubstractImmediate
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         const auto &[insn, alias]{it->second};
 
-        const unsigned short int regSize = sf == 0b1 ? 64 : 32;
         if (alias)
         {
-            if (const auto &value{alias.value()}; Rd == 0b11111 && (value == InstructionID::INSN_CMN || value == InstructionID::INSN_CMP))
+            if (const auto &value{*alias}; Rd == 0b11111 && (value == InstructionID::INSN_CMN || value == InstructionID::INSN_CMP))
             {
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize, true));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn,
+						true
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 28>>(imm12 /* << (sh == 0b1 ? 12 : 0) */));
-                if (sh) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(disxx::disasm::operand::Shift::Type::SHIFT_LSL, 12));
+                if (sh) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(0b000, 12));
             
-                return std::make_pair(alias.value(), std::move(this->m_Operands));
+                return std::make_pair(value, std::move(this->m_Operands));
             }
             else if (value == InstructionID::INSN_MOV && (sh == 0b0 && imm12 == 0x000 && (Rd == 0b11111 || Rn == 0b11111)))
             {
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize, true));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize, true));
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rd,
+						true
+					)
+				);
+				this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						sf
+							? disxx::disasm::operand::Register::Type::TYPE_X
+							: disxx::disasm::operand::Register::Type::TYPE_W,
+						Rn,
+						true
+					)
+				);
                 
-                return std::make_pair(alias.value(), std::move(this->m_Operands));
+                return std::make_pair(value, std::move(this->m_Operands));
             }
         }
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rd, regSize, S != 0b1));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, regSize, true));
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rd,
+				S != 0b1
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				sf
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rn,
+				true
+			)
+		);
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned int, 28>>(imm12 /* << (sh == 0b1 ? 12 : 0) */));
-        if (sh) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(disxx::disasm::operand::Shift::Type::SHIFT_LSL, 12));
+        if (sh) this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(0b000, 12));
     
         return std::make_pair(insn, std::move(this->m_Operands));
 	}
