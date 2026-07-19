@@ -47,7 +47,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +--+-+-----+----+-----+------+--+--+--+
         // |01|U|11110|size|11000|opcode|10|Rn|Rd|
@@ -81,23 +81,34 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        const unsigned short int RdSize
+        const auto type
         {
             (U == 0b1 || opcode == 0b11011)
                 ? (
                     bits::extract<unsigned short int, unsigned short int, 0, 0>(size)
-                        ? static_cast<unsigned short int>(64)
-                        : static_cast<unsigned short int>(32)
-                ) : static_cast<unsigned short int>(16)
+                        ? disxx::disasm::operand::Register::Type::TYPE_D
+                        : disxx::disasm::operand::Register::Type::TYPE_S
+                ) : disxx::disasm::operand::Register::Type::TYPE_H
         };
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, RdSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rd));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetVectorArrangementSpecifier
         (
-            RdSize != 16
-                ? (RdSize == 32 ? "2s" : "2d")
-                : "2h"
+            type != disxx::disasm::operand::Register::Type::TYPE_H
+                ? (
+					type == disxx::disasm::operand::Register::Type::TYPE_S
+						? disxx::disasm::operand::VectorArrangementSpecifier{0b010}
+						: disxx::disasm::operand::VectorArrangementSpecifier{0b111}
+				)
+                : disxx::disasm::operand::VectorArrangementSpecifier{0b1110}
         );
 
         return std::make_pair(it->second, std::move(this->m_Operands));

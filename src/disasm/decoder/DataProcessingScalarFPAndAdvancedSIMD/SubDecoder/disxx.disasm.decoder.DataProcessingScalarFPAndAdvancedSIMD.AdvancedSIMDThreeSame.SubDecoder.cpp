@@ -1,6 +1,7 @@
 module;
 
 #include <unordered_map>
+#include <optional>
 #include <utility>
 #include <cstdint>
 #include <vector>
@@ -48,7 +49,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +-+-+-+-----+----+-+--+------+-+--+--+
         // |0|Q|U|01110|size|1|Rm|opcode|1|Rn|Rd|
@@ -65,32 +66,46 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 
         const auto getArrangementSpecifierBorder
         {
-            [=](std::initializer_list<unsigned short int> borders = {}) -> std::string_view
+            [=](std::initializer_list<unsigned short int> borders = {}) -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier>
             {
                 for (const auto &border : borders)
                     if (size == border) [[unlikely]]
-                        return "";
-                return disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q);
+                        return std::nullopt;
+                return disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					static_cast<unsigned short int>
+					(
+						(size << 1)
+							| Q
+					)
+				};
             }
         };
 
         const auto getSzBasedArrangementSpecifier
         {
-            [=](void) -> std::string_view
+            [=] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier>
             {
                 const auto sz{size & 0b01};
                 if (sz == 0b1 && Q == 0b0) [[unlikely]]
-                    return "";
-                return disxx::disasm::operand::Register::GetArrangementSpecifier(sz | 0b10, Q);
+                    return std::nullopt;
+                return disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					static_cast<unsigned short int>
+					(
+						((sz | 0b10) << 1)
+							| Q
+					)
+				};
             }
         };
         
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::string_view(void)>>> insnTable = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::optional<disxx::disasm::operand::VectorArrangementSpecifier>(void)>>> insnTable = {
             {
 				0b000000,
 				{
 					InstructionID::INSN_SHADD,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
@@ -104,13 +119,14 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b000010,
 				{
 					InstructionID::INSN_SRHADD,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b000100,
 				{
-					InstructionID::INSN_SHSUB, [&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11});  }
+					InstructionID::INSN_SHSUB,
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11});  }
 				}
 			},
             {
@@ -166,28 +182,28 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b001100,
 				{
 					InstructionID::INSN_SMAX,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b001101,
 				{
 					InstructionID::INSN_SMIN,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b001110,
 				{
 					InstructionID::INSN_SABD,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b001111,
 				{
 					InstructionID::INSN_SABA,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
@@ -208,35 +224,35 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b010010,
 				{
 					InstructionID::INSN_MLA,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b010011,
 				{
 					InstructionID::INSN_MUL,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b010100,
 				{
 					InstructionID::INSN_SMAXP,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b010101,
 				{
 					InstructionID::INSN_SMINP,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b010110,
 				{
 					InstructionID::INSN_SQDMULH,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b00, 0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b00, 0b11}); }
 				}
 			},
             {
@@ -250,7 +266,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b100000,
 				{
 					InstructionID::INSN_UHADD,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
@@ -264,14 +280,14 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b100010,
 				{
 					InstructionID::INSN_URHADD,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b100100,
 				{
 					InstructionID::INSN_UHSUB,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
@@ -327,28 +343,28 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b101100,
 				{
 					InstructionID::INSN_UMAX,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b101101,
 				{
 					InstructionID::INSN_UMIN,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b101110,
 				{
 					InstructionID::INSN_UABD,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b101111,
 				{
 					InstructionID::INSN_UABA,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
@@ -369,40 +385,40 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				0b110010,
 				{
 					InstructionID::INSN_MLS,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b110011,
 				{
 					InstructionID::INSN_PMUL,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b01, 0b10, 0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b01, 0b10, 0b11}); }
 				}
 			},
             {
 				0b110100,
 				{
 					InstructionID::INSN_UMAXP,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b110101,
 				{
 					InstructionID::INSN_UMINP,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b11}); }
 				}
 			},
             {
 				0b110110,
 				{
 					InstructionID::INSN_SQRDMULH,
-					[&getArrangementSpecifierBorder](void) -> std::string_view { return getArrangementSpecifierBorder({0b00, 0b11}); }
+					[&getArrangementSpecifierBorder] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return getArrangementSpecifierBorder({0b00, 0b11}); }
 				}
 			}
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::string_view(void)>>> insnTableWithSize = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::optional<disxx::disasm::operand::VectorArrangementSpecifier(void)>>>> insnTableWithSize = {
             {0b00011000, {InstructionID::INSN_FMAXNM, getSzBasedArrangementSpecifier}},
             {0b00011001, {InstructionID::INSN_FMLA, getSzBasedArrangementSpecifier}},
             {0b00011010, {InstructionID::INSN_FADD, getSzBasedArrangementSpecifier}},
@@ -410,20 +426,20 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b00011100, {InstructionID::INSN_FCMEQ, getSzBasedArrangementSpecifier}},
             {0b00011110, {InstructionID::INSN_FMAX, getSzBasedArrangementSpecifier}},
             {0b00011111, {InstructionID::INSN_FRECPS, getSzBasedArrangementSpecifier}},
-            {0b00000011, {InstructionID::INSN_AND, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}},
+            {0b00000011, {InstructionID::INSN_AND, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}},
             // Handles in other way - it has different arrangement specifiers
-            {0b00011101, {InstructionID::INSN_FMLAL, [](void) -> std::string_view { return ""; }}},
-            {0b00100011, {InstructionID::INSN_BIC, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}},
+            {0b00011101, {InstructionID::INSN_FMLAL, [] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return std::nullopt; }}},
+            {0b00100011, {InstructionID::INSN_BIC, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}},
             {0b01011000, {InstructionID::INSN_FMINNM, getSzBasedArrangementSpecifier}},
             {0b01011001, {InstructionID::INSN_FMLS, getSzBasedArrangementSpecifier}},
             {0b01011010, {InstructionID::INSN_FSUB, getSzBasedArrangementSpecifier}},
             {0b01011011, {InstructionID::INSN_FAMAX, getSzBasedArrangementSpecifier}},
             {0b01011110, {InstructionID::INSN_FMIN, getSzBasedArrangementSpecifier}},
             {0b01011111, {InstructionID::INSN_FRSQRTS, getSzBasedArrangementSpecifier}},
-            {0b01000011, {InstructionID::INSN_ORR, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}}, // Alias when Rm == Rn
+            {0b01000011, {InstructionID::INSN_ORR, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}}, // Alias when Rm == Rn
             // The same thing again... handles in other way
-            {0b01011101, {InstructionID::INSN_FMLSL, [](void) -> std::string_view { return ""; }}},
-            {0b01100011, {InstructionID::INSN_ORN, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}},
+            {0b01011101, {InstructionID::INSN_FMLSL, [] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return std::nullopt; }}},
+            {0b01100011, {InstructionID::INSN_ORN, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}},
             {0b10011000, {InstructionID::INSN_FMAXNMP, getSzBasedArrangementSpecifier}},
             {0b10011010, {InstructionID::INSN_FADDP, getSzBasedArrangementSpecifier}},
             {0b10011011, {InstructionID::INSN_FMUL, getSzBasedArrangementSpecifier}},
@@ -431,10 +447,10 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b10011101, {InstructionID::INSN_FACGE, getSzBasedArrangementSpecifier}},
             {0b10011110, {InstructionID::INSN_FMAXP, getSzBasedArrangementSpecifier}},
             {0b10011111, {InstructionID::INSN_FDIV, getSzBasedArrangementSpecifier}},
-            {0b10000011, {InstructionID::INSN_EOR, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}},
+            {0b10000011, {InstructionID::INSN_EOR, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}},
             // Still handles in othe way
-            {0b10011001, {InstructionID::INSN_FMLAL2, [](void) -> std::string_view { return ""; }}},
-            {0b10100011, {InstructionID::INSN_BSL, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}},
+            {0b10011001, {InstructionID::INSN_FMLAL2, [] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return std::nullopt; }}},
+            {0b10100011, {InstructionID::INSN_BSL, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}},
             {0b11011000, {InstructionID::INSN_FMINNMP, getSzBasedArrangementSpecifier}},
             {0b11011010, {InstructionID::INSN_FABD, getSzBasedArrangementSpecifier}},
             {0b11011011, {InstructionID::INSN_FAMIN, getSzBasedArrangementSpecifier}},
@@ -442,10 +458,10 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b11011101, {InstructionID::INSN_FACGT, getSzBasedArrangementSpecifier}},
             {0b11011110, {InstructionID::INSN_FMINP, getSzBasedArrangementSpecifier}},
             {0b11011111, {InstructionID::INSN_FSCALE, getSzBasedArrangementSpecifier}},
-            {0b11000011, {InstructionID::INSN_BIT, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}},
+            {0b11000011, {InstructionID::INSN_BIT, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}},
             // No comments
-            {0b11011001, {InstructionID::INSN_FMLSL2, [](void) -> std::string_view { return ""; }}},
-            {0b11100011, {InstructionID::INSN_BIF, [Q](void) -> std::string_view { return Q == 0b1 ? "16b" : "8b"; }}}
+            {0b11011001, {InstructionID::INSN_FMLSL2, [] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return std::nullopt; }}},
+            {0b11100011, {InstructionID::INSN_BIF, [Q] -> std::optional<disxx::disasm::operand::VectorArrangementSpecifier> { return disxx::disasm::operand::VectorArrangementSpecifier{Q}; }}}
         };
 
         unsigned short int encoding = (U << 5) | opcode;
@@ -464,30 +480,52 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         const auto &spec{specifierFunc()};
         if (encoding == 0b01000011 && Rm == Rn)
             insn = InstructionID::INSN_MOV;
-		else if (spec == "") [[unlikely]]
+		else if (!spec) [[unlikely]]
         	return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rm
+			)
+		);
     
         const auto specArray
         {
-            [&opcode, &Q](std::string_view specifier) -> std::array<std::string, 3>
+            [&opcode, &Q](disxx::disasm::operand::VectorArrangementSpecifierspecifier)
+				-> std::array<disxx::disasm::operand::VectorArrangementSpecifier, 3>
             {
                 if (opcode == 0b11001)
                 {
                     return
                     {
-                        Q == 0b1 ? "4s" : "2s",
-                        Q == 0b1 ? "4h" : "2h",
-                        Q == 0b1 ? "4h" : "2h"
+						disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(Q ? 0b101 : 0b1110)},
+						disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(Q ? 0b010 : 0b1110)},
+						disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(Q ? 0b010 : 0b1110)}
                     };
                 }
 
-                const auto T{specifier.data()};
+                const auto T{specifier};
                 return {T, T, T};
-            }(spec)
+            }(*spec)
         };
 
         for (auto i{0}; const auto &T : specArray)

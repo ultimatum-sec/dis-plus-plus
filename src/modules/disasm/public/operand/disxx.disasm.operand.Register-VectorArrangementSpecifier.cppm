@@ -11,16 +11,20 @@ export namespace disxx::disasm::operand
 	class __DISXX_EXPORT__ [[nodiscard]] VectorArrangementSpecifier
 	{
 	  public:
+		static constexpr unsigned short int INDEX_ONLY{0xffff};
+
+	  public:
 		enum class Identifier : unsigned short int
 		{
-			ID_8B	= 0b000,
-			ID_B16	= 0b001,
-			ID_4H	= 0b010,
-			ID_8H	= 0b011,
-			ID_2S	= 0b100,
-			ID_4S	= 0b101,
-			ID_1D	= 0b110,
-			ID_2D	= 0b111,
+			ID_8B	= 0b0000,
+			ID_B16	= 0b0001,
+			ID_2H	= 0b1110,
+			ID_4H	= 0b0010,
+			ID_8H	= 0b0011,
+			ID_2S	= 0b0100,
+			ID_4S	= 0b0101,
+			ID_1D	= 0b0110,
+			ID_2D	= 0b0111,
 
 			ID_B	= 0b1000,
 			ID_H	= 0b1001,

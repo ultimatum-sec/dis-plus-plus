@@ -50,7 +50,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +-+-+------+---+-+--+-+---+--+--+--+--+
         // |0|Q|001110|op2|0|Rm|0|len|op|00|Rn|Rd|
@@ -175,8 +175,20 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 					Rm
 				)
 			);
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
-                ->SetVectorArrangementSpecifier(std::format("[{}]", op == 0b1 ? len : (len >> op))); // TODO: Check op condition
+            static_cast<disxx::disasm::operand::Register *>
+			(
+				this
+					->m_Operands
+					.rbegin()
+					->get()
+			)->SetVectorArrangementSpecifier
+			(
+				disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					disxx::disasm::operand::VectorArrangementSpecifier::INDEX_ONLY,
+					static_cast<unsigned short int>(op == 0b1 ? len : (len >> op))
+				}
+			); // TODO: Check op condition
 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
@@ -201,8 +213,20 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				Rm
 			)
 		);
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
-            ->SetVectorArrangementSpecifier(std::format("[{}]", op2 == 0b10 ? len : (len << 1) | op));
+        static_cast<disxx::disasm::operand::Register *>
+		(
+			this
+				->m_Operands
+				.rbegin()
+				->get()
+		)->SetVectorArrangementSpecifier
+		(
+			disxx::disasm::operand::VectorArrangementSpecifier
+			{
+				disxx::disasm::operand::VectorArrangementSpecifier::INDEX_ONLY,
+				static_cast<unsigned short int>(op2 == 0b10 ? len : (len << 1) | op)
+			}
+		);
 
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}
