@@ -63,7 +63,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         Rn = bits::extract<unsigned short int, std::uint32_t, 5, 9>(this->m_Insn);
         Rd = bits::extract<unsigned short int, std::uint32_t, 0, 4>(this->m_Insn);
 
-        const auto addSingleTaFirst{[](std::string Ta, std::string Tb) -> std::array<std::string, 3> { return {Ta, Tb, Tb}; }};
+        const auto addSingleTaFirst
+		{
+			[](disxx::disasm::operand::VectorArrangementSpecifier Ta, disxx::disasm::operand::VectorArrangementSpecifier Tb)
+				-> std::array<disxx::disasm::operand::VectorArrangementSpecifier, 3>
+			{ return {Ta, Tb, Tb}; }
+		};
         const auto addDoubleTaFirst{[](std::string Ta, std::string Tb) -> std::array<std::string, 3> { return {Ta, Ta, Tb}; }};
         const auto addSingleTbFirst{[](std::string Ta, std::string Tb) -> std::array<std::string, 3> { return {Tb, Ta, Ta}; }};
 
@@ -130,17 +135,25 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 
         const auto result
         {
-            [this, &opcode, &size, &Q] -> std::expected<std::pair<std::string, std::string>, disxx::utility::error::DisassemblyError>
+            [this, &opcode, &size, &Q] -> std::expected
+			<
+				std::pair
+				<
+					disxx::disasm::operand::VectorArrangementSpecifier,
+					disxx::disasm::operand::VectorArrangementSpecifier
+				>,
+				disxx::utility::error::DisassemblyError
+			>
             {
-                if (opcode == 0b1001 || opcode == 0b1011 || opcode == 0b1101)
+                if (opcode == 0b1001 || opcode == 0b1011)
                 {
-                    if (size == 0b00) [[unlikely]]
+                    if (size == 0b00 || size == 0b11) [[unlikely]]
                         return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
                     
                     return std::make_pair
                     (
-                        size == 0b01 ? "4s" : "2d",
-                        disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q).data()
+						disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(0b101 | ((size != 0b01) << 1))},
+                        disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)}
                     );
                 }
                 else if (opcode == 0b1110)
@@ -150,17 +163,15 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 
                     return std::make_pair
                     (
-                        size == 0b00 ? "8h" : "1Q",
-                        (size == 0b00)
-                            ? (Q == 0b0 ? "8b" : "16b")
-                            : (Q == 0b0 ? "1d" : "2d")
+						disxx::disasm::operand::VectorArrangementSpecifier{size == 0b00 ? 0b0011 : 0b1111},
+                    	disxx::disasm::operand::VectorArrangementSpecifier{size == 0b00 ? Q : static_cast<unsigned short int>(0b110 | Q)}    
                     );
                 }
 
                 return std::make_pair
                 (
-                    std::array<const char *, 3>{"8h", "4s", "2d"}.at(size),
-                    disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q).data()
+					disxx::disasm::operand::VectorArrangementSpecifier{((size + 1) << 1) | 0b1},
+                    disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)}
                 );
             }()
         };

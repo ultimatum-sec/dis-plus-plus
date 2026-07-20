@@ -64,11 +64,32 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (op2 != 0b00 || (imm4 >> 3)) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
-        for (const auto specifier{Q == 0b1 ? "16b" : "8b"}; auto &pReg : this->m_Operands)
-            static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetArrangementSpecifier(specifier);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rm
+			)
+		);
+        for (const disxx::disasm::operand::VectorArrangementSpecifier specifier{Q}; auto &pReg : this->m_Operands)
+            static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetVectorArrangementSpecifier(specifier);
         this->m_Operands.emplace_back
         (
             std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 4>>

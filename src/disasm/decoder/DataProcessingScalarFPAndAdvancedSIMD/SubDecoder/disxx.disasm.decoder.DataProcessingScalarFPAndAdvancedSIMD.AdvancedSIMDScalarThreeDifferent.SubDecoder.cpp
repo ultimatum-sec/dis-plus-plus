@@ -73,13 +73,49 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
         // Reserved
-        if (size == 0b00) [[unlikely]]
+        if (size == 0b00 || size == 0b11) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        const unsigned short int VaSize = size << 5, VbSize = size << 4;
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, VaSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, VbSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, VbSize));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b01
+					? disxx::disasm::operand::Register::Type::TYPE_S
+					: disxx::disasm::operand::Register::Type::TYPE_D,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b01
+					? disxx::disasm::operand::Register::Type::TYPE_H
+					: disxx::disasm::operand::Register::Type::TYPE_S,
+				Rn
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b01
+					? disxx::disasm::operand::Register::Type::TYPE_H
+					: disxx::disasm::operand::Register::Type::TYPE_S,
+				Rn
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b01
+					? disxx::disasm::operand::Register::Type::TYPE_H
+					: disxx::disasm::operand::Register::Type::TYPE_S,
+				Rm
+			)
+		);
 
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}

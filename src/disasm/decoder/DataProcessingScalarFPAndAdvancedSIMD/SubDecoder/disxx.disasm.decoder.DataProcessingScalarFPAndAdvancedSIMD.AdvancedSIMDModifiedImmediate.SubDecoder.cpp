@@ -103,9 +103,26 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         const auto imm8{(a << 7) | (b << 6) | (c << 5) | (d << 4) | (e << 3) | (f << 2) | (g << 1) | h};
         if (cmode == 0b1111 && o2 == 0b0)
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
-                ->SetArrangementSpecifier(Q == 0b1 && op == 0b1 ? "2d" : Q == 0b1 ? "4s" : "2s");
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Rd
+				)
+			);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetVectorArrangementSpecifier
+			(
+				disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					static_cast<unsigned short int>
+					(
+						0b100
+							| ((Q == 0b1 && op == 0b1) << 1)
+							| Q
+					)
+				}
+			);
             this->m_Operands.emplace_back
             (
                 std::make_unique<disxx::disasm::operand::Immediate<unsigned long long int, 64>>
@@ -124,8 +141,25 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         // fmov Half-precision
         else if (cmode == 0b1111 && o2 == 0b1)
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(Q == 0b1 ? "8h" : "4h");
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Rd
+				)
+			);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetVectorArrangementSpecifier
+			(
+				disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					static_cast<unsigned short int>
+					(
+						0b010
+							| Q
+					)
+				}
+			);
 
             std::uint16_t imm16{0};
             imm16 |= (imm8 >> 7) << 15;
@@ -148,14 +182,25 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         }
         else if (cmode == 0b0001 || cmode == 0b1001)
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier
-            (
-                cmode == 0b0001
-                    ? (Q == 0b1 ? "4s" : "2s")
-                    : (Q == 0b1 ? "8h" : "4h")
-            );
-
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Rd
+				)
+			);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetVectorArrangementSpecifier
+			(
+				disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					static_cast<unsigned short int>
+					(
+						((0b1 + (cmode == 0b0001)) << 1)
+							| Q
+					)
+				}
+			);
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 8>>(imm8));
 
             if (cmode == 0b0001)
@@ -164,7 +209,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 (
                     std::make_unique<disxx::disasm::operand::Shift>
                     (
-                        disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+                        0b000,
                         bits::extract<unsigned short int, unsigned short int, 1, 2>(cmode) << 3
                     )
                 );
@@ -175,7 +220,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 (
                     std::make_unique<disxx::disasm::operand::Shift>
                     (
-                        disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+                        0b000,
                         bits::extract<unsigned short int, unsigned short int, 1, 1>(cmode) << 3
                     )
                 );
@@ -186,18 +231,35 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         }
         else if (op == 0b1 && (cmode == 0b0000 || cmode == 0b1000 || cmode == 0b1100))
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Rd
+				)
+			);
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 8>>(imm8));
 
             switch (cmode)
             {
               case 0b1000:
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "8h" : "4h");
-                 this->m_Operands.emplace_back
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetVectorArrangementSpecifier
+				(
+					disxx::disasm::operand::VectorArrangementSpecifier
+					{
+						static_cast<unsigned short int>
+						(
+							0b010
+								| Q
+						)
+					}
+				);
+                this->m_Operands.emplace_back
                 (
                     std::make_unique<disxx::disasm::operand::Shift>
                     (
-                        disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+                        0b000,
                         bits::extract<unsigned short int, unsigned short int, 1, 1>(cmode) << 3
                     )
                 );
@@ -205,12 +267,22 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
               case 0b0000:
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "4s" : "2s");
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetVectorArrangementSpecifier
+				(
+					disxx::disasm::operand::VectorArrangementSpecifier
+					{
+						static_cast<unsigned short int>
+						(
+							0b100
+								| Q
+						)
+					}
+				);
                 this->m_Operands.emplace_back
-                   (
+                (
                     std::make_unique<disxx::disasm::operand::Shift>
                     (
-                        disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+                        0b000,
                         bits::extract<unsigned short int, unsigned short int, 1, 2>(cmode) << 3
                     )
                 );
@@ -218,12 +290,22 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
               default:
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "4s" : "2s");
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetVectorArrangementSpecifier
+				(
+					disxx::disasm::operand::VectorArrangementSpecifier
+					{
+						static_cast<unsigned short int>
+						(
+							0b100
+								| Q
+						)
+					}
+				);
                 this->m_Operands.emplace_back
                 (
                     std::make_unique<disxx::disasm::operand::Shift>
                     (
-                        disxx::disasm::operand::Shift::Type::SHIFT_MSL,
+                        0b100,
                         cmode & 1 ? 16 : 8
                     )
                 );
@@ -246,37 +328,70 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
     
             if (Q == 0b0)
             {
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 64));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_D,
+						Rd
+					)
+				);
                 this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned long long int, 64>>(imm64));
 
                 return std::make_pair(it->second, std::move(this->m_Operands));
             }
 
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier("2d");
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Rd
+				)
+			);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b111});
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned long long int, 64>>(imm64));
 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 8>>(imm8));
 
         if (op == 0b0 && cmode == 0b1110)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "16b" : "8b");
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(disxx::disasm::operand::Shift::Type::SHIFT_LSL, 0));
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{Q});
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Shift>(0b000, 0));
 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         else if (op == 0 && cmode == 0b1000)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "4h" : "8h");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetVectorArrangementSpecifier
+			(
+				disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					static_cast<unsigned short int>
+					(
+						0b010
+							| ~Q
+					)
+				}
+			);
             this->m_Operands.emplace_back
             (
                 std::make_unique<disxx::disasm::operand::Shift>
                 (
-                    disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+                    0b000,
                     bits::extract<unsigned short int, unsigned short int, 1, 1>(cmode) << 3
                 )
             );
@@ -285,12 +400,22 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         }
         else if (op == 0b0 && cmode == 0b0000)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "2s" : "4s");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetVectorArrangementSpecifier
+			(
+				disxx::disasm::operand::VectorArrangementSpecifier
+				{
+					static_cast<unsigned short int>
+					(
+						0b100
+							| ~Q
+					)
+				}
+			);
             this->m_Operands.emplace_back
             (
                 std::make_unique<disxx::disasm::operand::Shift>
                 (
-                    disxx::disasm::operand::Shift::Type::SHIFT_LSL,
+                    0b000,
                     bits::extract<unsigned short int, unsigned short int, 1, 2>(cmode) << 3
                 )
             );
@@ -298,12 +423,22 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
 
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetArrangementSpecifier(Q == 0b1 ? "2s" : "4s");
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.begin()->get())->SetVectorArrangementSpecifier
+		(
+			disxx::disasm::operand::VectorArrangementSpecifier
+			{
+				static_cast<unsigned short int>
+				(
+					0b100
+						| ~Q
+				)
+			}
+		);
         this->m_Operands.emplace_back
         (
-               std::make_unique<disxx::disasm::operand::Shift>
+			std::make_unique<disxx::disasm::operand::Shift>
             (
-                disxx::disasm::operand::Shift::Type::SHIFT_MSL,
+                0b100,
                 cmode & 1 ? 16 : 8
             )
         );

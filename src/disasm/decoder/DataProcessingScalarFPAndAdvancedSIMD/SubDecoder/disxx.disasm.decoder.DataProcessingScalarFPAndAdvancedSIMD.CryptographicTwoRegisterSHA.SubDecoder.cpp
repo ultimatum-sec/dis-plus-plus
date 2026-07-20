@@ -70,12 +70,18 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Cryptog
         if (it == insnTable.end() || size == 0b00) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        const auto regSize{opcode != 0b00000 ? 128 + 'V' : 32};
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
+        const auto rsize
+		{
+			opcode != 0b00000
+				? disxx::disasm::operand::Register::Type::TYPE_V
+				: disxx::disasm::operand::Register::Type::TYPE_S
+		};
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rd));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rn));
         if (opcode != 0b00000)
-            for (const auto s{this->m_Operands.size()}; auto i : std::views::iota(static_cast<decltype(s)>(0), s))
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(i).get())->SetArrangementSpecifier("4s");
+            for (const auto i : std::views::iota(0ul, this->m_Operands.size()))
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(i).get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
         
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}

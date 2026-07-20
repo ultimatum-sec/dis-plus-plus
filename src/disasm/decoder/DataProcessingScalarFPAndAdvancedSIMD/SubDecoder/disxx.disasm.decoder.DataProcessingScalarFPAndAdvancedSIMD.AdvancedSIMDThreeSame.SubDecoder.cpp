@@ -1,6 +1,7 @@
 module;
 
 #include <unordered_map>
+#include <functional>
 #include <optional>
 #include <utility>
 #include <cstdint>
@@ -418,7 +419,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 			}
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::optional<disxx::disasm::operand::VectorArrangementSpecifier(void)>>>> insnTableWithSize = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::optional<disxx::disasm::operand::VectorArrangementSpecifier>(void)>>> insnTableWithSize = {
             {0b00011000, {InstructionID::INSN_FMAXNM, getSzBasedArrangementSpecifier}},
             {0b00011001, {InstructionID::INSN_FMLA, getSzBasedArrangementSpecifier}},
             {0b00011010, {InstructionID::INSN_FADD, getSzBasedArrangementSpecifier}},
@@ -510,7 +511,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
     
         const auto specArray
         {
-            [&opcode, &Q](disxx::disasm::operand::VectorArrangementSpecifierspecifier)
+            [&opcode, &Q](disxx::disasm::operand::VectorArrangementSpecifier specifier)
 				-> std::array<disxx::disasm::operand::VectorArrangementSpecifier, 3>
             {
                 if (opcode == 0b11001)
@@ -529,7 +530,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         };
 
         for (auto i{0}; const auto &T : specArray)
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(i++).get())->SetArrangementSpecifier(T);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(i++).get())->SetVectorArrangementSpecifier(T);
 
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

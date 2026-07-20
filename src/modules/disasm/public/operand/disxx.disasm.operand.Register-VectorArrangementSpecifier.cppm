@@ -25,6 +25,7 @@ export namespace disxx::disasm::operand
 			ID_4S	= 0b0101,
 			ID_1D	= 0b0110,
 			ID_2D	= 0b0111,
+			ID_1Q	= 0b1111,
 
 			ID_B	= 0b1000,
 			ID_H	= 0b1001,
@@ -46,6 +47,8 @@ export namespace disxx::disasm::operand
 
 		VectorArrangementSpecifier(VectorArrangementSpecifier &&) noexcept;
 		VectorArrangementSpecifier &operator=(VectorArrangementSpecifier &&) noexcept;
+
+		~VectorArrangementSpecifier(void) noexcept = default;
 
 		inline std::optional<unsigned short int> GetLanes(void) const noexcept;
 		inline Identifier GetIdentifier(void) const noexcept;
