@@ -1,6 +1,7 @@
 module;
 
 #include <unordered_map>
+#include <optional>
 #include <utility>
 #include <cstdint>
 #include <vector>
@@ -68,7 +69,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         // Lambda to calculate index for instructions in insnTable
         const auto calcIndexInsnTable
         {
-            [=] -> signed short int
+            [=] -> std::optional<unsigned short int>
             {
                 switch (size)
                 {
@@ -79,7 +80,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     return (H << 1) | L;
     
                   default:
-                    return std::numeric_limits<signed short int>::min();
+                    return std::nullopt;
                 }
             }
         };
@@ -87,7 +88,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         // Lambda to calculate index for some instructions in insnTableWithSize
         const auto calcIndexInsnTableWithSize
         {
-            [=] -> signed short int
+            [=] -> std::optional<unsigned short int>
             {
                 switch (((size & 0b01) << 1) | L)
                 {
@@ -98,12 +99,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     return H;
     
                   default:
-                    return std::numeric_limits<signed short int>::min();
+                    return std::nullopt;
                 }
             }
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, signed short int>> insnTable = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, std::optional<unsigned short int>>> insnTable = {
             {0b00011, {InstructionID::INSN_SQDMLAL, calcIndexInsnTable()}},
             {0b00111, {InstructionID::INSN_SQDMLSL, calcIndexInsnTable()}},
             {0b01011, {InstructionID::INSN_SQDMULL, calcIndexInsnTable()}},
@@ -113,7 +114,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b11111, {InstructionID::INSN_SQRDMLSH, calcIndexInsnTable()}}
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, signed short int>> insnTableWithSize = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, std::optional<unsigned short int>>> insnTableWithSize = {
             {0b0000001, {InstructionID::INSN_FMLA, (H << 2) | (L << 1) | M}},
             {0b0000101, {InstructionID::INSN_FMLS, (H << 2) | (L << 1) | M}},
             {0b0001001, {InstructionID::INSN_FMUL, (H << 2) | (L << 1) | M}},
@@ -124,7 +125,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b1101001, {InstructionID::INSN_FMULX, calcIndexInsnTableWithSize()}}
         };
 
-        char Ts{};
+        unsigned short int Ts{};
         
         unsigned short int encoding = (U << 4) | opcode;
         auto it{insnTable.find(encoding)};
@@ -138,30 +139,72 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             if (it == insnTableWithSize.end()) [[unlikely]]
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-            const auto regSize{size == 0b00 ? 16 : ((size & 0b01) == 0b1 ? 64 : 32)};
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, size == 0b00 ? Rm : (M << 4) | Rm, 128 + 'V'));
+            const auto rsize
+			{
+				size == 0b00
+					? disxx::disasm::operand::Register::Type::TYPE_H
+					: (
+						(size & 0b01) == 0b1
+							? disxx::disasm::operand::Register::Type::TYPE_D
+							: disxx::disasm::operand::Register::Type::TYPE_S
+					)
+			};
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rd));
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rn));
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					size == 0b00 ? Rm : (M << 4) | Rm
+				)
+			);
             
-            Ts = (size & 0b01) == 0b1 ? 'd' : 's';
+            Ts = (size & 0b01) == 0b1 ? 0b1011 : 0b1010;
         }
         else
         {
-            const auto VbSize{size == 0b01 ? 16 : 32};
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, VbSize << 1));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, VbSize));
+			const auto [VaSize, VbSize]
+			{
+				[size] -> std::pair<disxx::disasm::operand::Register::Type, disxx::disasm::operand::Register::Type>
+				{
+					if (size == 0b01)
+					{
+						return std::make_pair
+						(
+							disxx::disasm::operand::Register::Type::TYPE_S,
+							disxx::disasm::operand::Register::Type::TYPE_H
+						);
+					}
+
+					return std::make_pair
+					(
+						disxx::disasm::operand::Register::Type::TYPE_S,
+						disxx::disasm::operand::Register::Type::TYPE_D
+					);
+				}()
+			};
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(VaSize, Rd));
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(VbSize, Rn));
 
             const auto Rmhi{size == 0b01 ? 0b0 : M};
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, (Rmhi << 4) | Rm, 128 + 'V'));
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					(Rmhi << 4) | Rm
+				)
+			);
             
-            Ts = size == 0b01 ? 'h' : 's';
+            Ts = size == 0b01 ? 0b1001 : 0b1010;
         }
 
         const auto &[insn, index]{it->second};
-        if (index == std::numeric_limits<signed short int>::min()) [[unlikely]]
+        if (!index) [[unlikely]]
         	return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 		static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
-            ->SetArrangementSpecifier(std::format("{:c}[{}]", Ts, index));
+            ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{Ts, *index});
         
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

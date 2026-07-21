@@ -69,10 +69,39 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				-> std::array<disxx::disasm::operand::VectorArrangementSpecifier, 3>
 			{ return {Ta, Tb, Tb}; }
 		};
-        const auto addDoubleTaFirst{[](std::string Ta, std::string Tb) -> std::array<std::string, 3> { return {Ta, Ta, Tb}; }};
-        const auto addSingleTbFirst{[](std::string Ta, std::string Tb) -> std::array<std::string, 3> { return {Tb, Ta, Ta}; }};
+        const auto addDoubleTaFirst
+		{
+			[](disxx::disasm::operand::VectorArrangementSpecifier Ta, disxx::disasm::operand::VectorArrangementSpecifier Tb)
+				-> std::array<disxx::disasm::operand::VectorArrangementSpecifier, 3>
+			{ return {Ta, Ta, Tb}; }
+		};
+        const auto addSingleTbFirst
+		{
+			[](disxx::disasm::operand::VectorArrangementSpecifier Ta, disxx::disasm::operand::VectorArrangementSpecifier Tb)
+				-> std::array<disxx::disasm::operand::VectorArrangementSpecifier, 3>
+			{ return {Tb, Ta, Ta}; }
+		};
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::array<std::string, 3>(std::string, std::string)>>> insnTable = {
+        std::unordered_map
+		<
+			unsigned short int,
+			std::pair
+			<
+				InstructionID,
+				std::function
+				<
+					std::array
+					<
+						disxx::disasm::operand::VectorArrangementSpecifier,
+						3
+					>
+					(
+						disxx::disasm::operand::VectorArrangementSpecifier,
+						disxx::disasm::operand::VectorArrangementSpecifier
+					)
+				>
+			>
+		> insnTable = {
             {0b000000, {InstructionID::INSN_SADDL, addSingleTaFirst}},
             {0b100000, {InstructionID::INSN_SADDL2, addSingleTaFirst}},
             {0b000001, {InstructionID::INSN_SAADW, addDoubleTaFirst}},
@@ -163,14 +192,14 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 
                     return std::make_pair
                     (
-						disxx::disasm::operand::VectorArrangementSpecifier{size == 0b00 ? 0b0011 : 0b1111},
+						disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(size == 0b00 ? 0b0011 : 0b1111)},
                     	disxx::disasm::operand::VectorArrangementSpecifier{size == 0b00 ? Q : static_cast<unsigned short int>(0b110 | Q)}    
                     );
                 }
 
                 return std::make_pair
                 (
-					disxx::disasm::operand::VectorArrangementSpecifier{((size + 1) << 1) | 0b1},
+					disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(((size + 1) << 1) | 0b1)},
                     disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)}
                 );
             }()
@@ -180,11 +209,32 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         const auto &[Ta, Tb]{result.value()};
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rm
+			)
+		);
         for (auto i{0}; const auto &spec : fmtf(Ta, Tb))
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(i++).get())->SetArrangementSpecifier(spec);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(i++).get())->SetVectorArrangementSpecifier(spec);
         return std::make_pair(insn, std::move(this->m_Operands));
 	}
 } /* disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::AdvancedSIMDThreeDifferent */

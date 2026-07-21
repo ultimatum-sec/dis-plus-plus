@@ -78,9 +78,30 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 16));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 16));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 16));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_H,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_H,
+				Rn
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_H,
+				Rm
+			)
+		);
         
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}

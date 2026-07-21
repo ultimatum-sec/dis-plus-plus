@@ -98,11 +98,27 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        const auto specifier{Q == 0b1 ? "8h" : "4h"};
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(specifier);
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(specifier);
+        const disxx::disasm::operand::VectorArrangementSpecifier specifier{static_cast<unsigned short int>(0b010 | Q)};
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
+			->SetVectorArrangementSpecifier(specifier);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
+			->SetVectorArrangementSpecifier(specifier);
         if (opcode >= 0b01100 && opcode <= 0b01110)
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<float, 1>>(0.f));
 

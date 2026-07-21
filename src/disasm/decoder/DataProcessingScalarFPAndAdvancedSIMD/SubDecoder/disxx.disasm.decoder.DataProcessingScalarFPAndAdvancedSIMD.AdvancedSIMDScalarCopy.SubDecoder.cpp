@@ -64,22 +64,40 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (op != 0b0 && imm4 != 0b0000) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        const auto set{bits::HighestSetBit<unsigned short int, 5>(imm5)};
-        if (set >= 4) [[unlikely]]
+        const auto index{bits::HighestSetBit<unsigned short int, 5>(imm5)};
+        if (index >= 4) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 8 << set));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				std::array<disxx::disasm::operand::Register::Type, 4>
+				{
+					disxx::disasm::operand::Register::Type::TYPE_B,
+					disxx::disasm::operand::Register::Type::TYPE_H,
+					disxx::disasm::operand::Register::Type::TYPE_S,
+					disxx::disasm::operand::Register::Type::TYPE_D
+				}[index],
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetVectorArrangementSpecifier
         (
-            std::format
-            (
-                "{:c}[{}]",
-                std::array<const char, 4>{'b', 'h', 's', 'd'}
-                    .at(set),
-                imm5 >> (set + 1)
-            )
-        );
+			disxx::disasm::operand::VectorArrangementSpecifier
+			{
+				static_cast<unsigned short int>(0b1000 + index),
+                static_cast<unsigned short int>(imm5 >> (index + 1))
+        	}
+		);
 
         return std::make_pair(InstructionID::INSN_MOV, std::move(this->m_Operands));
 	}

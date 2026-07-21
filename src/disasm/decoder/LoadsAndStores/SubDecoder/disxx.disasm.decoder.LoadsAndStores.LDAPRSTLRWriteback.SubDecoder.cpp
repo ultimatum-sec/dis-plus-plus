@@ -49,7 +49,7 @@ namespace disxx::disasm::decoder::LoadsAndStores::LDAPRSTLRWriteback
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +----+-------+-+------------+--+--+
         // |size|0110011|L|000000000010|Rn|Rt|

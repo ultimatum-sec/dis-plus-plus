@@ -124,27 +124,32 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b11101011, InstructionID::INSN_NEG}
         };
 
+		static constexpr std::array<disxx::disasm::operand::Register::Type, 4> types
+		{
+			disxx::disasm::operand::Register::Type::TYPE_B,
+			disxx::disasm::operand::Register::Type::TYPE_H,
+			disxx::disasm::operand::Register::Type::TYPE_S,
+			disxx::disasm::operand::Register::Type::TYPE_D
+		};
+
         auto encoding = (U << 5) | opcode;
         if (auto it{insnTable.find(encoding)}; it != insnTable.end())
         {
             if (opcode == 0b00011 || opcode == 0b00111)
             {
-                const auto regSize{std::array<unsigned short int, 4>{8, 16, 32, 64}.at(size)};
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
+                const auto rsize{types[size]};
+
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rd));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rn));
             }
             else
             {
                 // Reserved...
-                if (size == 4) [[unlikely]]
+                if (size == 0b11) [[unlikely]]
                     return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-                unsigned short int VbSize{}, VaSize{};
-                VbSize = std::array<unsigned short int, 3>{8, 16, 32}.at(size);
-                VaSize = VbSize << 1;
-
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, VbSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, VaSize));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(types[size], Rd));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(types[size + 1], Rn));
             }
 
             return std::make_pair(it->second, std::move(this->m_Operands));
@@ -158,9 +163,14 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
     
             if (encoding != 0b10110110)
             {
-                const auto regSize{bits::extract<unsigned short int, unsigned short int, 0, 0>(size) == 0b0 ? 32 : 64};
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
+                const auto rsize
+				{
+					bits::extract<unsigned short int, unsigned short int, 0, 0>(size) == 0b0
+						? disxx::disasm::operand::Register::Type::TYPE_S
+						: disxx::disasm::operand::Register::Type::TYPE_D
+				};
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rd));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rsize, Rn));
                 if (opcode != 0b01011 && bits::extract<unsigned short int, unsigned short int, 4, 4>(opcode) == 0b0)
                 {
                     if (opcode <= 0b01110 && opcode >= 0b01100)
@@ -173,8 +183,22 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             }
             else
             {
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 32));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 64));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_S,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_D,
+						Rn
+					)
+				);
 
                 return std::make_pair(it->second, std::move(this->m_Operands));
             }

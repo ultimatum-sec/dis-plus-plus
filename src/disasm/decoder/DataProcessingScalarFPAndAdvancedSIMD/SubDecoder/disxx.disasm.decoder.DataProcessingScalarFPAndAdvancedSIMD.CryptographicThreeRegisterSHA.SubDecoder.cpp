@@ -73,25 +73,77 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Cryptog
         const auto it{insnTable.find(opcode)};
         if (it == insnTable.end() && size != 0b00) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier("4s");
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rm
+			)
+		);
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
+			->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
 
         if (opcode <= 0b010)
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 32));
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_Q,
+					Rd
+				)
+			);
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_S,
+					Rn
+				)
+			);
         }
         else if (opcode == 0b011 || opcode == 0b110)
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier("4s");
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier("4s");
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Rd
+				)
+			);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Rn
+				)
+			);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
         }
         else
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128));
-               this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128));
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_Q,
+					Rd
+				)
+			);
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_Q,
+					Rn
+				)
+			);
         }
     
         return std::make_pair(it->second, std::move(this->m_Operands));

@@ -124,79 +124,96 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
     
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rm
+			)
+		);
     
         if (opcode == 0b1110)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier(Q == 0b1 ? "16b" : "8b");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{Q});
             
-            const auto Tb{size == 0b00 ? "4s" : (Q == 0b1 ? "8h" : "4h")};
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier(Tb);
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier(Tb);
+            const disxx::disasm::operand::VectorArrangementSpecifier Tb{static_cast<unsigned short int>(size == 0b00 ? 0b101 : 0b010 | Q)};
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetVectorArrangementSpecifier(Tb);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetVectorArrangementSpecifier(Tb);
 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         else if (U == 0b0 && size <= 0b01 && opcode == 0b1111)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetVectorArrangementSpecifier
             (
-                [&size, &Q](void) -> const char *
-                {
-                    if (size == 0b00)
-                        return Q == 0b1 ? "4s" : "2s";
-                    return Q == 0b1 ? "8h" : "4h";
-                }()
+				disxx::disasm::operand::VectorArrangementSpecifier
+				{
+                	[&size, &Q](void) -> unsigned short int
+                	{
+               	    	if (size == 0b00)
+               	        	return 0b100 | Q;
+                    	return 0b010 | Q;
+                	}()
+				}
             );
 
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier(Q == 0b1 ? "16b" : "8b");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier(Q == 0b1 ? "16b" : "8b");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{Q});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{Q});
 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         else if ((opcode >> 2) == 0b01 || opcode == 0b0010 || opcode == 0b0011)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier(Q == 0b1 ? "4s" : "2s");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier(Q == 0b1 ? "16b" : "8b");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier(Q == 0b1 ? "16b" : "8b");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(0b100 | Q)});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{Q});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{Q});
             
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         else if (U == 0b1 && opcode <= 0b0001)
         {
-            std::unordered_map<unsigned short int, const char *> specifiersTable = {
-                {0b010, "4h"},
-                {0b011, "8h"},
-                {0b100, "2s"},
-                {0b101, "4s"}
-            };
-
-            const auto T{specifiersTable.find((size << 1) | Q)};
-            if (T == specifiersTable.end()) [[unlikely]]
-                return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+			const auto bits{static_cast<unsigned short int>((size << 1) | Q)};
+			if (bits < 0b010 || bits > 0b101) [[unlikely]]
+				return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
             for (auto &pReg : this->m_Operands)
-                static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetArrangementSpecifier(T->second);
+                static_cast<disxx::disasm::operand::Register *>(pReg.get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{bits});
 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         else if (U == 0b1 && (((opcode >> 2) == 0b10) || ((opcode & ~(0b1 << 1)) == 0b1100)))
         {
-            std::unordered_map<unsigned short int, const char *> arrangementSpecifierTable = {
-                {0b010, "4h"},
-                {0b011, "8h"},
-                {0b100, "2s"},
-                {0b101, "4s"},
-                {0b111, "2d"}
-            };
-
-            const auto T{arrangementSpecifierTable.find((size << 1) | Q)};
-            if (T == arrangementSpecifierTable.end()) [[unlikely]]
-                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+			const auto bits{static_cast<unsigned short int>((size << 1) | Q)};
+			if (bits < 0b010) [[unlikely]]
+				return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
             for (auto &pReg : this->m_Operands)
-                static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetArrangementSpecifier(T->second);
+                static_cast<disxx::disasm::operand::Register *>(pReg.get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{bits});
 
             // rot
             this->m_Operands.emplace_back
@@ -214,34 +231,43 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             if (size == 0b01)
             {
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
-                    ->SetArrangementSpecifier(Q == 0b1 ? "4s" : "2s");
+                    ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(0b100 | Q)});
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
-                    ->SetArrangementSpecifier(Q == 0b1 ? "8h" : "4h");
+                    ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(0b010 | Q)});
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
-                    ->SetArrangementSpecifier(Q == 0b1 ? "8h" : "4h");
+                    ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(0b010 | Q)});
 
                 return std::make_pair(it->second, std::move(this->m_Operands));
             }
 
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier("4s");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier("8h");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier("8h");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b011});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b011});
                 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         else if (opcode == 0b1000)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier("4s");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier("16b");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier("16b");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b001});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b001});
         
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
         else if (size == 0b11 && opcode == 0b1111)
         {
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier("8h");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier("16b");
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier("16b");
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b011});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b001});
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b001});
         
             return std::make_pair(it->second, std::move(this->m_Operands));
         }
@@ -249,17 +275,23 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         {
             if (size == 0b00)
             {
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier("8h");
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier("16b");
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier("16b");
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b010});
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b001});
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
         
                 return std::make_pair(it->second, std::move(this->m_Operands));
             }
             else
             {
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier("4s");
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier("16b");
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())->SetArrangementSpecifier("16b");
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b101});
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b001});
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(2).get())
+					->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b001});
         
                 return std::make_pair(it->second, std::move(this->m_Operands));
             }

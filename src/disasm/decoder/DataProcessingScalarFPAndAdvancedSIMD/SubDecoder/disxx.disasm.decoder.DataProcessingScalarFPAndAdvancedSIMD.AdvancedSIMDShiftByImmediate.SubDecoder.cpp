@@ -1,6 +1,7 @@
 module;
 
 #include <unordered_map>
+#include <optional>
 #include <utility>
 #include <cstdint>
 #include <vector>
@@ -69,7 +70,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 
         const auto getAmountInTheRange0
         {
-            [=](short int border = -1, bool shouldExtract = false) -> signed short int
+            [=](signed short int border = -1, bool shouldExtract = false)
+				-> std::optional<signed short int>
             {
                 const auto index
                 {
@@ -82,14 +84,15 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 };
 
                 if (index == border) [[unlikely]]
-                	return std::numeric_limits<signed short int>::min();
+                	return std::nullopt;
 				return ((immh << 3) | immb) - (8 << index);
             }
         };
 
         const auto getAmountInTheRange1
         {
-            [=](short int border = -1, bool shouldExtract = false) -> signed short int
+            [=](signed short int border = -1, bool shouldExtract = false)
+				-> std::optional<signed short int>
             {
                 const auto index
                 {
@@ -102,12 +105,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 };
 
                 if (index == border) [[unlikely]]
-                	return std::numeric_limits<signed short int>::min();
+                	return std::nullopt;
 				return ((8 << index) * 2) - ((immh << 3) | immb);
             }
         };
 
-        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<signed short int(void)>>> insnTable = {
+        std::unordered_map<unsigned short int, std::pair<InstructionID, std::function<std::optional<signed short int>(void)>>> insnTable = {
             {0b000000, {InstructionID::INSN_SSHR, getAmountInTheRange1}},
             {0b000010, {InstructionID::INSN_SSRA, getAmountInTheRange1}},
             {0b000100, {InstructionID::INSN_SRSRA, getAmountInTheRange1}},
@@ -143,12 +146,25 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         auto [insn, amountFunc]{it->second};
     
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        // Imm must be signed, so it's better to put it in the Immediate class to decode it with correct sign
-        if (const auto amount{amountFunc()}; amount != std::numeric_limits<signed short int>::min())
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<signed short int, 16>>(amount));
-        else
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        if (const auto amount{amountFunc()}) [[likely]]
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<signed short int, 16>>(*amount));
+        else [[unlikely]]
    			return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
  
         auto size{bits::HighestSetBitNZ<unsigned short int, 4>(immh)};
@@ -162,31 +178,37 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         //if (bits::HighestSetBitNZ<unsigned short int, 4>(immh))
         if (opcode >= 0b10000 && opcode <= 0b10100)
         {
-            // I don't have to check if highest set bit is 4,
-            // because amountFunc throws an exception if so
-            const auto spec{std::array<const char *, 3>{"8h", "4s", "2d"}.at(size)};
+            const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>(((size + 1) << 1) | 0b1)};
             if (opcode == 10100)
             {
                 if (immb == 0b000 && bits::BitCount<unsigned short int, 4>(immh) == 1)
-                    insn = std::array<InstructionID, 4>{InstructionID::INSN_SXTL, InstructionID::INSN_SXTL2, InstructionID::INSN_UXTL, InstructionID::INSN_UXTL2}.at((U << 1) | Q);
+				{
+                    insn = std::array<InstructionID, 4>
+					{
+						InstructionID::INSN_SXTL,
+						InstructionID::INSN_SXTL2,
+						InstructionID::INSN_UXTL,
+						InstructionID::INSN_UXTL2
+					}[(U << 1) | Q];
+				}
                 
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
-                    ->SetArrangementSpecifier(disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q).data());
-                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier(spec);
+                    ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)});
+                static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetVectorArrangementSpecifier(spec);
 
                 return std::make_pair(insn, std::move(this->m_Operands));
             }
         
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier(spec);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetVectorArrangementSpecifier(spec);
             static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
-                ->SetArrangementSpecifier(disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q).data());
+                ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)});
 
             return std::make_pair(insn, std::move(this->m_Operands));
         }
     
-        const auto spec{disxx::disasm::operand::Register::GetArrangementSpecifier(size, Q).data()};
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetArrangementSpecifier(spec);
-        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetArrangementSpecifier(spec);
+        const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>((size << 1) | Q)};
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetVectorArrangementSpecifier(spec);
+        static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetVectorArrangementSpecifier(spec);
 
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

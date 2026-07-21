@@ -12,6 +12,26 @@ import disxx.disasm.operand.Register;
 import disxx.disasm.utility.bits;
 import disxx.disasm.InstructionID;
 
+namespace
+{
+	inline disxx::disasm::operand::Register::Type mktp(unsigned short int ftype) noexcept
+	{
+		switch (ftype)
+		{
+		  case 0b11:
+			return disxx::disasm::operand::Register::Type::TYPE_H;
+
+		  case 0b10:
+			[[fallthrough]];
+		  case 0b00:
+			return disxx::disasm::operand::Register::Type::TYPE_S;
+		
+		  default:
+			return disxx::disasm::operand::Register::Type::TYPE_D;
+		}
+	}
+} /* */
+
 namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::FloatingPointDataProcessing1Source
 {
 	SubDecoder::SubDecoder(void) noexcept
@@ -122,38 +142,122 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Floatin
             switch ((ftype << 2) | (opcode & 0b11))
             {
               case 0b1100:
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 32));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 16));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_S,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_H,
+						Rn
+					)
+				);
                 
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
               case 0b1101:
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 64));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 16));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_D,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_H,
+						Rn
+					)
+				);
                 
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
               case 0b0011:
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 16));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 32));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_H,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_S,
+						Rn
+					)
+				);
                 
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
               case 0b0001:
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 64));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 32));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_D,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_S,
+						Rn
+					)
+				);
                 
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
               case 0b0111:
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 16));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 64));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_H,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_D,
+						Rn
+					)
+				);
                 
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
               case 0b0100:
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 32));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 64));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_S,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_D,
+						Rn
+					)
+				);
                 
                 return std::make_pair(it->second, std::move(this->m_Operands));
 
@@ -161,15 +265,30 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Floatin
                 if (encoding != 0b0001000110) [[unlikely]]
                     return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 16));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 32));
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_H,
+						Rd
+					)
+				);
+                this->m_Operands.emplace_back
+				(
+					std::make_unique<disxx::disasm::operand::Register>
+					(
+						disxx::disasm::operand::Register::Type::TYPE_S,
+						Rn
+					)
+				);
                 
                 return std::make_pair(it->second, std::move(this->m_Operands));
             }
         }
-            
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 64 >> (ftype - (ftype != 0b00 ? 1 : -1))));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 64 >> (ftype - (ftype != 0b00 ? 1 : -1))));
+
+		const auto type{mktp(ftype)};
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rd));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rn));
 
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}

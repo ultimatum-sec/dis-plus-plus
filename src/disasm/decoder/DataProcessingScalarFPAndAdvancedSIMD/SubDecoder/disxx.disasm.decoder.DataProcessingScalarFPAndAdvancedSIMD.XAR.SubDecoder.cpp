@@ -59,11 +59,33 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::XAR
         Rn = bits::extract<unsigned short int, std::uint32_t, 5, 9>(this->m_Insn);
         Rd = bits::extract<unsigned short int, std::uint32_t, 0, 4>(this->m_Insn);
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rm
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
         for (auto &pReg : this->m_Operands)
-            static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetArrangementSpecifier("2d");
+            static_cast<disxx::disasm::operand::Register *>(pReg.get())
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{0b111});
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(imm6));
 
         return std::make_pair(InstructionID::INSN_XAR, std::move(this->m_Operands));

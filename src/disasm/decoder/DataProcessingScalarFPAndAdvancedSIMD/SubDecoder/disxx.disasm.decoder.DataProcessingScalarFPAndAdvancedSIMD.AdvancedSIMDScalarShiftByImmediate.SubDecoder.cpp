@@ -91,6 +91,14 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             {0b111111, {InstructionID::INSN_FCVTZU, (std::array<unsigned short int, 4>{16, 16, 32, 64}.at(bits::HighestSetBit<unsigned short int, 4>(immh)) * 2) - ((immh << 3) | immb)}}
         };
 
+		static constexpr std::array<disxx::disasm::operand::Register::Type, 4> types
+		{
+			disxx::disasm::operand::Register::Type::TYPE_B,
+			disxx::disasm::operand::Register::Type::TYPE_H,
+			disxx::disasm::operand::Register::Type::TYPE_S,
+			disxx::disasm::operand::Register::Type::TYPE_D
+		};
+
         if (immh == 0b0000) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
@@ -100,12 +108,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
         const auto &[insn, shift]{it->second};
 
-        // Some opcodes requires highest bit (in the size field) is active
+        // Some opcodes requires highest bit (in the size field) to be active
         const auto isActive
         {
             [](const unsigned short int val) -> bool
             {
-                std::array<unsigned short int, 6> vals
+                static constexpr std::array<unsigned short int, 6> vals
                 {
                     0b00000,
                     0b00010,
@@ -128,25 +136,24 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 if (index == 4) [[unlikely]]
                     return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
                 
-                const auto VbSize{std::array<unsigned short int, 3>{8, 16, 32}.at(index)};
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, VbSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, VbSize << 1));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(types[index], Rd));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(types[index + 1], Rn));
             }
             else
             {
-                const auto regSize{std::array<unsigned short int, 4>{8, 16, 32, 64}.at(index)};
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
+                const auto rtype{types[index]};
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rtype, Rd));
+                this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rtype, Rn));
             }
         }
         else
         {
             if (immh < 0b1000) [[unlikely]]
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-            
-            const auto regSize{std::array<unsigned short int, 4>{8, 16, 32, 64}.at(index)};
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, regSize));
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, regSize));
+           
+			const auto rtype{types[index]}; 
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rtype, Rd));
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rtype, Rn));
         }
 
         this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 16>>(shift));

@@ -70,12 +70,40 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Cryptog
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rd, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rm, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Rn, 128 + 'V'));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Ra, 128 + 'V'));
-        for (const auto spec{Op0 == 0b10 ? "4s" : "16b"}; auto &pReg : this->m_Operands)
-            static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetArrangementSpecifier(spec);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rd
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rm
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Rn
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				disxx::disasm::operand::Register::Type::TYPE_V,
+				Ra
+			)
+		);
+        for (const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>(Op0 == 0b10 ? 0b101 : 0b001)}; auto &pReg : this->m_Operands)
+            static_cast<disxx::disasm::operand::Register *>(pReg.get())->SetVectorArrangementSpecifier(spec);
     
         return std::make_pair(it->second, std::move(this->m_Operands));
 	}
