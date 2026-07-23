@@ -49,7 +49,7 @@ namespace disxx::disasm::decoder::LoadsAndStores::CompareAndSwap
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +----+-------+-+-+--+--+---+--+--+
         // |size|0010001|L|1|Rs|o0|Rt2|Rn|Rt|
@@ -89,10 +89,37 @@ namespace disxx::disasm::decoder::LoadsAndStores::CompareAndSwap
             }()
         };
         
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rs, size == 0b11 ? 64 : 32));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rt, size == 0b11 ? 64 : 32));
-        disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64};
-		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b11
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,	
+				Rs
+			)
+		);
+        this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::Register>
+			(
+				size == 0b11
+					? disxx::disasm::operand::Register::Type::TYPE_X
+					: disxx::disasm::operand::Register::Type::TYPE_W,
+				Rt
+			)
+		);
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>
+			(
+				disxx::disasm::operand::Register
+				{
+					disxx::disasm::operand::Register::Type::TYPE_X,
+					Rn
+				}
+			)
+		);
 
         return std::make_pair(insn, std::move(this->m_Operands));
 	}

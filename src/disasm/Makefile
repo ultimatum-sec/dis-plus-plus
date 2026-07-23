@@ -273,7 +273,7 @@ SOURCES=\
 	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.CompareAndSwapUnprivileged.SubDecoder.cpp \
 	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.CompareAndSwapPairUnprivileged.SubDecoder.cpp \
 	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.CompareAndSwap.SubDecoder.cpp \
-	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.128BitAtomicMemoryOperations.SubDecoder.cpp \
+	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.OneHundredAndTwentyEightBitAtomicMemoryOperations.SubDecoder.cpp \
 	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.GCS.SubDecoder.cpp \
 	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.AtomicMemoryOperationsUnprivileged.SubDecoder.cpp \
 	.$(PATHSEP)decoder$(PATHSEP)LoadsAndStores$(PATHSEP)SubDecoder$(PATHSEP)disxx.disasm.decoder.LoadsAndStores.RegisterImmediatePostIndexed.SubDecoder.cpp \

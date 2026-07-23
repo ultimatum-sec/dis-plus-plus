@@ -123,18 +123,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 					)
 				}
 			);
-            this->m_Operands.emplace_back
-            (
-                std::make_unique<disxx::disasm::operand::Immediate<unsigned long long int, 64>>
-                (
-                    bits::AdvSIMDExpandImm
-                    (
-                        op,
-                        cmode,
-                        imm8
-                    )
-                )
-            );
+		
+			const auto imm{bits::AdvSIMDExpandImm(op, cmode, imm8)};
+			if (!imm) [[unlikely]]
+				return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned long long int, 64>>(*imm));
 
             return std::make_pair(it->second, std::move(this->m_Operands));
         }

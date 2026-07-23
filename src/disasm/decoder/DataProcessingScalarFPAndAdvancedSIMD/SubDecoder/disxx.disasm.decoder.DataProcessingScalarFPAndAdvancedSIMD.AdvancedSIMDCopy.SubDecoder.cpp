@@ -86,9 +86,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
         const auto index{bits::LowestSetBitNZ<unsigned short int, 5>(imm5)};
+		if (!index) [[unlikely]]
+			return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+
         if (encoding <= 0b000001)
         {
-            if ((index == 3 && Q == 0b0) || index == 4) [[unlikely]]
+            if ((*index == 3 && Q == 0b0) || *index == 4) [[unlikely]]
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
             this->m_Operands.emplace_back
@@ -100,7 +103,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				)
 			);
             static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())
-				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((index << 1) | Q)});
+				->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((*index << 1) | Q)});
 
             if (encoding == 0b000000)
             {
@@ -116,8 +119,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 (
 					disxx::disasm::operand::VectorArrangementSpecifier
 					{
-						static_cast<unsigned short int>(0b1000 | index),
-                    	static_cast<unsigned short int>(imm5 >> (index + 1))
+						static_cast<unsigned short int>(0b1000 | *index),
+                    	static_cast<unsigned short int>(imm5 >> (*index + 1))
 					}
                 );
             }
@@ -127,7 +130,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				(
 					std::make_unique<disxx::disasm::operand::Register>
 					(
-						index == 3
+						*index == 3
 							? disxx::disasm::operand::Register::Type::TYPE_X
 							: disxx::disasm::operand::Register::Type::TYPE_W,
 						Rn
@@ -139,7 +142,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         }
         else if (imm4 == 0b0101)
         {
-            if ((Q == 0b0 && index >= 2) || (Q == 0b1 && index >= 3)) [[unlikely]]
+            if ((Q == 0b0 && *index >= 2) || (Q == 0b1 && *index >= 3)) [[unlikely]]
                 return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
 
             this->m_Operands.emplace_back
@@ -164,8 +167,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             (
 				disxx::disasm::operand::VectorArrangementSpecifier
 				{
-					static_cast<unsigned short int>(0b1000 | index),
-                	static_cast<unsigned short int>(imm5 >> (index + 1))
+					static_cast<unsigned short int>(0b1000 | *index),
+                	static_cast<unsigned short int>(imm5 >> (*index + 1))
             	}
 			);
 
@@ -209,8 +212,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                 (
 					disxx::disasm::operand::VectorArrangementSpecifier
 					{
-						static_cast<unsigned short int>(0b1000 | index),
-                		static_cast<unsigned short int>(imm5 >> (index + 1))
+						static_cast<unsigned short int>(0b1000 | *index),
+                		static_cast<unsigned short int>(imm5 >> (*index + 1))
             		}
                 );
             }
@@ -233,8 +236,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         (
 			disxx::disasm::operand::VectorArrangementSpecifier
 			{
-				static_cast<unsigned short int>(0b1000 | index),
-               	static_cast<unsigned short int>(imm5 >> (index + 1))
+				static_cast<unsigned short int>(0b1000 | *index),
+               	static_cast<unsigned short int>(imm5 >> (*index + 1))
             }
         );
 
@@ -252,8 +255,8 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
             (
 				disxx::disasm::operand::VectorArrangementSpecifier
 				{
-					static_cast<unsigned short int>(0b1000 | index),
-					static_cast<unsigned short int>(imm4 >> index)
+					static_cast<unsigned short int>(0b1000 | *index),
+					static_cast<unsigned short int>(imm4 >> *index)
 				}
             );
         }

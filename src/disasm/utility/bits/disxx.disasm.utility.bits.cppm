@@ -2,17 +2,15 @@ module;
 
 #include <disconf.hpp>
 
-#include <stdexcept>
-#include <format>
-
 export module disxx.disasm.utility.bits;
 
 export import <type_traits>;
+export import <stdexcept>;
 export import <concepts>;
 export import <expected>;
 export import <variant>;
+export import <utility>;
 export import <cstdint>;
-export import <tuple>;
 export import <cmath>;
 export import <bit>;
 
@@ -29,7 +27,7 @@ export namespace bits
 	requires Extractable<T, U, _Start, _Width>
 	inline T extract(U input) noexcept
 	{
-		T result{0};
+		auto result{static_cast<T>(0)};
 		#ifdef __aarch64__
 			if constexpr (std::is_signed<T>::value)
 			{	
@@ -56,7 +54,7 @@ export namespace bits
                 );
 			}
 		#else
-			// Don't know other assembly dialects, can't fully optimize that :(
+			// Don't know other assembly dialects - can't fully optimize that :(
 			constexpr U mask{static_cast<U>(((1 << ((_Width - _Start) + 1)) - 1) << _Start)};
 			result = (input & mask) >> _Start;
 		#endif
@@ -79,17 +77,17 @@ export namespace bits
 
 	template <std::integral T, unsigned short int _Size>
     requires (_Size + 1 <= sizeof(T) * 8)
-	__DISXX_PRIVATE__ short int HighestSetBitNZ(T x) noexcept(false)
+	__DISXX_PRIVATE__ std::expected<signed short int, std::monostate> HighestSetBitNZ(T x) noexcept
 	{
 		if (!x) [[unlikely]]
-			throw std::invalid_argument{std::format("ContractViolationError: {}", __func__)};
+			return std::unexpected{std::monostate{}};
 
 		return HighestSetBit<T, _Size>(x);
 	}
 
 	template <std::unsigned_integral T, unsigned short int _Size>
    	requires (_Size + 1 <= sizeof(T) * 8)
-   	__DISXX_PRIVATE__ short int LowestSetBit(T x) noexcept
+   	__DISXX_PRIVATE__ signed short int LowestSetBit(T x) noexcept
    	{
    	    for (short int i{0}; i < _Size; ++i)
    	    {
@@ -102,10 +100,10 @@ export namespace bits
 
 	template <std::unsigned_integral T, unsigned short int _Size>
     requires (_Size + 1 <= sizeof(T) * 8)
-    __DISXX_PRIVATE__ short int LowestSetBitNZ(T x)
+    __DISXX_PRIVATE__ std::expected<signed short int, std::monostate> LowestSetBitNZ(T x) noexcept
     {
 		if (!x) [[unlikely]]
-      		throw std::invalid_argument{std::format("ContractViolationError: {}", __func__)};
+			return std::unexpected{std::monostate{}};
  
 		return LowestSetBit<T, _Size>(x);
     }
@@ -123,49 +121,51 @@ export namespace bits
 		return result;
 	}
 
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wimplicit-int-conversion"
 	template <std::unsigned_integral T, std::unsigned_integral U, unsigned short int _M>
 	requires (_M <= sizeof(U) * 8)
 	__DISXX_PRIVATE__ T Replicate(U x, unsigned short int N) noexcept
 	{
-		T result{0};
+		auto result{static_cast<T>(0)};
 		for (unsigned short int i{0}; i < N; ++i)
 			result = (result << _M) | x;
 		
 		return result;
 	}
-	#pragma clang diagnostic pop
 
-	template <std::integral T> __DISXX_PRIVATE__ T Ones(unsigned short int N) noexcept(false)
+	template <std::integral T>
+	__DISXX_PRIVATE__ std::expected<T, std::monostate> Ones(unsigned short int N) noexcept
     {
 		if (N > sizeof(T) * 64) [[unlikely]]
-			throw std::invalid_argument{std::format("ContractViolationError: {}", __func__)};
+			return std::unexpected{std::monostate{}};
 
-		T result{0};
+		auto result{static_cast<T>(0)};
         for (unsigned short int i{0}; i < N; ++i)
             result |= (1 << i);
         return result;
     }
 
 	template <std::integral T, std::integral U, unsigned short int _M>
-	__DISXX_PRIVATE__ T ZeroExtend(U x, unsigned short int N) noexcept(false)
+	__DISXX_PRIVATE__ std::expected<T, std::monostate> ZeroExtend(U x, unsigned short int N) noexcept
 	{
 		if (N < _M) [[unlikely]]
-			throw std::invalid_argument{std::format("ContractViolationError: {}", __func__)};
+			return std::unexpected{std::monostate{}};
 
-		return static_cast<T>(x & Ones<T>(N));
+		const auto ones{Ones<T>(N)};
+		if (!ones) [[unlikely]]
+			return std::unexpected{std::monostate{}};
+
+		return static_cast<T>(x & *ones);
 	}
 
 	template <std::integral T, unsigned short int _N> requires (sizeof(T) * 8 == _N)
 	__DISXX_PRIVATE__ bool IsOnes(T x) { return x == Ones<T>(_N); }
 
 	template<std::integral T, unsigned short int _M> requires (_M <= sizeof(T) * 8)
-	__DISXX_PRIVATE__ std::expected<std::tuple<T, T>, std::monostate> DecodeBitMasks
+	__DISXX_PRIVATE__ std::expected<std::pair<T, T>, std::monostate> DecodeBitMasks
     (
         bool immN, unsigned short int imms,
 		unsigned short int immr, bool immediate
-    ) noexcept(false) 
+    ) noexcept
 	{
 		auto tmask{static_cast<T>(0)}, wmask{static_cast<T>(0)};
 
@@ -173,41 +173,55 @@ export namespace bits
 			return std::unexpected{std::monostate{}};
 
 		const auto len{HighestSetBitNZ<unsigned short int, 7>((immN << 6) | (~imms))};
-		if (!(2 <= std::pow(2, len) && std::pow(2, len) <= _M)) [[unlikely]]
-			 return std::unexpected{std::monostate{}};
-		
-		const auto levels{ZeroExtend<unsigned short int, unsigned short int, 6>(Ones<unsigned short int>(len), 6)};
-		if (immediate && (imms & levels) == levels) [[unlikely]]
+		if (!len) [[unlikely]]
+			return std::unexpected{std::monostate{}};
+
+		if (!(2 <= std::pow(2, *len) && std::pow(2, *len) <= _M)) [[unlikely]]
 			return std::unexpected{std::monostate{}};
 		
-		auto s{imms & levels}, r{immr & levels};
-		auto diff{s - r}, esize{1 << len};
-		auto d{diff & Ones<unsigned short int>(len - 1)};
+		const auto ones{Ones<unsigned short int>(*len)};
+		if (!ones) [[unlikely]]
+			return std::unexpected{std::monostate{}};
+
+		const auto levels{ZeroExtend<unsigned short int, unsigned short int, 6>(*ones, 6)};
+		if (!levels) [[unlikely]]
+			return std::unexpected{std::monostate{}};
+
+		if (immediate && (imms & *levels) == *levels) [[unlikely]]
+			return std::unexpected{std::monostate{}};
 		
-		const auto &[welem, telem] = [esize, s, d](void) -> std::tuple<T, T>
-		{
-			return std::make_tuple
-			(
-				ZeroExtend<T, unsigned short int, _M>(Ones<unsigned short int>(s + 1), esize),
-				ZeroExtend<T, unsigned short int, _M>(Ones<unsigned short int>(d + 1), esize)
-			);
-		}();
+		auto s{imms & *levels}, r{immr & *levels};
+		auto diff{s - r}, esize{1 << *len};
 
-		wmask = Replicate<T, T, _M>(std::rotr(welem, r), _M / esize);
-		tmask = Replicate<T, T, _M>(telem, _M / esize);
+		const auto mask{Ones<unsigned short int>(*len - 1)};
+		if (!mask) [[unlikely]]	
+			return std::unexpected{std::monostate{}};
 
-		return std::make_tuple(wmask, tmask);
+		auto d{diff & *mask};
+		
+		const auto sOnes{Ones<unsigned short int>(s + 1)}, dOnes{Ones<unsigned short int>(d + 1)};
+		if (!sOnes || !dOnes) [[unlikely]]
+			return std::unexpected{std::monostate{}};
+
+		const auto welem{ZeroExtend<T, unsigned short int, _M>(*sOnes, esize)}, telem{ZeroExtend<T, unsigned short int, _M>(*dOnes, esize)};
+		if (!welem || !telem) [[unlikely]]
+			return std::unexpected{std::monostate{}};
+
+		wmask = Replicate<T, T, _M>(std::rotr(*welem, r), _M / esize);
+		tmask = Replicate<T, T, _M>(*telem, _M / esize);
+
+		return std::make_pair(wmask, tmask);
 	}
 
 	/*
 	 * Non-template functions
 	 */
 
-	__DISXX_PRIVATE__ std::uint64_t AdvSIMDExpandImm(unsigned short int, unsigned short int, unsigned short int) noexcept(false);
+	__DISXX_PRIVATE__ std::expected<std::uint64_t, std::overflow_error> AdvSIMDExpandImm(unsigned short int, unsigned short int, unsigned short int) noexcept;
 
-	__DISXX_PRIVATE__ unsigned short int SysOp(unsigned short int, unsigned short int, unsigned short int, unsigned short int);
+	__DISXX_PRIVATE__ unsigned short int SysOp(unsigned short int, unsigned short int, unsigned short int, unsigned short int) noexcept;
 
-	__DISXX_PRIVATE__ bool SysOp128(unsigned short int, unsigned short int, unsigned short int, unsigned short int);
+	__DISXX_PRIVATE__ bool SysOp128(unsigned short int, unsigned short int, unsigned short int, unsigned short int) noexcept;
 
 	__DISXX_PRIVATE__ bool MoveWidePreferred(bool, bool, unsigned short int, unsigned short int) noexcept;
 

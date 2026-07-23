@@ -8,7 +8,8 @@ module disxx.disasm.decoder.DecoderFactory;
 
 import :PseudoDecoder;
 
- import disxx.disasm.decoder.abstract.Decoder;
+import disxx.disasm.utility.bits;
+import disxx.disasm.decoder.abstract.Decoder;
 import disxx.disasm.decoder.Reserved.Decoder;
 import disxx.disasm.decoder.DataProcessingImmediate.Decoder;
 import disxx.disasm.decoder.BranchesExceptionsAndSystemInstructions.Decoder;

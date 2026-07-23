@@ -2,8 +2,6 @@ module;
 
 #include <disconf.hpp>
 
-#include <stdexcept>
-#include <ranges>
 #include <memory>
 #include <string>
 
@@ -12,8 +10,9 @@ export module disxx.disasm.operand.Immediate;
 import disxx.disasm.operand.IOperand;
 
 export import <type_traits>;
+export import <algorithm>;
 export import <numeric>;
-export import <format>;
+export import <ranges>;
 export import <cmath>;
 
 template <typename T>

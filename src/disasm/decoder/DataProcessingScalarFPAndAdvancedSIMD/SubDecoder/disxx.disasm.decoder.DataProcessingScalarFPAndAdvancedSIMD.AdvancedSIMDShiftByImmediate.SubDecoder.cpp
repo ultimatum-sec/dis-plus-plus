@@ -82,10 +82,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                             : immh
                     )
                 };
+				if (!index) [[unlikely]]
+					return std::nullopt;
 
-                if (index == border) [[unlikely]]
+                if (*index == border) [[unlikely]]
                 	return std::nullopt;
-				return ((immh << 3) | immb) - (8 << index);
+				return ((immh << 3) | immb) - (8 << *index);
             }
         };
 
@@ -104,9 +106,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
                     )
                 };
 
-                if (index == border) [[unlikely]]
+				if (!index) [[unlikely]]
+					return std::nullopt;
+
+                if (*index == border) [[unlikely]]
                 	return std::nullopt;
-				return ((8 << index) * 2) - ((immh << 3) | immb);
+				return ((8 << *index) * 2) - ((immh << 3) | immb);
             }
         };
 
@@ -168,17 +173,20 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
    			return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
  
         auto size{bits::HighestSetBitNZ<unsigned short int, 4>(immh)};
-        if (size <= 0b10)
-			size >>= 1;
-        else if (size == 3)
-			size &= 1;
+        if (!size) [[unlikely]]
+			return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
+
+		if (*size <= 0b10)
+			*size >>= 1;
+        else if (*size == 3)
+			*size &= 1;
         else
-			size = 0b11;
+			*size = 0b11;
 
         //if (bits::HighestSetBitNZ<unsigned short int, 4>(immh))
         if (opcode >= 0b10000 && opcode <= 0b10100)
         {
-            const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>(((size + 1) << 1) | 0b1)};
+            const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>(((*size + 1) << 1) | 0b1)};
             if (opcode == 10100)
             {
                 if (immb == 0b000 && bits::BitCount<unsigned short int, 4>(immh) == 1)
@@ -193,7 +201,7 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
 				}
                 
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())
-                    ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)});
+                    ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((*size << 1) | Q)});
                 static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetVectorArrangementSpecifier(spec);
 
                 return std::make_pair(insn, std::move(this->m_Operands));
@@ -201,12 +209,12 @@ namespace disxx::disasm::decoder::DataProcessingScalarFPAndAdvancedSIMD::Advance
         
             static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetVectorArrangementSpecifier(spec);
             static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())
-                ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)});
+                ->SetVectorArrangementSpecifier(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((*size << 1) | Q)});
 
             return std::make_pair(insn, std::move(this->m_Operands));
         }
     
-        const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>((size << 1) | Q)};
+        const disxx::disasm::operand::VectorArrangementSpecifier spec{static_cast<unsigned short int>((*size << 1) | Q)};
         static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(0).get())->SetVectorArrangementSpecifier(spec);
         static_cast<disxx::disasm::operand::Register *>(this->m_Operands.at(1).get())->SetVectorArrangementSpecifier(spec);
 

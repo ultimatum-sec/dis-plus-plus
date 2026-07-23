@@ -49,7 +49,7 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterPairPreIndexed
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +---+---+--+---+-+----+---+--+--+
         // |opc|101|VR|010|L|imm7|Rt2|Rn|Rt|
@@ -64,52 +64,56 @@ namespace disxx::disasm::decoder::LoadsAndStores::RegisterPairPreIndexed
         Rt = bits::extract<unsigned short int, std::uint32_t, 0, 4>(this->m_Insn);
         const auto imm7
         {
-            disxx::disasm::operand::Immediate<signed short int, 7>
+            disxx::disasm::operand::Immediate<signed short int, 9>
             {
                 bits::extract<signed short int, std::uint32_t, 15, 21>(this->m_Insn),
-                disxx::disasm::operand::Immediate<signed short int, 7>::Option::OPT_SIGNEXTEND
+                disxx::disasm::operand::Immediate<signed short int, 9>::Option::OPT_SIGNEXTEND
             }
         };
 
-        const std::unordered_map<unsigned short int, std::tuple<InstructionID, unsigned short int, unsigned short int>> insnTable = {
-        //  |encoding|mnemonic|size|scale|
-            {0b0000, {InstructionID::INSN_STP, 32, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
-            {0b0001, {InstructionID::INSN_LDP, 32, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
-            {0b0010, {InstructionID::INSN_STP, 32, 2 + opc}},
-            {0b0011, {InstructionID::INSN_LDP, 32, 2 + opc}},
-            {0b0100, {InstructionID::INSN_STGP, 64, 4}},
-            {0b0101, {InstructionID::INSN_LDPSW, 64, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
-            {0b0110, {InstructionID::INSN_STP, 64, 2 + opc}},
-            {0b0111, {InstructionID::INSN_LDP, 64, 2 + opc}},
-            {0b1000, {InstructionID::INSN_STP, 64, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
-            {0b1001, {InstructionID::INSN_LDP, 64, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
-            {0b1010, {InstructionID::INSN_STP, 128, 2 + opc}},
-            {0b1011, {InstructionID::INSN_LDP, 128, 2 + opc}},
-            {0b1100, {InstructionID::INSN_STTP, 64, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
-            {0b1101, {InstructionID::INSN_LDTP, 64, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
-            {0b1110, {InstructionID::INSN_STTP, 128, 4}},
-            {0b1111, {InstructionID::INSN_LDTP, 128, 4}}
+        const std::unordered_map<unsigned short int, std::tuple<InstructionID, disxx::disasm::operand::Register::Type, unsigned short int>> insnTable = {
+        //  |encoding|mnemonic|type|scale|
+            {0b0000, {InstructionID::INSN_STP, disxx::disasm::operand::Register::Type::TYPE_W, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
+            {0b0001, {InstructionID::INSN_LDP, disxx::disasm::operand::Register::Type::TYPE_S, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
+            {0b0010, {InstructionID::INSN_STP, disxx::disasm::operand::Register::Type::TYPE_S, 2 + opc}},
+            {0b0011, {InstructionID::INSN_LDP, disxx::disasm::operand::Register::Type::TYPE_S, 2 + opc}},
+            {0b0100, {InstructionID::INSN_STGP, disxx::disasm::operand::Register::Type::TYPE_X, 4}},
+            {0b0101, {InstructionID::INSN_LDPSW, disxx::disasm::operand::Register::Type::TYPE_X, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
+            {0b0110, {InstructionID::INSN_STP, disxx::disasm::operand::Register::Type::TYPE_D, 2 + opc}},
+            {0b0111, {InstructionID::INSN_LDP, disxx::disasm::operand::Register::Type::TYPE_D, 2 + opc}},
+            {0b1000, {InstructionID::INSN_STP, disxx::disasm::operand::Register::Type::TYPE_X, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
+            {0b1001, {InstructionID::INSN_LDP, disxx::disasm::operand::Register::Type::TYPE_X, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
+            {0b1010, {InstructionID::INSN_STP, disxx::disasm::operand::Register::Type::TYPE_Q, 2 + opc}},
+            {0b1011, {InstructionID::INSN_LDP, disxx::disasm::operand::Register::Type::TYPE_Q, 2 + opc}},
+            {0b1100, {InstructionID::INSN_STTP, disxx::disasm::operand::Register::Type::TYPE_X, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
+            {0b1101, {InstructionID::INSN_LDTP, disxx::disasm::operand::Register::Type::TYPE_X, 2 + bits::extract<unsigned short int, unsigned short int, 1, 1>(opc)}},
+            {0b1110, {InstructionID::INSN_STTP, disxx::disasm::operand::Register::Type::TYPE_Q, 4}},
+            {0b1111, {InstructionID::INSN_LDTP, disxx::disasm::operand::Register::Type::TYPE_Q, 4}}
         };
  
         unsigned short int encoding = (opc << 2) | (VR << 1) | L;
         auto it{insnTable.find(encoding)};
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-        const auto &[insn, regSize, scale]{it->second};
+        const auto &[insn, rtype, scale]{it->second};
  
-        disxx::disasm::operand::Register::Type type
-        {
-            VR == 0b1
-                ? disxx::disasm::operand::Register::Type::TYPE_NEON
-                : disxx::disasm::operand::Register::Type::TYPE_GPR
-        };
-
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rt, regSize));
-        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(type, Rt2, regSize));
-        disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
-		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rtype, Rt));
+        this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(rtype, Rt2));
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>
+			(
+				disxx::disasm::operand::Register
+				{
+					disxx::disasm::operand::Register::Type::TYPE_X,
+					Rn,
+					true
+				}
+			)
+		);
         static_cast<disxx::disasm::operand::LoadsAndStoresAddress *>(this->m_Operands.rbegin()->get())
-            ->AddImmediatePreIndexedOffset((imm7 << scale).GetValue(), true);
-        return std::make_pair(insn, std::move(this->m_Operands));
+            ->AddImmediatePreIndexedOffset(imm7 << scale, disxx::disasm::operand::LoadsAndStoresAddress::PreIndexedOffsetKind::IDX_ACCUMULATIVE);
+        
+		return std::make_pair(insn, std::move(this->m_Operands));
 	}
 } /* disxx::disasm::decoder::LoadsAndStores::RegisterPairPreIndexed */

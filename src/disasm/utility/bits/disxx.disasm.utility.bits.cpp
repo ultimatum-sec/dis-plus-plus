@@ -1,9 +1,5 @@
 module;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-#pragma clang diagnostic ignored "-Wimplicit-int-conversion"
-
 #include <unordered_map>
 #include <stdexcept>
 #include <cstdint>
@@ -13,11 +9,11 @@ module disxx.disasm.utility.bits;
 
 namespace bits
 {
-	std::uint64_t AdvSIMDExpandImm(unsigned short int op, unsigned short int cmode, unsigned short int imm8) noexcept(false)
+	std::expected<std::uint64_t, std::overflow_error> AdvSIMDExpandImm(unsigned short int op, unsigned short int cmode, unsigned short int imm8) noexcept
 	{
 		// Maybe it gets imm8 as 16-bit int, but in fact it's an 8-bit integer
 		if (imm8 > std::numeric_limits<std::uint8_t>::max()) [[unlikely]]
-			throw std::overflow_error{"IntegerOverflowError"};
+			return std::unexpected{std::overflow_error{"IntegerOverflowError"}};
 
 		std::uint64_t imm64{0};
 		switch (extract<unsigned short int, unsigned short int, 1, 3>(cmode))
@@ -90,9 +86,9 @@ namespace bits
 		return imm64;
 	}
 
-	unsigned short int SysOp(unsigned short int op1, unsigned short int CRn, unsigned short int CRm, unsigned short int op2)
+	unsigned short int SysOp(unsigned short int op1, unsigned short int CRn, unsigned short int CRm, unsigned short int op2) noexcept
 	{
-		static std::unordered_map<unsigned short int, unsigned short int> SysOpTable = {
+		static const std::unordered_map<unsigned short int, unsigned short int> SysOpTable = {
 			{0b00001111000000, 1},
 			{0b00001111000001, 1},
 			{0b00001111000010, 1},
@@ -317,7 +313,7 @@ namespace bits
 		return 0;
 	}
 
-	bool SysOp128(unsigned short int op1, unsigned short int CRn, unsigned short int CRm, unsigned short int op2)
+	bool SysOp128(unsigned short int op1, unsigned short int CRn, unsigned short int CRm, unsigned short int op2) noexcept
 	{
 		unsigned short int encoding = (op1 << 11) | (CRn << 7) | (CRm << 3) | op2;
 		switch (encoding)
@@ -603,13 +599,3 @@ namespace bits
 		return true;
 	}
 } /* bits */
-
-#pragma clang diagnostic pop
-
-
-
-
-
-
-
-
