@@ -51,7 +51,7 @@ namespace disxx::disasm::decoder::LoadsAndStores::SIMDSingleStructurePostIndexed
 	std::unique_ptr<disxx::disasm::decoder::abstract::SubDecoder> SubDecoder::Clone(void) const noexcept
 	{ return std::make_unique<std::decay_t<decltype(*this)>>(*this); }
 
-	DisassemblyResult SubDecoder::Decode(void) const noexcept(false)
+	DisassemblyResult SubDecoder::Decode(void) const noexcept
 	{
         // +-+-+-------+-+-+--+------+-+----+--+--+
         // |0|Q|0011011|L|R|Rm|opcode|S|size|Rn|Rt|
@@ -108,65 +108,90 @@ namespace disxx::disasm::decoder::LoadsAndStores::SIMDSingleStructurePostIndexed
             {0b11111, {InstructionID::INSN_LD4R, 4}}
         };
 
-        const std::unordered_map<unsigned short int, unsigned short int> indexTable = {
-            {8, (Q << 3) | (S << 2) | size},
-            {16, (Q << 2) | (S << 1) | bits::extract<unsigned short int, unsigned short int, 1, 1>(size)},
-            {32, (Q << 1) | S},
-            {64, Q}
-        };
-
-        static constexpr std::array<const char *, 4> specifiersTable{"b", "h", "s", "d"};
-
         const unsigned short int encoding = ((L << 4) | (R << 3) | opcode);
         const auto it{insnTable.find(encoding)};
         if (it == insnTable.end()) [[unlikely]]
             return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-        const auto &[insn, regs]{it->second};
+        const auto &[insn, nregs]{it->second};
 
         // Calculating registers size
         const auto result
         {
-            [this, opcode, S, size](void) -> std::expected<unsigned short int, disxx::utility::error::DisassemblyError>
+            [this, opcode, S, size] -> std::expected<unsigned short int, disxx::utility::error::DisassemblyError>
             {
                 const auto index{bits::HighestSetBit<unsigned short int, 3>(opcode)};
                 if (index == 2 && (size != 0b00 || (S != 0b0 && size != 0b01) || opcode & ~(1 << 2))) [[unlikely]]
                     return std::unexpected{disxx::utility::error::DisassemblyError{this->m_Insn}};
-                return (8 << (index + (index < 0 ? 1 : 0))) << (S == 0b0 && size == 0b01);
+                return (8 << (index + (index < 0))) << (S == 0b0 && size == 0b01);
             }()
         };
 
         if (!result) [[unlikely]]
             return std::unexpected{result.error()};
-        const auto &regSize{result.value()};
+        const auto &rsize{*result};
 
         const auto [spec, index]
         {
-            [&indexTable, Q, L, opcode, S, size, regSize](void) -> std::pair<std::string, std::optional<unsigned short int>>
+            [Q, L, opcode, S, size, rsize] -> std::pair<disxx::disasm::operand::VectorArrangementSpecifier, std::optional<unsigned short int>>
             {
+				const std::unordered_map<unsigned short int, unsigned short int> indexTable = {
+            		{8, (Q << 3) | (S << 2) | size},
+            		{16, (Q << 2) | (S << 1) | bits::extract<unsigned short int, unsigned short int, 1, 1>(size)},
+            		{32, (Q << 1) | S},
+            		{64, Q}
+        		};
+
                 if (L == 0b1 && (opcode == 0b110 || opcode == 0b111) && S == 0b0)
-                    return std::make_pair(disxx::disasm::operand::Register::GetArrangementSpecifier(Q, size).data(), std::nullopt);
+                    return std::make_pair(disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>((size << 1) | Q)}, std::nullopt);
                 return std::make_pair
                 (
-                    specifiersTable.at(regSize / 8 - 1),
-                    std::optional<unsigned short int>{indexTable.at(regSize)}
+					disxx::disasm::operand::VectorArrangementSpecifier{static_cast<unsigned short int>(0b1000 | (rsize / 8 - 1))},
+                    indexTable.at(rsize)
                 );
             }()
         };
         
-        for (const auto Ri : std::views::iota(Rt, std::add_sat<unsigned short int>(Rt, regs)))
+        for (const auto Ri : std::views::iota(Rt, std::add_sat<unsigned short int>(Rt, nregs)))
         {
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_NEON, Ri, 128 + 'V'));
-            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetArrangementSpecifier(spec);
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_V,
+					Ri
+				)
+			);
+            static_cast<disxx::disasm::operand::Register *>(this->m_Operands.rbegin()->get())->SetVectorArrangementSpecifier(spec);
         }
 
         if (index)
             this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 4>>(*index));
-        disxx::disasm::operand::Register reg{disxx::disasm::operand::Register::Type::TYPE_GPR, Rn, 64, true};
-		this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>(std::move(reg)));
+		this->m_Operands.emplace_back
+		(
+			std::make_unique<disxx::disasm::operand::LoadsAndStoresAddress>
+			(
+				disxx::disasm::operand::Register
+				{
+					disxx::disasm::operand::Register::Type::TYPE_X,
+					Rn,
+					true
+				}
+			)
+		);
         if (Rm != 0b11111)
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Register>(disxx::disasm::operand::Register::Type::TYPE_GPR, Rm, 64, true));
-        else
-            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>((regSize * regs) / 8));
+		{
+            this->m_Operands.emplace_back
+			(
+				std::make_unique<disxx::disasm::operand::Register>
+				(
+					disxx::disasm::operand::Register::Type::TYPE_X,
+					Rm,
+					true
+				)
+			);
+        }
+		else
+            this->m_Operands.emplace_back(std::make_unique<disxx::disasm::operand::Immediate<unsigned short int, 6>>(rsize * nregs / 8));
     
         return std::make_pair(insn, std::move(this->m_Operands));
 	}
